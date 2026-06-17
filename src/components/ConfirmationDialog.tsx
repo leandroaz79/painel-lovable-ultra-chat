@@ -29,7 +29,7 @@ export default function ConfirmationDialog({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-40"
+        className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center"
         onClick={onCancel}
         role="presentation"
         aria-hidden="true"
@@ -37,13 +37,13 @@ export default function ConfirmationDialog({
 
       {/* Modal */}
       <div
-        className="fixed inset-0 flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
         aria-describedby="dialog-message"
       >
-        <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-w-sm w-full">
+        <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-w-sm w-full pointer-events-auto">
           {/* Header */}
           <div className="p-6 border-b border-slate-700">
             <h2
