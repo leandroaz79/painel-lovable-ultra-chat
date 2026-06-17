@@ -34,3 +34,7 @@ Thumbs.db
 # Temp files
 *.tmp
 *.bak
+
+# Trae skills local artifacts
+.agents/
+skills-lock.json
