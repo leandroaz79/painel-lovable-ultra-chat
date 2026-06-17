@@ -87,28 +87,62 @@ A configuração `netlify.toml` já está pronta com:
 
 ## 🐳 Deploy Easypanel (Docker)
 
+### ⚠️ Importante: Variáveis de Ambiente no Build
+
+Como é uma aplicação **React/Vite**, as variáveis de ambiente precisam ser definidas **no momento do build**, não em runtime.
+
 ### Opção 1: Usando Docker Compose
 
 ```bash
-# Build local
-docker-compose up --build
+# Clone repositório
+git clone https://github.com/leandroaz79/painel-lovable-ultra-chat.git
+cd painel-lovable-ultra-chat
+
+# Crie arquivo .env com suas credenciais
+cat > .env << EOF
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua-chave-anonima
+VITE_API_URL=https://seu-dominio-easypanel.com
+EOF
+
+# Build e deploy
+docker-compose up --build -d
 
 # Acesse http://localhost:3000
 ```
 
 ### Opção 2: Usando Easypanel Dashboard
 
-1. Conectar repositório GitHub
-2. Configurar variáveis de ambiente
-3. Definir porta: `3000`
-4. Easypanel detecta `Dockerfile` automaticamente
+1. **Conectar repositório GitHub**:
+   - Dashboard → "New Service"
+   - Type: Docker
+   - GitHub: `https://github.com/leandroaz79/painel-lovable-ultra-chat`
 
-**Variáveis necessárias:**
+2. **Configurar Build Arguments** (CRÍTICO):
+   - Em "Build Args" ou "Build Settings", adicione:
+     ```
+     VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+     VITE_SUPABASE_ANON_KEY=sua-chave-anonima
+     VITE_API_URL=https://seu-dominio-easypanel.com
+     ```
+
+3. **Configurar porta**: `3000`
+
+4. **Deploy**: Clique em "Deploy"
+
+### Opção 3: Build Manual com Docker CLI
+
+```bash
+docker build \
+  --build-arg VITE_SUPABASE_URL=https://seu-projeto.supabase.co \
+  --build-arg VITE_SUPABASE_ANON_KEY=sua-chave-anonima \
+  --build-arg VITE_API_URL=https://seu-dominio-easypanel.com \
+  -t painel-lovable:latest .
+
+docker run -p 3000:3000 painel-lovable:latest
 ```
-VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-VITE_SUPABASE_ANON_KEY=sua-chave-anonima
-VITE_API_URL=https://seu-dominio.com
-```
+
+**Nota**: Se não passar `VITE_API_URL`, você verá tela em branco. Certifique-se que está definido!
 
 ## 📁 Estrutura do Projeto
 
