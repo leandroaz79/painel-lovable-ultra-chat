@@ -215,7 +215,7 @@ export default function Landing() {
         <div className="hero-container">
           <div className="hero-badge">
             <span className="hero-badge-dot" />
-            EXTENSÃO PARA NAVEGADORES • 436ms
+            EXTENSÃO PARA NAVEGADORES
           </div>
           <h1 className="hero-title">
             Domine o Lovable com{' '}
