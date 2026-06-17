@@ -4,6 +4,7 @@ import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
+import ResellerLayout from '../../components/ResellerLayout'
 
 interface License {
   license_key: string
@@ -19,7 +20,7 @@ interface License {
 }
 
 export default function ResellerDashboard() {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const { showToast } = useToast()
   const { copyLicenseKey, renewLicense, resetHwid, revokeLicense, deleteLicense, submitMutation } = useLicenseActions()
   const [licenses, setLicenses] = useState<License[]>([])
@@ -48,7 +49,6 @@ export default function ResellerDashboard() {
   const [showPixModal, setShowPixModal] = useState(false)
   const [, setPaymentId] = useState('')
   const [pricingTiers, setPricingTiers] = useState<Array<{min_quantity: number, max_quantity: number | null, unit_price: number}>>([])
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   useEffect(() => {
     document.body.classList.add('session-ready')
     loadDashboard()
@@ -406,75 +406,9 @@ export default function ResellerDashboard() {
   const paginatedLicenses = filteredLicenses.slice((safePage - 1) * pageSize, safePage * pageSize)
 
   return (
-    <>
-      <header className="topbar">
-        {/* Botão Hamburger Mobile */}
-        <button
-          className="mobile-menu-btn"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          style={{ display: 'none', flexDirection: 'column', gap: '5px', background: 'transparent', border: 'none', padding: '8px', cursor: 'pointer' }}
-        >
-          <span style={{ width: '24px', height: '2px', background: 'var(--text)', borderRadius: '2px', transition: '0.3s', transform: mobileMenuOpen ? 'translateY(7px) rotate(45deg)' : 'none' }}></span>
-          <span style={{ width: '24px', height: '2px', background: 'var(--text)', borderRadius: '2px', transition: '0.3s', opacity: mobileMenuOpen ? 0 : 1 }}></span>
-          <span style={{ width: '24px', height: '2px', background: 'var(--text)', borderRadius: '2px', transition: '0.3s', transform: mobileMenuOpen ? 'translateY(-7px) rotate(-45deg)' : 'none' }}></span>
-        </button>
-
-        <a className="brand" href="#" aria-label="Painel Revendedor">
-          <span className="brand-bolt">⚡</span>
-          <strong>Ultra<span>Revendedor</span></strong>
-        </a>
-        <nav className="nav-links" aria-label="Navegação principal">
-          <a href="#dashboard">Painel</a>
-          <a href="#licenses">Licenças</a>
-        </nav>
-        <div className="session-box">
-          <span>{user?.email || 'Carregando...'}</span>
-          <Button variant="ghost" onClick={() => signOut()}>Sair</Button>
-        </div>
-      </header>
-
-      {/* Menu Mobile */}
-      {mobileMenuOpen && (
-        <>
-          <div 
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1001 }}
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <nav style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '280px',
-            height: '100vh',
-            background: 'linear-gradient(145deg, rgba(15, 30, 44, 0.98), rgba(7, 17, 28, 0.95))',
-            backdropFilter: 'blur(20px)',
-            borderRight: '1px solid var(--line)',
-            boxShadow: '4px 0 24px rgba(0, 0, 0, 0.5)',
-            zIndex: 1002,
-            padding: '20px',
-            animation: 'slideIn 0.3s ease'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-              <div className="brand">
-                <span className="brand-bolt">⚡</span>
-                <strong>Ultra<span>Revendedor</span></strong>
-              </div>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--line)', color: 'var(--text)', fontSize: '20px', cursor: 'pointer' }}
-              >✕</button>
-            </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              <li><a href="#dashboard" onClick={() => setMobileMenuOpen(false)} style={{ display: 'block', padding: '14px', color: 'var(--muted)', borderLeft: '3px solid transparent' }}>Painel</a></li>
-              <li><a href="#licenses" onClick={() => setMobileMenuOpen(false)} style={{ display: 'block', padding: '14px', color: 'var(--muted)', borderLeft: '3px solid transparent' }}>Licenças</a></li>
-              <li><button onClick={() => { signOut(); setMobileMenuOpen(false); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '14px', color: '#ff8a98', background: 'rgba(255,61,85,0.1)', border: 'none', marginTop: '16px', borderRadius: '12px', cursor: 'pointer' }}>Sair</button></li>
-            </ul>
-          </nav>
-        </>
-      )}
-
+    <ResellerLayout currentPage="/reseller">
       <main className="app-shell">
-        <section className="hero-panel reveal">
+        <section id="dashboard" className="hero-panel reveal">
           <div>
             <p className="eyebrow">Painel do Revendedor</p>
             <h1>Gere e gerencie suas chaves.</h1>
@@ -482,7 +416,7 @@ export default function ResellerDashboard() {
           </div>
         </section>
 
-        <div className="glass-card" style={{ background: 'linear-gradient(135deg, rgba(109,232,255,0.12), rgba(157,255,47,0.08))', padding: '24px', marginBottom: '28px' }}>
+        <div id="credits" className="glass-card" style={{ background: 'linear-gradient(135deg, rgba(109,232,255,0.12), rgba(157,255,47,0.08))', padding: '24px', marginBottom: '28px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(157,255,47,0.2)', display: 'grid', placeItems: 'center', fontSize: '24px' }}>
               🔑
@@ -500,7 +434,7 @@ export default function ResellerDashboard() {
         </div>
 
         <section className="work-grid">
-          <article className="glass-card">
+          <article id="create-license" className="glass-card">
             <div className="card-heading"><span className="icon-pill">🔑</span><h2>Gerar licença</h2></div>
             <form className="stack-form" onSubmit={handleCreateLicense}>
               <label><span>Nome do cliente</span><input id="user-name" type="text" placeholder="Ex: João Silva" required /></label>
@@ -537,7 +471,7 @@ export default function ResellerDashboard() {
             </form>
           </article>
 
-          <article className="glass-card">
+          <article id="create-trial" className="glass-card">
             <div className="card-heading"><span className="icon-pill">⏱️</span><h2>Gerar teste (máx. 30min)</h2></div>
             <form className="stack-form" onSubmit={handleCreateTrial}>
               <label><span>Nome do cliente (opcional)</span><input id="trial-name" type="text" placeholder="Ex: João Silva" /></label>
@@ -821,6 +755,6 @@ export default function ResellerDashboard() {
         </div>
       )}
 
-    </>
+    </ResellerLayout>
   )
 }
