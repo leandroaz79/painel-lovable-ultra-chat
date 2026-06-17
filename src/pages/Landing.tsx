@@ -188,7 +188,6 @@ export default function Landing() {
       {/* Top Promo Banner */}
       <div className="promo-banner">
         <span>Promoção Especial: 30% OFF em qualquer plano</span>
-        <span className="promo-coupon">Use o Cupom: ULTRA30</span>
       </div>
 
       {/* Header */}

@@ -1084,15 +1084,6 @@ td small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px
   flex-wrap: wrap;
 }
 
-.promo-coupon {
-  padding: 0.25rem 0.75rem;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 0.375rem;
-  font-family: 'Courier New', monospace;
-  font-weight: 800;
-  color: var(--accent);
-  white-space: nowrap;
-}
 
 /* Header - Sticky com backdrop blur */
 .landing-header {
