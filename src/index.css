@@ -494,25 +494,64 @@ td small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px
   }
   
   
-  /* Transformar tabela em cards empilháveis */
+  /* Transformar tabela EM CARDS apenas para tabelas de dados (não comparativas) */
   .table-wrap {
     overflow-x: visible !important;
   }
   
-  table {
+  /* NÃO transformar tabela comparativa em cards */
+  .comparison-table-wrap {
+    overflow-x: auto !important;
+  }
+  
+  .comparison-table {
+    display: table;
+    min-width: 40rem !important;
+  }
+  
+  .comparison-table thead {
+    display: table-header-group;
+  }
+  
+  .comparison-table tbody {
+    display: table-row-group;
+  }
+  
+  .comparison-table tr {
+    display: table-row;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    margin-bottom: 0;
+  }
+  
+  .comparison-table td {
+    display: table-cell;
+    text-align: left !important;
+    padding: 0.875rem 1rem !important;
+    border-bottom: 1px solid var(--line) !important;
+  }
+  
+  .comparison-table td:before {
+    display: none;
+  }
+  
+  /* Tabelas normais viram cards */
+  .table-wrap table {
     display: block;
     min-width: auto !important;
   }
   
-  thead {
-    display: none; /* Ocultar cabeçalho */
+  .table-wrap thead {
+    display: none;
   }
   
-  tbody {
+  .table-wrap tbody {
     display: block;
   }
   
-  tr {
+  .table-wrap tr {
     display: block;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--line);
@@ -521,15 +560,14 @@ td small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px
     margin-bottom: 12px;
   }
   
-  td {
+  .table-wrap td {
     display: block;
     text-align: left !important;
     padding: 8px 0 !important;
     border: none !important;
   }
   
-  /* Adicionar labels antes de cada dado */
-  td:before {
+  .table-wrap td:before {
     content: attr(data-label);
     font-weight: bold;
     color: var(--accent);
@@ -539,8 +577,7 @@ td small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px
     margin-bottom: 4px;
   }
   
-  /* Botões de ação empilhados */
-  td .actions-row {
+  .table-wrap td .actions-row {
     display: flex;
     flex-direction: column;
     gap: 8px;
