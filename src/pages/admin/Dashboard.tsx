@@ -326,9 +326,6 @@ export default function AdminDashboard() {
             <h1>Gestão de licenças Ultra Chat.</h1>
             <p>Crie chaves, monitore uso, libere dispositivos e prepare operação para revendedores.</p>
           </div>
-          <Button onClick={() => { loadLicenses(); loadCommercialStats(); }} size="sm">
-            Atualizar dados
-          </Button>
         </section>
 
         <section className="stats-grid" aria-label="Indicadores">

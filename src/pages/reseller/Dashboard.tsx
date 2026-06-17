@@ -480,7 +480,6 @@ export default function ResellerDashboard() {
             <h1>Gere e gerencie suas chaves.</h1>
             <p>Use seus créditos para criar licenças vitalícias e testes de 30 minutos.</p>
           </div>
-          <button onClick={() => { loadDashboard(); loadLicenses(); }} className="primary-action compact" type="button">Atualizar dados</button>
         </section>
 
         <div className="glass-card" style={{ background: 'linear-gradient(135deg, rgba(109,232,255,0.12), rgba(157,255,47,0.08))', padding: '24px', marginBottom: '28px' }}>
