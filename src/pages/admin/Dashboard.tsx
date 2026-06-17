@@ -6,6 +6,7 @@ import { useLicenseActions } from '../../hooks/useLicenseActions'
 import SalesChart from '../../components/SalesChart'
 import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
+import ConfirmationDialog from '../../components/ConfirmationDialog'
 import { Button } from '../../components/ui/button'
 
 interface License {
@@ -46,6 +47,21 @@ export default function AdminDashboard() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(15)
   const PAGE_SIZE_OPTIONS = [10, 15, 25, 50]
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    action: null | 'delete' | 'revoke'
+    licenseKey: string
+    isLoading: boolean
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    action: null,
+    licenseKey: '',
+    isLoading: false,
+  })
 
   useEffect(() => {
     loadLicenses()
@@ -259,15 +275,56 @@ export default function AdminDashboard() {
     }
 
     if (action === 'revoke') {
-      await revokeLicense(key, button)
+      setConfirmDialog({
+        isOpen: true,
+        title: 'Revogar Licença',
+        message: 'Tem certeza que deseja revogar esta licença? O cliente não poderá mais usar.',
+        action: 'revoke',
+        licenseKey: key,
+        isLoading: false,
+      })
+      return
     }
 
     if (action === 'delete') {
-      await deleteLicense(key, button, false)
+      setConfirmDialog({
+        isOpen: true,
+        title: 'Deletar Licença',
+        message: 'Tem certeza que deseja deletar esta licença? Esta ação não pode ser desfeita.',
+        action: 'delete',
+        licenseKey: key,
+        isLoading: false,
+      })
+      return
     }
 
     await loadLicenses()
     loadCommercialStats()
+  }
+
+  async function handleConfirmDialog() {
+    const { action, licenseKey } = confirmDialog
+    setConfirmDialog(prev => ({ ...prev, isLoading: true }))
+
+    try {
+      if (action === 'revoke') {
+        await revokeLicense(licenseKey, null as any)
+        showToast('Licença revogada com sucesso.', 'success')
+      } else if (action === 'delete') {
+        await deleteLicense(licenseKey, null as any, false)
+        showToast('Licença deletada com sucesso.', 'success')
+      }
+      setConfirmDialog(prev => ({ ...prev, isOpen: false }))
+      await loadLicenses()
+      loadCommercialStats()
+    } catch (error) {
+      showToast('Erro ao executar ação.', 'error')
+      setConfirmDialog(prev => ({ ...prev, isLoading: false }))
+    }
+  }
+
+  function handleCloseDialog() {
+    setConfirmDialog(prev => ({ ...prev, isOpen: false }))
   }
 
   function formatDate(value: string) {
@@ -545,6 +602,19 @@ export default function AdminDashboard() {
             </div>
           </div>
         </section>
-      </main>    </AdminLayout>
+      </main>
+      
+      <ConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.action === 'delete' ? 'Deletar' : 'Revogar'}
+        cancelText="Cancelar"
+        isDangerous={true}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={handleConfirmDialog}
+        onCancel={handleCloseDialog}
+      />
+    </AdminLayout>
   )
 }
