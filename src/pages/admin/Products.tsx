@@ -106,6 +106,7 @@ export default function Products() {
         <nav className="nav-links" aria-label="Navegação principal">
           <a href="/admin">Painel</a>
           <a href="/admin#licenses">Licenças</a>
+          <a href="/admin/customers">Clientes</a>
           <a href="/admin/resellers">Revendedores</a>
           <a href="/admin/sales">Vendas</a>
           <a href="/admin/products">Produtos</a>

@@ -4,6 +4,7 @@ import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
+import ConfirmationDialog from '../../components/ConfirmationDialog'
 import { Button } from '../../components/ui/button'
 
 interface Reseller {
@@ -30,6 +31,24 @@ export default function Resellers() {
   const [selectedReseller, setSelectedReseller] = useState<Reseller | null>(null)
   const [creditsAmount, setCreditsAmount] = useState(0)
   const [creditsReason, setCreditsReason] = useState('')
+  const [resellerName, setResellerName] = useState('')
+  const [resellerEmail, setResellerEmail] = useState('')
+  const [resellerWhatsapp, setResellerWhatsapp] = useState('')
+  const [resellerStatus, setResellerStatus] = useState<'active' | 'pending' | 'suspended'>('active')
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    reseller: Reseller | null
+    isLoading: boolean
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    reseller: null,
+    isLoading: false,
+  })
   
   // Estado para modal de criar revendedor
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -44,6 +63,53 @@ export default function Resellers() {
   useEffect(() => {
     loadResellers()
   }, [])
+
+  useEffect(() => {
+    if (!selectedReseller) return
+    setResellerName(selectedReseller.name || '')
+    setResellerEmail(selectedReseller.email || '')
+    setResellerWhatsapp(selectedReseller.whatsapp || '')
+    setResellerStatus(selectedReseller.status)
+  }, [selectedReseller])
+
+  async function callAdminManageReseller(payload: Record<string, unknown>) {
+    const { data: { session } } = await supabase.auth.getSession()
+
+    const response = await fetch(`${SUPABASE_URL}${FUNCTIONS.ADMIN_MANAGE_RESELLER}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const result = await response.json()
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || 'Erro ao executar ação no revendedor')
+    }
+
+    return result
+  }
+
+  function openManageModal(reseller: Reseller) {
+    setSelectedReseller(reseller)
+    setCreditsAmount(0)
+    setCreditsReason('')
+    setShowManageModal(true)
+  }
+
+  function closeManageModal() {
+    setShowManageModal(false)
+    setSelectedReseller(null)
+    setCreditsAmount(0)
+    setCreditsReason('')
+    setResellerName('')
+    setResellerEmail('')
+    setResellerWhatsapp('')
+    setResellerStatus('active')
+    setSavingProfile(false)
+  }
 
   async function loadResellers() {
     try {
@@ -119,9 +185,7 @@ export default function Resellers() {
       })
 
       showToast(`${Math.abs(amount)} créditos ${type === 'add' ? 'adicionados' : 'removidos'}`)
-      setShowManageModal(false)
-      setCreditsAmount(0)
-      setCreditsReason('')
+      closeManageModal()
       await loadResellers()
     } catch (error: unknown) {
       showToast(error instanceof Error ? error.message : 'Erro ao gerenciar créditos', 'error')
@@ -174,6 +238,36 @@ export default function Resellers() {
     }
   }
 
+  async function handleSaveResellerProfile() {
+    if (!selectedReseller || !resellerName.trim() || !resellerEmail.trim()) return
+
+    setSavingProfile(true)
+    try {
+      await callAdminManageReseller({
+        user_id: selectedReseller.id,
+        action: 'update_profile',
+        name: resellerName.trim(),
+        email: resellerEmail.trim(),
+        whatsapp: resellerWhatsapp.trim(),
+        status: resellerStatus,
+      })
+
+      showToast('Cadastro do revendedor atualizado com sucesso.', 'success')
+      setSelectedReseller(prev => prev ? ({
+        ...prev,
+        name: resellerName.trim(),
+        email: resellerEmail.trim(),
+        whatsapp: resellerWhatsapp.trim(),
+        status: resellerStatus,
+      }) : prev)
+      await loadResellers()
+    } catch (error: unknown) {
+      showToast(error instanceof Error ? error.message : 'Erro ao atualizar cadastro do revendedor', 'error')
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
   async function handleSuspend(reseller: Reseller) {
     const action = reseller.status === 'active' ? 'suspender' : 'reativar'
     if (!confirm(`Deseja ${action} o revendedor ${reseller.email}?`)) return
@@ -191,6 +285,55 @@ export default function Resellers() {
     } catch (error: unknown) {
       showToast(error instanceof Error ? error.message : `Erro ao ${action}`, 'error')
     }
+  }
+
+  function handleAskDeleteReseller(reseller: Reseller) {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Excluir Revendedor',
+      message: `Deseja excluir o revendedor ${reseller.email}? Essa ação remove o cadastro de revenda e o acesso como revendedor.`,
+      reseller,
+      isLoading: false,
+    })
+  }
+
+  async function handleConfirmDeleteReseller() {
+    if (!confirmDialog.reseller) return
+
+    setConfirmDialog(prev => ({ ...prev, isLoading: true }))
+
+    try {
+      await callAdminManageReseller({
+        user_id: confirmDialog.reseller.id,
+        action: 'delete',
+      })
+
+      showToast('Revendedor excluído com sucesso.', 'success')
+      if (selectedReseller?.id === confirmDialog.reseller.id) {
+        closeManageModal()
+      }
+      setConfirmDialog({
+        isOpen: false,
+        title: '',
+        message: '',
+        reseller: null,
+        isLoading: false,
+      })
+      await loadResellers()
+    } catch (error: unknown) {
+      showToast(error instanceof Error ? error.message : 'Erro ao excluir revendedor', 'error')
+      setConfirmDialog(prev => ({ ...prev, isLoading: false }))
+    }
+  }
+
+  function handleCloseDeleteDialog() {
+    setConfirmDialog({
+      isOpen: false,
+      title: '',
+      message: '',
+      reseller: null,
+      isLoading: false,
+    })
   }
 
   const filteredResellers = resellers.filter(r => {
@@ -217,6 +360,7 @@ export default function Resellers() {
         <nav className="nav-links" aria-label="Navegação principal">
           <a href="/admin">Painel</a>
           <a href="/admin#licenses">Licenças</a>
+          <a href="/admin/customers">Clientes</a>
           <a href="/admin/resellers">Revendedores</a>
           <a href="/admin/sales">Vendas</a>
           <a href="/admin/products">Produtos</a>
@@ -302,7 +446,7 @@ export default function Resellers() {
                       <div className="actions-row">
                         <Button
                           size="tiny"
-                          onClick={() => { setSelectedReseller(reseller); setShowManageModal(true); }}
+                          onClick={() => openManageModal(reseller)}
                         >
                           Gerenciar
                         </Button>
@@ -312,6 +456,13 @@ export default function Resellers() {
                           onClick={() => handleSuspend(reseller)}
                         >
                           {reseller.status === 'active' ? 'Suspender' : 'Reativar'}
+                        </Button>
+                        <Button
+                          size="tiny"
+                          variant="destructive"
+                          onClick={() => handleAskDeleteReseller(reseller)}
+                        >
+                          Excluir
                         </Button>
                       </div>
                     </td>
@@ -325,9 +476,9 @@ export default function Resellers() {
 
       {/* Modal Gerenciar Revendedor */}
       {showManageModal && selectedReseller && (
-        <div className="modal-overlay" onClick={() => setShowManageModal(false)}>
+        <div className="modal-overlay" onClick={closeManageModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowManageModal(false)}>&times;</button>
+            <button className="modal-close" onClick={closeManageModal}>&times;</button>
             <h2>Gerenciar Revendedor</h2>
             <p style={{ color: 'var(--muted)', marginBottom: '24px' }}>
               {selectedReseller.email}
@@ -343,7 +494,100 @@ export default function Resellers() {
               </div>
             </div>
 
-            <form className="stack-form" onSubmit={(e) => e.preventDefault()}>
+            <div className="stack-form">
+              <div style={{ marginBottom: '8px' }}>
+                <h3 style={{ margin: '0 0 6px', fontSize: '16px' }}>Dados cadastrais</h3>
+                <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px' }}>
+                  Visualize e atualize as informações do revendedor.
+                </p>
+              </div>
+
+              <label>
+                <span>Nome completo</span>
+                <input
+                  type="text"
+                  value={resellerName}
+                  onChange={(e) => setResellerName(e.target.value)}
+                  placeholder="Nome do revendedor"
+                />
+              </label>
+
+              <label>
+                <span>Email</span>
+                <input
+                  type="email"
+                  value={resellerEmail}
+                  onChange={(e) => setResellerEmail(e.target.value)}
+                  placeholder="email@exemplo.com"
+                />
+              </label>
+
+              <div className="split-fields">
+                <label>
+                  <span>WhatsApp</span>
+                  <input
+                    type="tel"
+                    value={resellerWhatsapp}
+                    onChange={(e) => setResellerWhatsapp(e.target.value)}
+                    placeholder="(11) 99999-9999"
+                  />
+                </label>
+                <label>
+                  <span>Status</span>
+                  <select
+                    value={resellerStatus}
+                    onChange={(e) => setResellerStatus(e.target.value as 'active' | 'pending' | 'suspended')}
+                  >
+                    <option value="active">Ativo</option>
+                    <option value="pending">Pendente</option>
+                    <option value="suspended">Suspenso</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="split-fields">
+                <label>
+                  <span>Cadastro</span>
+                  <input
+                    type="text"
+                    value={new Date(selectedReseller.created_at).toLocaleDateString('pt-BR')}
+                    readOnly
+                  />
+                </label>
+                <label>
+                  <span>Ativação paga em</span>
+                  <input
+                    type="text"
+                    value={selectedReseller.activation_paid_at ? new Date(selectedReseller.activation_paid_at).toLocaleDateString('pt-BR') : '—'}
+                    readOnly
+                  />
+                </label>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+                <Button
+                  type="button"
+                  onClick={handleSaveResellerProfile}
+                  disabled={!resellerName.trim() || !resellerEmail.trim() || savingProfile}
+                >
+                  {savingProfile ? 'Salvando...' : 'Salvar cadastro'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => handleAskDeleteReseller(selectedReseller)}
+                >
+                  Excluir revendedor
+                </Button>
+              </div>
+
+              <div style={{ marginBottom: '8px', paddingTop: '8px', borderTop: '1px solid var(--line)' }}>
+                <h3 style={{ margin: '16px 0 6px', fontSize: '16px' }}>Gerenciar créditos</h3>
+                <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px' }}>
+                  Adicione ou remova créditos manualmente com justificativa.
+                </p>
+              </div>
+
               <label>
                 <span>Quantidade de créditos</span>
                 <input 
@@ -369,12 +613,14 @@ export default function Resellers() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <Button
+                  type="button"
                   onClick={() => handleManageCredits('add')}
                   disabled={!creditsAmount || !creditsReason}
                 >
                   ➕ Adicionar
                 </Button>
                 <Button
+                  type="button"
                   variant="destructive"
                   onClick={() => handleManageCredits('remove')}
                   disabled={!creditsAmount || !creditsReason}
@@ -382,7 +628,7 @@ export default function Resellers() {
                   ➖ Remover
                 </Button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
@@ -468,6 +714,7 @@ export default function Resellers() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '8px' }}>
                 <Button
+                  type="button"
                   variant="outline"
                   onClick={() => setShowCreateModal(false)}
                 >
@@ -484,6 +731,18 @@ export default function Resellers() {
           </div>
         </div>
       )}
+
+      <ConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText="Excluir"
+        cancelText="Cancelar"
+        isDangerous={true}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={handleConfirmDeleteReseller}
+        onCancel={handleCloseDeleteDialog}
+      />
 
     </div>
     </AdminLayout>

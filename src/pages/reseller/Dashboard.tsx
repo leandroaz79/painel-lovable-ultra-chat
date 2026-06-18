@@ -626,7 +626,7 @@ export default function ResellerDashboard() {
                             <Button size="tiny" data-action="renew" data-key={license.license_key}>Renovar</Button>
                           )}
                           {license.license_type !== 'trial' || license.lifetime ? (
-                            <Button size="tiny" data-action="reset" data-key={license.license_key}>HWID</Button>
+                            <Button size="tiny" data-action="reset" data-key={license.license_key}>Liberar PC</Button>
                           ) : null}
                           {license.status !== 'suspended' && (
                             <Button size="tiny" variant="destructive" data-action="revoke" data-key={license.license_key}>Revogar</Button>

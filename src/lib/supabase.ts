@@ -21,6 +21,9 @@ export const FUNCTIONS = {
   DELETE_LICENSE: '/functions/v1/admin-delete-license',
   CLEANUP_EXPIRED_TRIALS: '/functions/v1/admin-cleanup-expired-trials',
   ADMIN_CREATE_RESELLER: '/functions/v1/admin-create-reseller',
+  ADMIN_MANAGE_RESELLER: '/functions/v1/admin-manage-reseller',
+  ADMIN_LIST_CUSTOMERS: '/functions/v1/admin-list-customers',
+  ADMIN_MANAGE_CUSTOMER: '/functions/v1/admin-manage-customer',
   
   // Revendedor
   RESELLER_DASHBOARD: '/functions/v1/reseller-dashboard',

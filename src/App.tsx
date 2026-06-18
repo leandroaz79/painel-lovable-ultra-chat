@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Landing from './pages/Landing'
 import UserDashboard from './pages/user/Dashboard'
 import AdminDashboard from './pages/admin/Dashboard'
+import Customers from './pages/admin/Customers'
 import Resellers from './pages/admin/Resellers'
 import Sales from './pages/admin/Sales'
 import Products from './pages/admin/Products'
@@ -58,6 +59,15 @@ function App() {
           }
         />
         
+        <Route
+          path="/admin/customers"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Customers />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/admin/resellers"
           element={

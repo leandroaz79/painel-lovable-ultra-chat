@@ -12,6 +12,7 @@ export default function AdminSidebar({ currentPage }: AdminSidebarProps) {
   const menuItems = [
     { href: '/admin', icon: '📊', label: 'Painel', key: '/admin' },
     { href: '/admin#licenses', icon: '🔑', label: 'Licenças', key: '/admin#licenses' },
+    { href: '/admin/customers', icon: '🧑', label: 'Clientes', key: '/admin/customers' },
     { href: '/admin/resellers', icon: '👥', label: 'Revendedores', key: '/admin/resellers' },
     { href: '/admin/sales', icon: '💰', label: 'Vendas', key: '/admin/sales' },
     { href: '/admin/products', icon: '🏷️', label: 'Produtos', key: '/admin/products' },

@@ -10,6 +10,7 @@ export default function MobileMenu({ currentPage }: MobileMenuProps) {
   const links = [
     { href: '/admin', label: 'Painel' },
     { href: '/admin#licenses', label: 'Licenças' },
+    { href: '/admin/customers', label: 'Clientes' },
     { href: '/admin/resellers', label: 'Revendedores' },
     { href: '/admin/sales', label: 'Vendas' },
     { href: '/admin/products', label: 'Produtos' }
