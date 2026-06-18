@@ -282,18 +282,18 @@ export default function Sales() {
               ) : (
                 filteredPurchases.map(purchase => (
                   <tr key={purchase.id}>
-                    <td>
+                    <td data-label="Data">
                       <strong>{new Date(purchase.created_at).toLocaleDateString('pt-BR')}</strong>
                       <small>{new Date(purchase.created_at).toLocaleTimeString('pt-BR')}</small>
                     </td>
-                    <td>{purchase.reseller_email}</td>
-                    <td>
+                    <td data-label="Revendedor">{purchase.reseller_email}</td>
+                    <td data-label="Comprador">
                       <strong>{purchase.buyer_name}</strong>
                       <small>{purchase.buyer_email}</small>
                     </td>
-                    <td>{purchase.quantity}</td>
-                    <td>R$ {purchase.amount.toFixed(2)}</td>
-                    <td>
+                    <td data-label="Qtd">{purchase.quantity}</td>
+                    <td data-label="Valor">R$ {purchase.amount.toFixed(2)}</td>
+                    <td data-label="Status">
                       <span className={`badge ${purchase.status}`}>
                         {purchase.status === 'approved' && 'Aprovado'}
                         {purchase.status === 'pending' && 'Pendente'}
@@ -301,12 +301,12 @@ export default function Sales() {
                         {purchase.status === 'refunded' && 'Estornado'}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Payment ID">
                       <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>
                         {purchase.payment_id.substring(0, 12)}...
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Ações">
                       <div className="actions-row">
                         {purchase.status === 'pending' && (
                           <button 

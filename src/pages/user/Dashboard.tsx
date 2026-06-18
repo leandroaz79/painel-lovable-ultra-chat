@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
+import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
+import ConfirmationDialog from '../../components/ConfirmationDialog'
 
 interface License {
   license_key: string
@@ -16,12 +18,28 @@ interface License {
 export default function UserDashboard() {
   const { user, signOut } = useAuth()
   const { showToast } = useToast()
+  const { copyLicenseKey } = useLicenseActions()
   const [licenses, setLicenses] = useState<License[]>([])
   const [loading, setLoading] = useState(true)
   const [generatingTrial, setGeneratingTrial] = useState(false)
   const [hasTrial, setHasTrial] = useState(false)
   const [videoUrl] = useState('https://www.youtube.com/embed/dQw4w9WgXcQ')
   const [downloadUrl] = useState('#')
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    action: null | 'delete'
+    licenseKey: string
+    isLoading: boolean
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    action: null,
+    licenseKey: '',
+    isLoading: false,
+  })
 
   useEffect(() => {
     document.body.classList.add('session-ready')
@@ -101,6 +119,49 @@ export default function UserDashboard() {
     } finally {
       setGeneratingTrial(false)
     }
+  }
+
+  async function handleDeleteLicense(licenseKey: string) {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Deletar Licença',
+      message: 'Tem certeza que deseja deletar esta licença? Esta ação não pode ser desfeita.',
+      action: 'delete',
+      licenseKey: licenseKey,
+      isLoading: false,
+    })
+  }
+
+  async function handleConfirmDialog() {
+    const { action, licenseKey } = confirmDialog
+    setConfirmDialog(prev => ({ ...prev, isLoading: true }))
+
+    try {
+      if (action === 'delete') {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-license`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({ license_key: licenseKey }),
+        })
+        
+        const result = await response.json()
+        if (!result.success) throw new Error(result.error)
+        
+        showToast('Licença deletada com sucesso.', 'success')
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }))
+        await loadLicenses()
+      }
+    } catch (error) {
+      showToast('Erro ao deletar licença.', 'error')
+      setConfirmDialog(prev => ({ ...prev, isLoading: false }))
+    }
+  }
+
+  function handleCloseDialog() {
+    setConfirmDialog(prev => ({ ...prev, isOpen: false }))
   }
 
   function formatDate(dateStr: string | null) {
@@ -387,18 +448,35 @@ export default function UserDashboard() {
                 ) : (
                   licenses.map((license) => (
                     <tr key={license.license_key}>
-                      <td>
+                      <td data-label="Chave">
                         <span className="license-key">{license.license_key}</span>
                       </td>
-                      <td>
+                      <td data-label="Status">
                         <span className={`badge ${license.status}`}>
                           {statusLabel(license.status)}
                         </span>
                       </td>
-                      <td>{license.license_type === 'trial' ? 'Trial' : license.license_type === 'lifetime' ? 'Vitalícia' : 'Paga'}</td>
-                      <td>{formatDate(license.expires_at)}</td>
-                      <td>{license.device_id ? 'vinculado' : 'livre'}</td>
-                      <td>{formatDate(license.created_at)}</td>
+                      <td data-label="Tipo">{license.license_type === 'trial' ? 'Trial' : license.license_type === 'lifetime' ? 'Vitalícia' : 'Paga'}</td>
+                      <td data-label="Expira em">{formatDate(license.expires_at)}</td>
+                      <td data-label="HWID">{license.device_id ? 'vinculado' : 'livre'}</td>
+                      <td data-label="Criada em">{formatDate(license.created_at)}</td>
+                      <td data-label="Ações">
+                        <div className="actions-row">
+                          <Button 
+                            size="tiny" 
+                            onClick={() => copyLicenseKey(license.license_key)}
+                          >
+                            Copiar
+                          </Button>
+                          <Button 
+                            size="tiny" 
+                            variant="destructive" 
+                            onClick={() => handleDeleteLicense(license.license_key)}
+                          >
+                            Deletar
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -420,6 +498,18 @@ export default function UserDashboard() {
           <p>© 2026 Ultra Chat. Todos os direitos reservados.</p>
         </div>
       </footer>
+
+      <ConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText="Deletar"
+        cancelText="Cancelar"
+        isDangerous={true}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={handleConfirmDialog}
+        onCancel={handleCloseDialog}
+      />
     </div>
   )
 }

@@ -461,10 +461,15 @@ td small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px
   
   .metric-card {
     padding: 14px;
+    min-width: 0;
   }
   
   .metric-card strong {
     font-size: 24px;
+  }
+
+  .metric-card span, .metric-card small {
+    font-size: 11px;
   }
   
   /* Work Grid: 1 coluna no mobile */
@@ -667,6 +672,55 @@ td small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px
   
   .auth-copy h1 {
     font-size: 32px;
+  }
+}
+
+/* Telas muito pequenas (<360px) */
+@media (max-width: 359px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .metric-card {
+    padding: 12px;
+  }
+
+  .metric-card strong {
+    font-size: 20px;
+  }
+
+  .metric-card span, .metric-card small {
+    font-size: 10px;
+  }
+
+  .app-shell {
+    width: calc(100% - 24px);
+    margin: 32px auto 60px;
+    gap: 20px;
+  }
+
+  .hero-panel {
+    padding: 20px 16px !important;
+  }
+
+  .table-card {
+    overflow: hidden;
+  }
+
+  .table-head {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .table-tools {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .table-tools input {
+    width: 100%;
   }
 }
 

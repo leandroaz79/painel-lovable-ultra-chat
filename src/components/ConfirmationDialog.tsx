@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './ui/button'
 
 interface ConfirmationDialogProps {
@@ -23,16 +25,42 @@ export default function ConfirmationDialog({
   onConfirm,
   onCancel,
 }: ConfirmationDialogProps) {
-  if (!isOpen) return null
+  const [portalElement, setPortalElement] = useState<HTMLElement | null>(null)
 
-  return (
+  useEffect(() => {
+    // Criar ou obter portal container fora do app root
+    let container = document.getElementById('dialog-portal')
+    if (!container) {
+      container = document.createElement('div')
+      container.id = 'dialog-portal'
+      document.body.appendChild(container)
+    }
+    setPortalElement(container)
+
+    return () => {
+      // Limpar apenas se vazio
+      if (container && container.childNodes.length === 0) {
+        document.body.removeChild(container)
+      }
+    }
+  }, [])
+
+  if (!isOpen || !portalElement) return null
+
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{
+        position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
+        margin: 0,
+        padding: '16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
       {/* Backdrop */}
@@ -42,6 +70,7 @@ export default function ConfirmationDialog({
         role="presentation"
         aria-hidden="true"
         style={{
+          position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
@@ -56,29 +85,72 @@ export default function ConfirmationDialog({
         aria-modal="true"
         aria-labelledby="dialog-title"
         aria-describedby="dialog-message"
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          backgroundColor: '#0f172a',
+          borderColor: '#334155',
+          borderWidth: '1px',
+          borderRadius: '0.5rem',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+          maxWidth: '32rem',
+          width: '100%',
+        }}
       >
         {/* Header */}
-        <div className="p-6 border-b border-slate-700">
+        <div 
+          className="p-6 border-b border-slate-700"
+          style={{
+            padding: '1.5rem',
+            borderBottomColor: '#334155',
+            borderBottomWidth: '1px',
+          }}
+        >
           <h2
             id="dialog-title"
             className="text-lg font-semibold text-white"
+            style={{
+              fontSize: '1.125rem',
+              fontWeight: '600',
+              color: '#ffffff',
+            }}
           >
             {title}
           </h2>
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div 
+          className="p-6"
+          style={{
+            padding: '1.5rem',
+          }}
+        >
           <p
             id="dialog-message"
             className="text-sm text-slate-300 leading-relaxed"
+            style={{
+              fontSize: '0.875rem',
+              color: '#cbd5e1',
+              lineHeight: '1.5',
+            }}
           >
             {message}
           </p>
         </div>
 
         {/* Actions */}
-        <div className="p-6 border-t border-slate-700 flex gap-3 justify-end">
+        <div 
+          className="p-6 border-t border-slate-700 flex gap-3 justify-end"
+          style={{
+            padding: '1.5rem',
+            borderTopColor: '#334155',
+            borderTopWidth: '1px',
+            display: 'flex',
+            gap: '0.75rem',
+            justifyContent: 'flex-end',
+          }}
+        >
           <Button
             variant="outline"
             onClick={onCancel}
@@ -104,15 +176,7 @@ export default function ConfirmationDialog({
           </Button>
         </div>
       </div>
-
-      <style>{`
-        @media (prefers-reduced-motion: reduce) {
-          .animate-spin {
-            animation: none;
-            border: 2px solid currentColor;
-          }
-        }
-      `}</style>
-    </div>
+    </div>,
+    portalElement
   )
 }

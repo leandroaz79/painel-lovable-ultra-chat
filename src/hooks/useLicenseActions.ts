@@ -24,13 +24,15 @@ export function useLicenseActions() {
   const { showToast } = useToast()
 
   const submitMutation = useCallback(async (
-    button: HTMLButtonElement,
+    button: HTMLButtonElement | null,
     callback: () => Promise<{ license_key?: string }>,
     successMessage: string,
   ): Promise<boolean> => {
-    const original = button.textContent
-    button.disabled = true
-    button.textContent = 'Processando...'
+    const original = button?.textContent
+    if (button) {
+      button.disabled = true
+      button.textContent = 'Processando...'
+    }
 
     try {
       const result = await callback()
@@ -41,8 +43,10 @@ export function useLicenseActions() {
       showToast(errorMsg, 'error')
       return false
     } finally {
-      button.disabled = false
-      button.textContent = original
+      if (button) {
+        button.disabled = false
+        button.textContent = original || ''
+      }
     }
   }, [showToast])
 
@@ -87,8 +91,6 @@ export function useLicenseActions() {
   }, [submitMutation])
 
   const revokeLicense = useCallback(async (key: string, button: HTMLButtonElement) => {
-    if (!confirm(`Revogar a licença ${key}?\n\nA licença será suspensa e deixará de funcionar.`)) return false
-
     return submitMutation(button, async () => {
       const response = await fetchWithAuth(
         `${SUPABASE_URL}${FUNCTIONS.REVOKE_LICENSE}`,
@@ -104,8 +106,6 @@ export function useLicenseActions() {
   }, [submitMutation])
 
   const deleteLicense = useCallback(async (key: string, button: HTMLButtonElement, isReseller: boolean = false) => {
-    if (!confirm(`Excluir a licença ${key}?\n\nEsta ação é irreversível!${isReseller ? '\n\nUm crédito será devolvido.' : ''}`)) return false
-
     const functionUrl = isReseller 
       ? `${SUPABASE_URL}${FUNCTIONS.RESELLER_DELETE_LICENSE}` 
       : `${SUPABASE_URL}${FUNCTIONS.DELETE_LICENSE}`

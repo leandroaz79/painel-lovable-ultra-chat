@@ -309,10 +309,8 @@ export default function AdminDashboard() {
     try {
       if (action === 'revoke') {
         await revokeLicense(licenseKey, null as any)
-        showToast('Licença revogada com sucesso.', 'success')
       } else if (action === 'delete') {
         await deleteLicense(licenseKey, null as any, false)
-        showToast('Licença deletada com sucesso.', 'success')
       }
       setConfirmDialog(prev => ({ ...prev, isOpen: false }))
       await loadLicenses()
@@ -520,16 +518,16 @@ export default function AdminDashboard() {
                 ) : (
                   paginatedLicenses.map((license) => (
                     <tr key={license.license_key}>
-                      <td>
+                      <td data-label="Cliente">
                         <strong>{license.user_name || 'Sem nome'}</strong>
                         <small>{license.email || license.phone || '—'}</small>
                       </td>
-                      <td><span className="license-key">{license.license_key}</span></td>
-                      <td><span className={`badge ${license.status}`}>{labelStatus(license.status)}</span></td>
-                      <td>{license.lifetime ? 'Vitalícia' : license.license_type || 'paid'}</td>
-                      <td>{formatDate(license.expires_at)}</td>
-                      <td>{license.device_id ? 'vinculado' : 'livre'}</td>
-                      <td>
+                      <td data-label="Chave"><span className="license-key">{license.license_key}</span></td>
+                      <td data-label="Status"><span className={`badge ${license.status}`}>{labelStatus(license.status)}</span></td>
+                      <td data-label="Tipo">{license.lifetime ? 'Vitalícia' : license.license_type || 'paid'}</td>
+                      <td data-label="Expira">{formatDate(license.expires_at)}</td>
+                      <td data-label="HWID">{license.device_id ? 'vinculado' : 'livre'}</td>
+                      <td data-label="Ações">
                     <div className="actions-row">
                       <Button size="tiny" data-action="copy" data-key={license.license_key}>Copiar</Button>
                       {license.license_type !== 'trial' && !license.lifetime && (

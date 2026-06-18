@@ -162,8 +162,8 @@ export default function Products() {
 
                     return (
                       <tr key={tier.id}>
-                        <td><strong>{rangeText}</strong></td>
-                        <td>
+                        <td data-label="Quantidade"><strong>{rangeText}</strong></td>
+                        <td data-label="Preço Unitário">
                           {isEditing ? (
                             <input
                               type="number"
@@ -177,7 +177,7 @@ export default function Products() {
                             `R$ ${tier.unit_price.toFixed(2)}`
                           )}
                         </td>
-                        <td>
+                        <td data-label="Desconto">
                           {isEditing ? (
                             <input
                               type="number"
@@ -191,8 +191,8 @@ export default function Products() {
                             `${tier.discount_percent}%`
                           )}
                         </td>
-                        <td>R$ {basePrice.toFixed(2)}</td>
-                        <td>
+                        <td data-label="Preço Base">R$ {basePrice.toFixed(2)}</td>
+                        <td data-label="Economia">
                           {savings > 0 ? (
                             <span style={{ color: '#10b981', fontWeight: 'bold' }}>
                               -R$ {savings.toFixed(2)}
@@ -201,7 +201,7 @@ export default function Products() {
                             <span style={{ color: '#6b7280' }}>--</span>
                           )}
                         </td>
-                        <td>
+                        <td data-label="Ações">
                           <div className="actions-row">
                             {isEditing ? (
                               <>

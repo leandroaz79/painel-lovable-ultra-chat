@@ -290,15 +290,15 @@ export default function Resellers() {
               ) : (
                 filteredResellers.map(reseller => (
                   <tr key={reseller.id}>
-                    <td><strong>{reseller.name || '—'}</strong></td>
-                    <td>{reseller.email}</td>
-                    <td>{reseller.whatsapp || '—'}</td>
-                    <td>{reseller.credits}</td>
-                    <td>{reseller.total_licenses_created}</td>
-                    <td>{reseller.total_credits_purchased}</td>
-                    <td><span className={`badge ${reseller.status}`}>{reseller.status === 'active' ? 'Ativo' : reseller.status === 'pending' ? 'Pendente' : 'Suspenso'}</span></td>
-                    <td>{new Date(reseller.created_at).toLocaleDateString('pt-BR')}</td>
-                    <td>
+                    <td data-label="Nome"><strong>{reseller.name || '—'}</strong></td>
+                    <td data-label="Email">{reseller.email}</td>
+                    <td data-label="WhatsApp">{reseller.whatsapp || '—'}</td>
+                    <td data-label="Créditos">{reseller.credits}</td>
+                    <td data-label="Licenças Criadas">{reseller.total_licenses_created}</td>
+                    <td data-label="Total Comprado">{reseller.total_credits_purchased}</td>
+                    <td data-label="Status"><span className={`badge ${reseller.status}`}>{reseller.status === 'active' ? 'Ativo' : reseller.status === 'pending' ? 'Pendente' : 'Suspenso'}</span></td>
+                    <td data-label="Cadastro">{new Date(reseller.created_at).toLocaleDateString('pt-BR')}</td>
+                    <td data-label="Ações">
                       <div className="actions-row">
                         <Button
                           size="tiny"

@@ -4,6 +4,7 @@ import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
+import ConfirmationDialog from '../../components/ConfirmationDialog'
 import ResellerLayout from '../../components/ResellerLayout'
 
 interface License {
@@ -49,8 +50,23 @@ export default function ResellerDashboard() {
   const [showPixModal, setShowPixModal] = useState(false)
   const [, setPaymentId] = useState('')
   const [pricingTiers, setPricingTiers] = useState<Array<{min_quantity: number, max_quantity: number | null, unit_price: number}>>([])
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    action: null | 'delete' | 'revoke'
+    licenseKey: string
+    isLoading: boolean
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    action: null,
+    licenseKey: '',
+    isLoading: false,
+  })
+  
   useEffect(() => {
-    document.body.classList.add('session-ready')
     loadDashboard()
     loadLicenses()
     loadPricing()
@@ -242,15 +258,54 @@ export default function ResellerDashboard() {
     }
 
     if (action === 'revoke') {
-      await revokeLicense(key, button)
+      setConfirmDialog({
+        isOpen: true,
+        title: 'Revogar Licença',
+        message: 'Tem certeza que deseja revogar esta licença? O cliente não poderá mais usar.',
+        action: 'revoke',
+        licenseKey: key,
+        isLoading: false,
+      })
+      return
     }
 
     if (action === 'delete') {
-      await deleteLicense(key, button, true)
+      setConfirmDialog({
+        isOpen: true,
+        title: 'Deletar Licença',
+        message: 'Tem certeza que deseja deletar esta licença? Esta ação não pode ser desfeita.',
+        action: 'delete',
+        licenseKey: key,
+        isLoading: false,
+      })
+      return
     }
 
     await loadDashboard()
     await loadLicenses()
+  }
+
+  async function handleConfirmDialog() {
+    const { action, licenseKey } = confirmDialog
+    setConfirmDialog(prev => ({ ...prev, isLoading: true }))
+
+    try {
+      if (action === 'revoke') {
+        await revokeLicense(licenseKey, null as any)
+      } else if (action === 'delete') {
+        await deleteLicense(licenseKey, null as any, true)
+      }
+      setConfirmDialog(prev => ({ ...prev, isOpen: false }))
+      await loadDashboard()
+      await loadLicenses()
+    } catch (error) {
+      showToast('Erro ao executar ação.', 'error')
+      setConfirmDialog(prev => ({ ...prev, isLoading: false }))
+    }
+  }
+
+  function handleCloseDialog() {
+    setConfirmDialog(prev => ({ ...prev, isOpen: false }))
   }
 
   function calculatePrice(qty: number) {
@@ -754,6 +809,18 @@ export default function ResellerDashboard() {
           </div>
         </div>
       )}
+
+      <ConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.action === 'delete' ? 'Deletar' : 'Revogar'}
+        cancelText="Cancelar"
+        isDangerous={true}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={handleConfirmDialog}
+        onCancel={handleCloseDialog}
+      />
 
     </ResellerLayout>
   )
