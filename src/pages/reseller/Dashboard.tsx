@@ -6,6 +6,7 @@ import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import ResellerLayout from '../../components/ResellerLayout'
+import ResellerMobileMenu from '../../components/ResellerMobileMenu'
 
 interface License {
   license_key: string
@@ -21,7 +22,7 @@ interface License {
 }
 
 export default function ResellerDashboard() {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
   const { showToast } = useToast()
   const { copyLicenseKey, renewLicense, resetHwid, revokeLicense, deleteLicense, submitMutation } = useLicenseActions()
   const [licenses, setLicenses] = useState<License[]>([])
@@ -462,6 +463,26 @@ export default function ResellerDashboard() {
 
   return (
     <ResellerLayout currentPage="/reseller">
+      {/* Header Mobile + Desktop Simplificado */}
+      <header className="topbar">
+        <ResellerMobileMenu currentPage="/reseller" />
+        <a className="brand" href="/reseller" aria-label="Ultra Revenda">
+          <span className="brand-bolt">⚡</span>
+          <strong>Ultra<span>Revenda</span></strong>
+        </a>
+        <nav className="nav-links" aria-label="Navegação principal">
+          <a href="/reseller">Painel</a>
+          <a href="/reseller#credits">Créditos</a>
+          <a href="/reseller#create-license">Gerar licença</a>
+          <a href="/reseller#create-trial">Gerar trial</a>
+          <a href="/reseller#licenses">Licenças</a>
+        </nav>
+        <div className="session-box">
+          <span id="reseller-email">{user?.email || 'Carregando...'}</span>
+          <Button variant="ghost" onClick={() => signOut()}>Sair</Button>
+        </div>
+      </header>
+
       <main className="app-shell">
         <section id="dashboard" className="hero-panel reveal">
           <div>
@@ -471,20 +492,27 @@ export default function ResellerDashboard() {
           </div>
         </section>
 
-        <div id="credits" className="glass-card" style={{ background: 'linear-gradient(135deg, rgba(109,232,255,0.12), rgba(157,255,47,0.08))', padding: '24px', marginBottom: '28px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(157,255,47,0.2)', display: 'grid', placeItems: 'center', fontSize: '24px' }}>
+        <div
+          id="credits"
+          className="glass-card reseller-credits-card"
+          style={{ background: 'linear-gradient(135deg, rgba(109,232,255,0.12), rgba(157,255,47,0.08))', padding: '24px', marginBottom: '28px' }}
+        >
+          <div className="reseller-credits-row">
+            <div
+              className="reseller-credits-icon"
+              style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(157,255,47,0.2)', display: 'grid', placeItems: 'center', fontSize: '24px' }}
+            >
               🔑
             </div>
-            <div style={{ flex: 1 }}>
-              <strong style={{ fontSize: '24px', display: 'block', color: 'var(--text)' }}>
+            <div className="reseller-credits-copy" style={{ flex: 1 }}>
+              <strong className="reseller-credits-title" style={{ fontSize: '24px', display: 'block', color: 'var(--text)' }}>
                 {credits} / {creditsGranted} chaves disponíveis
               </strong>
-              <p style={{ color: 'var(--muted)', fontSize: '13px', margin: '4px 0 0' }}>
+              <p className="reseller-credits-meta" style={{ color: 'var(--muted)', fontSize: '13px', margin: '4px 0 0' }}>
                 {creditsUsed} usadas · {creditsPurchased} compradas · {creditsGranted} liberadas pelo admin
               </p>
             </div>
-            <Button style={{ whiteSpace: 'nowrap' }} onClick={() => setShowBuyModal(true)}>🛒 Comprar chaves</Button>
+            <Button className="reseller-credits-action" onClick={() => setShowBuyModal(true)}>🛒 Comprar chaves</Button>
           </div>
         </div>
 

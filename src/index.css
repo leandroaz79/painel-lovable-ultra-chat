@@ -302,6 +302,12 @@ td small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px
 .badge.expired { background: rgba(245,184,61,.14); color: var(--warning); }
 .badge.suspended { background: rgba(255,61,85,.14); color: #ff8a98; }
 .actions-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.reseller-credits-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.reseller-credits-icon { flex-shrink: 0; }
+.reseller-credits-copy { flex: 1; min-width: 0; }
+.reseller-credits-title { line-height: 1.15; word-break: break-word; }
+.reseller-credits-meta { word-break: break-word; }
+.reseller-credits-action { flex-shrink: 0; white-space: nowrap; }
 .tiny-action { min-height: 30px; padding: 0 10px; font-size: 11px; }
 
 .auth-page { display: grid; place-items: center; padding: 24px; min-height: 100vh; }
@@ -461,15 +467,14 @@ td small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px
   
   .metric-card {
     padding: 14px;
-    min-width: 0;
   }
   
   .metric-card strong {
     font-size: 24px;
   }
-
-  .metric-card span, .metric-card small {
-    font-size: 11px;
+  
+  .table-card {
+    padding: 0;
   }
   
   /* Work Grid: 1 coluna no mobile */
@@ -481,6 +486,29 @@ td small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px
   .glass-card {
     padding: 20px;
     margin: 0;
+  }
+
+  .reseller-credits-row {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: start;
+    gap: 14px;
+  }
+
+  .reseller-credits-action {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .reseller-credits-title {
+    font-size: clamp(18px, 6vw, 24px) !important;
+  }
+
+  .reseller-credits-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
   
   .hero-panel {
@@ -672,55 +700,6 @@ td small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px
   
   .auth-copy h1 {
     font-size: 32px;
-  }
-}
-
-/* Telas muito pequenas (<360px) */
-@media (max-width: 359px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .metric-card {
-    padding: 12px;
-  }
-
-  .metric-card strong {
-    font-size: 20px;
-  }
-
-  .metric-card span, .metric-card small {
-    font-size: 10px;
-  }
-
-  .app-shell {
-    width: calc(100% - 24px);
-    margin: 32px auto 60px;
-    gap: 20px;
-  }
-
-  .hero-panel {
-    padding: 20px 16px !important;
-  }
-
-  .table-card {
-    overflow: hidden;
-  }
-
-  .table-head {
-    flex-direction: column;
-    gap: 12px;
-    padding: 16px;
-  }
-
-  .table-tools {
-    width: 100%;
-    gap: 8px;
-  }
-
-  .table-tools input {
-    width: 100%;
   }
 }
 
