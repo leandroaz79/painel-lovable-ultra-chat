@@ -5,6 +5,7 @@ import { useToast } from '../../hooks/useToast'
 import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
+import { Zap, Video, Download, Clock, Gem } from 'lucide-react'
 
 interface License {
   license_key: string
@@ -191,7 +192,7 @@ export default function UserDashboard() {
       <header className="landing-header">
         <div className="landing-header-inner">
           <a href="/user" className="brand">
-            <span className="brand-bolt">⚡</span>
+            <span className="brand-bolt"><Zap size={18} /></span>
             <strong>
               Ultra<span>Chat</span>
             </strong>
@@ -224,7 +225,7 @@ export default function UserDashboard() {
           {/* Vídeo Tutorial */}
           <article className="glass-card">
             <div className="card-heading">
-              <span className="icon-pill">📹</span>
+              <span className="icon-pill" aria-hidden="true"><Video size={20} /></span>
               <h2>Como instalar a extensão</h2>
             </div>
             <div
@@ -256,7 +257,7 @@ export default function UserDashboard() {
           {/* Download */}
           <article className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div className="card-heading">
-              <span className="icon-pill">📥</span>
+              <span className="icon-pill" aria-hidden="true"><Download size={20} /></span>
               <h2>Download da Extensão</h2>
             </div>
             <p style={{ marginBottom: '24px' }}>
@@ -278,7 +279,7 @@ export default function UserDashboard() {
           {/* Gerar Trial */}
           <article className="glass-card">
             <div className="card-heading">
-              <span className="icon-pill">⏱️</span>
+              <span className="icon-pill" aria-hidden="true"><Clock size={20} /></span>
               <h2>Teste Grátis</h2>
             </div>
             <p style={{ marginBottom: '20px' }}>
@@ -309,7 +310,7 @@ export default function UserDashboard() {
           {/* Planos */}
           <article className="glass-card">
             <div className="card-heading">
-              <span className="icon-pill">💎</span>
+              <span className="icon-pill" aria-hidden="true"><Gem size={20} /></span>
               <h2>Planos disponíveis</h2>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -428,12 +429,12 @@ export default function UserDashboard() {
             <table>
               <thead>
                 <tr>
-                  <th>Chave</th>
-                  <th>Status</th>
-                  <th>Tipo</th>
-                  <th>Expira em</th>
-                  <th>HWID</th>
-                  <th>Criada em</th>
+                  <th scope="col">Chave</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Expira em</th>
+                  <th scope="col">HWID</th>
+                  <th scope="col">Criada em</th>
                 </tr>
               </thead>
               <tbody>
@@ -490,7 +491,7 @@ export default function UserDashboard() {
       <footer className="landing-footer">
         <div className="footer-inner">
           <div className="brand">
-            <span className="brand-bolt">⚡</span>
+            <span className="brand-bolt"><Zap size={18} /></span>
             <strong>
               Ultra<span>Chat</span>
             </strong>

@@ -13,22 +13,22 @@ export default function SalesChart({ data }: SalesChartProps) {
     <div style={{ width: '100%', height: 300 }}>
       <ResponsiveContainer>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
           <XAxis 
             dataKey="date" 
-            stroke="#9ca3af"
-            tick={{ fill: '#9ca3af', fontSize: 12 }}
+            stroke="var(--muted-2)"
+            tick={{ fill: 'var(--muted-2)', fontSize: 12 }}
           />
           <YAxis 
-            stroke="#9ca3af"
-            tick={{ fill: '#9ca3af', fontSize: 12 }}
+            stroke="var(--muted-2)"
+            tick={{ fill: 'var(--muted-2)', fontSize: 12 }}
           />
           <Tooltip 
             contentStyle={{ 
-              backgroundColor: '#1f2937', 
-              border: '1px solid #374151',
+              backgroundColor: 'var(--card-strong)', 
+              border: '1px solid var(--line)',
               borderRadius: '8px',
-              color: '#fff'
+              color: 'var(--text)'
             }}
             formatter={(value: any, name: any) => {
               if (name === 'revenue') return [`R$ ${value.toFixed(2)}`, 'Receita']
@@ -38,17 +38,17 @@ export default function SalesChart({ data }: SalesChartProps) {
           <Line 
             type="monotone" 
             dataKey="sales" 
-            stroke="#10b981" 
+            stroke="var(--accent)" 
             strokeWidth={2}
-            dot={{ fill: '#10b981', r: 4 }}
+            dot={{ fill: 'var(--accent)', r: 4 }}
             activeDot={{ r: 6 }}
           />
           <Line 
             type="monotone" 
             dataKey="revenue" 
-            stroke="#3b82f6" 
+            stroke="var(--cyan)" 
             strokeWidth={2}
-            dot={{ fill: '#3b82f6', r: 4 }}
+            dot={{ fill: 'var(--cyan)', r: 4 }}
             activeDot={{ r: 6 }}
           />
         </LineChart>

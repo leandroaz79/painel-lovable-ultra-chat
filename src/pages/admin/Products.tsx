@@ -5,6 +5,7 @@ import { useToast } from '../../hooks/useToast'
 import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
 import { Button } from '../../components/ui/button'
+import { Info, AlertTriangle } from 'lucide-react'
 
 interface PricingTier {
   id: string
@@ -138,12 +139,12 @@ export default function Products() {
             <table>
               <thead>
                 <tr>
-                  <th>Quantidade</th>
-                  <th>Preço Unitário</th>
-                  <th>Desconto</th>
-                  <th>Preço Base</th>
-                  <th>Economia</th>
-                  <th>Ações</th>
+                  <th scope="col">Quantidade</th>
+                  <th scope="col">Preço Unitário</th>
+                  <th scope="col">Desconto</th>
+                  <th scope="col">Preço Base</th>
+                  <th scope="col">Economia</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -238,19 +239,19 @@ export default function Products() {
             </table>
           </div>
 
-          <div style={{ marginTop: '24px', padding: '16px', background: '#1f2937', borderRadius: '8px', border: '1px solid #374151' }}>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 'bold', color: '#10b981' }}>ℹ️ Como funciona</h3>
-            <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', lineHeight: '1.6', color: '#d1d5db' }}>
+          <div className="info-box">
+            <h3 className="info-box-title"><Info size={18} /> Como funciona</h3>
+            <ul className="info-box-list">
               <li>Preços são aplicados automaticamente no modal de compra</li>
               <li>Desconto progressivo incentiva compras maiores</li>
               <li>Alterações são registradas no histórico para auditoria</li>
               <li>Preço base (R$ 30,00) é usado como referência para calcular economia</li>
             </ul>
             {pricingTiers.length === 0 && (
-              <div style={{ marginTop: '12px', padding: '12px', background: '#fef3c7', borderRadius: '6px', border: '1px solid #fbbf24' }}>
-                <p style={{ margin: 0, fontSize: '13px', color: '#92400e', fontWeight: 'bold' }}>⚠️ Atenção</p>
-                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#92400e' }}>
-                  Execute a migration <code style={{ background: '#fed7aa', padding: '2px 4px', borderRadius: '3px' }}>008_product_pricing.sql</code> no Supabase para criar a tabela de preços.
+              <div className="info-box warning">
+                <p className="info-box-warning-title"><AlertTriangle size={16} /> Atenção</p>
+                <p className="info-box-warning-text">
+                  Execute a migration <code>008_product_pricing.sql</code> no Supabase para criar a tabela de preços.
                 </p>
               </div>
             )}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Zap } from 'lucide-react'
 
 interface MobileMenuProps {
   currentPage?: string
@@ -42,7 +43,7 @@ export default function MobileMenu({ currentPage }: MobileMenuProps) {
       <nav className={`mobile-menu ${isOpen ? 'open' : ''}`}>
         <div className="mobile-menu-header">
           <div className="brand-mark">
-            <span className="brand-bolt">⚡</span>
+            <span className="brand-bolt"><Zap size={18} /></span>
             <strong>Ultra<span>Admin</span></strong>
           </div>
           <button

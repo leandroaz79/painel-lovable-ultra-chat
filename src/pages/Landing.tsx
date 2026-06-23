@@ -4,6 +4,22 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
 import { Button } from '../components/ui/button'
+import {
+  MessageCircle, Brain, Building2, Zap, Mic, Paperclip, Palette, Shield, Wrench,
+  Gift, Clock, RefreshCw, Scale, Search, Rocket, Check, Target, Send
+} from 'lucide-react'
+
+const featureIconMap: Record<string, React.ReactNode> = {
+  chat: <MessageCircle size={24} />,
+  brain: <Brain size={24} />,
+  building: <Building2 size={24} />,
+  zap: <Zap size={24} />,
+  mic: <Mic size={24} />,
+  paperclip: <Paperclip size={24} />,
+  palette: <Palette size={24} />,
+  shield: <Shield size={24} />,
+  wrench: <Wrench size={24} />,
+}
 
 export default function Landing() {
   const { user, role } = useAuth()
@@ -48,47 +64,47 @@ export default function Landing() {
 
   const features = [
     {
-      icon: '💬',
+      icon: 'chat',
       title: 'Chat Inteligente Sem Limites',
       desc: 'Escale seu atendimento sem se preocupar com custos. Use o chat inteligente de forma ilimitada para respostas instantâneas.',
     },
     {
-      icon: '🧠',
+      icon: 'brain',
       title: 'Refino Inteligente de Prompts',
       desc: 'Pare de desperdiçar tempo com repetições. Nossa tecnologia otimiza seu comando antes do envio para resultados perfeitos de primeira.',
     },
     {
-      icon: '🏗️',
+      icon: 'building',
       title: 'Arquitetura Cognitiva',
       desc: 'Ative o raciocínio profundo da IA para resolver problemas complexos e estruturar sistemas robustos com precisão cirúrgica.',
     },
     {
-      icon: '⚡',
+      icon: 'zap',
       title: 'Resposta Instantânea',
       desc: 'Atendimento em tempo real com IA integrada. Respostas rápidas e precisas para seus clientes, sem delay.',
     },
     {
-      icon: '🎤',
+      icon: 'mic',
       title: 'Fluxo Criativo por Voz',
       desc: 'Transmita suas ideias na velocidade do pensamento. Fale naturalmente e veja o código ganhar vida enquanto você idealiza.',
     },
     {
-      icon: '📎',
+      icon: 'paperclip',
       title: 'Integração Multimídia Real',
-      desc: 'Arraste e solte referências de design, PDFs ou imagens. A IA absorbe o contexto visual para criar interfaces 100% fiéis.',
+      desc: 'Arraste e solte referências de design, PDFs ou imagens. A IA absorve o contexto visual para criar interfaces 100% fiéis.',
     },
     {
-      icon: '🎨',
+      icon: 'palette',
       title: 'White-Label de Verdade',
       desc: 'Remova qualquer marca do Ultra Chat. Entregue projetos profissionais e autorais onde 100% do crédito pertence a você.',
     },
     {
-      icon: '🛡️',
+      icon: 'shield',
       title: 'Mentor de IA 24/7',
       desc: 'Tenha um especialista sênior ao seu lado. Sugestões estratégicas de prompts e guia completo do protótipo ao deploy final.',
     },
     {
-      icon: '🔧',
+      icon: 'wrench',
       title: 'Ecossistema de Skills',
       desc: 'Ative especialistas em SEO, UI/UX e Copywriting. Transforme sua IA no profissional que seu projeto precisa naquele momento.',
     },
@@ -194,7 +210,7 @@ export default function Landing() {
       <header className="landing-header">
         <div className="landing-header-inner">
           <a href="/" className="brand">
-            <span className="brand-bolt">⚡</span>
+            <span className="brand-bolt"><Zap size={18} /></span>
             <strong>
               Lovable <span>Ultra Chat</span>
             </strong>
@@ -251,15 +267,15 @@ export default function Landing() {
               <span>SEGURO E CONFIÁVEL</span>
             </div>
             <div className="hero-stat">
-              <strong>⚡</strong>
+              <strong><Zap size={20} /></strong>
               <span>Ativação em segundos</span>
             </div>
             <div className="hero-stat">
-              <strong>💬</strong>
+              <strong><MessageCircle size={20} /></strong>
               <span>Suporte por WhatsApp</span>
             </div>
             <div className="hero-stat">
-              <strong>🔄</strong>
+              <strong><RefreshCw size={20} /></strong>
               <span>Sem renovação automática</span>
             </div>
           </div>
@@ -275,13 +291,13 @@ export default function Landing() {
               <span className="mockup-title">Lovable Ultra Chat</span>
             </div>
             <div className="mockup-content">
-              <div className="mockup-badge">🎁 Matias P.</div>
+              <div className="mockup-badge"><Gift size={14} /> Matias P.</div>
               <div className="mockup-row">
-                <span className="mockup-label">⏱ Tempo restante</span>
+                <span className="mockup-label"><Clock size={14} /> Tempo restante</span>
                 <span className="mockup-value">11d 21h 59m</span>
               </div>
               <div className="mockup-row">
-                <span className="mockup-label">✈ COMANDOS</span>
+                <span className="mockup-label"><Send size={14} /> COMANDOS</span>
                 <span className="mockup-value">204</span>
               </div>
               <div className="mockup-row">
@@ -291,15 +307,15 @@ export default function Landing() {
               <div className="mockup-divider" />
               <div className="mockup-section-title">ATALHOS RÁPIDOS</div>
               <div className="mockup-tags">
-                <span>🔧CORRIGIR</span>
-                <span>⚖️REFATORAR</span>
-                <span>🎨MELHORAR</span>
-                <span>🔍EXPLICAR</span>
-                <span>🚀OTIMIZAR</span>
+                <span><Wrench size={12} />CORRIGIR</span>
+                <span><Scale size={12} />REFATORAR</span>
+                <span><Palette size={12} />MELHORAR</span>
+                <span><Search size={12} />EXPLICAR</span>
+                <span><Rocket size={12} />OTIMIZAR</span>
               </div>
               <div className="mockup-input-row">
                 <span className="mockup-input-icon">▶</span>
-                <span className="mockup-input-text">✅ Comando processado ⚡</span>
+                <span className="mockup-input-text"><Check size={14} /> Comando processado <Zap size={14} /></span>
               </div>
             </div>
           </div>
@@ -344,12 +360,12 @@ export default function Landing() {
           </p>
           <div className="problem-cards">
             <div className="problem-card">
-              <span className="problem-icon">🔄</span>
+              <span className="problem-icon"><RefreshCw size={24} /></span>
               <strong>Menos repetição</strong>
               <p>Use recursos inteligentes para acelerar tarefas frequentes.</p>
             </div>
             <div className="problem-card">
-              <span className="problem-icon">🎯</span>
+              <span className="problem-icon"><Target size={24} /></span>
               <strong>Mais controle</strong>
               <p>
                 Trabalhe com arquivos, imagens, elementos e comandos de forma
@@ -357,7 +373,7 @@ export default function Landing() {
               </p>
             </div>
             <div className="problem-card">
-              <span className="problem-icon">⚡</span>
+              <span className="problem-icon"><Zap size={24} /></span>
               <strong>Mais velocidade</strong>
               <p>
                 Mantenha o foco na criação e avance seus projetos com menos
@@ -382,7 +398,7 @@ export default function Landing() {
           <div className="features-grid-new">
             {features.map((f, i) => (
               <article key={i} className="feature-card-new">
-                <span className="feature-icon-new">{f.icon}</span>
+                <span className="feature-icon-new" aria-hidden="true">{featureIconMap[f.icon]}</span>
                 <h3>{f.title}</h3>
                 <p>{f.desc}</p>
               </article>
@@ -486,9 +502,9 @@ export default function Landing() {
             <table className="comparison-table">
               <thead>
                 <tr>
-                  <th>Recurso</th>
-                  <th className="col-highlight">Lovable Ultra Chat</th>
-                  <th>Extensões comuns</th>
+                  <th scope="col">Recurso</th>
+                  <th className="col-highlight" scope="col">Lovable Ultra Chat</th>
+                  <th scope="col">Extensões comuns</th>
                 </tr>
               </thead>
               <tbody>
@@ -567,7 +583,7 @@ export default function Landing() {
         <div className="footer-inner-new">
           <div>
             <a href="/" className="brand">
-              <span className="brand-bolt">⚡</span>
+              <span className="brand-bolt"><Zap size={18} /></span>
               <strong>
                 Lovable <span>Ultra Chat</span>
               </strong>

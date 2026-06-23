@@ -415,15 +415,15 @@ export default function Resellers() {
           <table>
             <thead>
               <tr>
-                <th>Nome</th>
-                <th>Email</th>
-                <th>WhatsApp</th>
-                <th>Créditos</th>
-                <th>Licenças Criadas</th>
-                <th>Total Comprado</th>
-                <th>Status</th>
-                <th>Cadastro</th>
-                <th>Ações</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Email</th>
+                <th scope="col">WhatsApp</th>
+                <th scope="col">Créditos</th>
+                <th scope="col">Licenças Criadas</th>
+                <th scope="col">Total Comprado</th>
+                <th scope="col">Status</th>
+                <th scope="col">Cadastro</th>
+                <th scope="col">Ações</th>
               </tr>
             </thead>
             <tbody>

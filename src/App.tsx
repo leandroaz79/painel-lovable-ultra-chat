@@ -1,14 +1,24 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { useAuth } from './hooks/useAuth'
 import Login from './pages/Login'
 import Landing from './pages/Landing'
-import UserDashboard from './pages/user/Dashboard'
-import AdminDashboard from './pages/admin/Dashboard'
-import Customers from './pages/admin/Customers'
-import Resellers from './pages/admin/Resellers'
-import Sales from './pages/admin/Sales'
-import Products from './pages/admin/Products'
-import ResellerDashboard from './pages/reseller/Dashboard'
+
+const UserDashboard = lazy(() => import('./pages/user/Dashboard'))
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
+const Customers = lazy(() => import('./pages/admin/Customers'))
+const Resellers = lazy(() => import('./pages/admin/Resellers'))
+const Sales = lazy(() => import('./pages/admin/Sales'))
+const Products = lazy(() => import('./pages/admin/Products'))
+const ResellerDashboard = lazy(() => import('./pages/reseller/Dashboard'))
+
+function LoadingScreen() {
+  return (
+    <div className="app-shell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <div className="loading-spinner-large" />
+    </div>
+  )
+}
 
 function ProtectedRoute({ 
   children, 
@@ -45,7 +55,9 @@ function App() {
           path="/user"
           element={
             <ProtectedRoute requiredRole="user">
-              <UserDashboard />
+              <Suspense fallback={<LoadingScreen />}>
+                <UserDashboard />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -54,7 +66,9 @@ function App() {
           path="/admin"
           element={
             <ProtectedRoute requiredRole="admin">
-              <AdminDashboard />
+              <Suspense fallback={<LoadingScreen />}>
+                <AdminDashboard />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -63,7 +77,9 @@ function App() {
           path="/admin/customers"
           element={
             <ProtectedRoute requiredRole="admin">
-              <Customers />
+              <Suspense fallback={<LoadingScreen />}>
+                <Customers />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -72,7 +88,9 @@ function App() {
           path="/admin/resellers"
           element={
             <ProtectedRoute requiredRole="admin">
-              <Resellers />
+              <Suspense fallback={<LoadingScreen />}>
+                <Resellers />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -81,7 +99,9 @@ function App() {
           path="/admin/sales"
           element={
             <ProtectedRoute requiredRole="admin">
-              <Sales />
+              <Suspense fallback={<LoadingScreen />}>
+                <Sales />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -90,7 +110,9 @@ function App() {
           path="/admin/products"
           element={
             <ProtectedRoute requiredRole="admin">
-              <Products />
+              <Suspense fallback={<LoadingScreen />}>
+                <Products />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -99,7 +121,9 @@ function App() {
           path="/reseller/*"
           element={
             <ProtectedRoute requiredRole="reseller">
-              <ResellerDashboard />
+              <Suspense fallback={<LoadingScreen />}>
+                <ResellerDashboard />
+              </Suspense>
             </ProtectedRoute>
           }
         />

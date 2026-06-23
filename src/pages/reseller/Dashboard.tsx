@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/button'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import ResellerLayout from '../../components/ResellerLayout'
 import ResellerMobileMenu from '../../components/ResellerMobileMenu'
+import { Key, ShoppingCart, Clock, Package, CreditCard } from 'lucide-react'
 
 interface License {
   license_key: string
@@ -502,7 +503,7 @@ export default function ResellerDashboard() {
               className="reseller-credits-icon"
               style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(157,255,47,0.2)', display: 'grid', placeItems: 'center', fontSize: '24px' }}
             >
-              🔑
+              <Key size={24} />
             </div>
             <div className="reseller-credits-copy" style={{ flex: 1 }}>
               <strong className="reseller-credits-title" style={{ fontSize: '24px', display: 'block', color: 'var(--text)' }}>
@@ -512,13 +513,13 @@ export default function ResellerDashboard() {
                 {creditsUsed} usadas · {creditsPurchased} compradas · {creditsGranted} liberadas pelo admin
               </p>
             </div>
-            <Button className="reseller-credits-action" onClick={() => setShowBuyModal(true)}>🛒 Comprar chaves</Button>
+            <Button className="reseller-credits-action" onClick={() => setShowBuyModal(true)}><ShoppingCart size={16} /> Comprar chaves</Button>
           </div>
         </div>
 
         <section className="work-grid">
           <article id="create-license" className="glass-card">
-            <div className="card-heading"><span className="icon-pill">🔑</span><h2>Gerar licença</h2></div>
+            <div className="card-heading"><span className="icon-pill" aria-hidden="true"><Key size={20} /></span><h2>Gerar licença</h2></div>
             <form className="stack-form" onSubmit={handleCreateLicense}>
               <label><span>Nome do cliente</span><input id="user-name" type="text" placeholder="Ex: João Silva" required /></label>
               <label><span>Telefone (opcional)</span><input id="phone" type="tel" placeholder="Ex: (11) 99999-9999" /></label>
@@ -555,7 +556,7 @@ export default function ResellerDashboard() {
           </article>
 
           <article id="create-trial" className="glass-card">
-            <div className="card-heading"><span className="icon-pill">⏱️</span><h2>Gerar teste (máx. 30min)</h2></div>
+            <div className="card-heading"><span className="icon-pill" aria-hidden="true"><Clock size={20} /></span><h2>Gerar teste (máx. 30min)</h2></div>
             <form className="stack-form" onSubmit={handleCreateTrial}>
               <label><span>Nome do cliente (opcional)</span><input id="trial-name" type="text" placeholder="Ex: João Silva" /></label>
               <label><span>Minutos (máx. 30)</span><input id="trial-minutes" type="number" min="1" max="30" defaultValue="30" /></label>
@@ -593,13 +594,13 @@ export default function ResellerDashboard() {
             <table>
               <thead>
                 <tr>
-                  <th>Cliente</th>
-                  <th>Chave</th>
-                  <th>Status</th>
-                  <th>Tipo</th>
-                  <th>Expira</th>
-                  <th>HWID</th>
-                  <th>Ações</th>
+                  <th scope="col">Cliente</th>
+                  <th scope="col">Chave</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Expira</th>
+                  <th scope="col">HWID</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody onClick={handleTableAction}>
@@ -687,7 +688,7 @@ export default function ResellerDashboard() {
         <div className="modal-overlay" onClick={() => setShowBuyModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowBuyModal(false)}>&times;</button>
-            <h2>🛒 Loja de Revenda</h2>
+            <h2><ShoppingCart size={22} /> Loja de Revenda</h2>
             <p style={{ color: 'var(--muted)', marginBottom: '24px' }}>
               Chaves vitalícias - revenda pelo preço que quiser
             </p>
@@ -727,7 +728,7 @@ export default function ResellerDashboard() {
               </div>
 
               <div style={{ background: 'rgba(109,232,255,0.08)', padding: '16px', borderRadius: '14px', marginBottom: '20px' }}>
-                <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}>📦 Resumo</h3>
+                <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}><Package size={18} /> Resumo</h3>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span style={{ color: 'var(--muted)' }}>Chaves ({quantity} × R$ {calculatePrice(quantity).unitPrice.toFixed(2)})</span>
                   <strong style={{ color: 'var(--cyan)' }}>R$ {calculatePrice(quantity).total.toFixed(2)}</strong>
@@ -785,7 +786,7 @@ export default function ResellerDashboard() {
               </label>
 
               <p style={{ padding: '12px', background: 'rgba(109,232,255,0.1)', borderRadius: '12px', fontSize: '13px', color: 'var(--muted)', margin: '16px 0' }}>
-                💳 Pagamento via <strong>Pix</strong> - suas chaves caem automaticamente no seu painel assim que o pagamento for confirmado.
+                <CreditCard size={16} /> Pagamento via <strong>Pix</strong> - suas chaves caem automaticamente no seu painel assim que o pagamento for confirmado.
               </p>
 
               <Button type="submit" style={{ width: '100%', minHeight: '48px', fontSize: '16px' }}>

@@ -269,13 +269,13 @@ export default function Customers() {
             <table>
               <thead>
                 <tr>
-                  <th>Cliente</th>
-                  <th>Trial</th>
-                  <th>Licenças</th>
-                  <th>Status</th>
-                  <th>Último acesso</th>
-                  <th>Cadastro</th>
-                  <th>Ações</th>
+                  <th scope="col">Cliente</th>
+                  <th scope="col">Trial</th>
+                  <th scope="col">Licenças</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Último acesso</th>
+                  <th scope="col">Cadastro</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -413,12 +413,12 @@ export default function Customers() {
 
                 <div className="table-wrap">
                   <table>
-                    <thead>
-                      <tr>
-                        <th>Chave</th>
-                        <th>Status</th>
-                        <th>Tipo</th>
-                        <th>Expira</th>
+<thead>
+                        <tr>
+                          <th scope="col">Chave</th>
+                          <th scope="col">Status</th>
+                          <th scope="col">Tipo</th>
+                          <th scope="col">Expira</th>
                       </tr>
                     </thead>
                     <tbody>

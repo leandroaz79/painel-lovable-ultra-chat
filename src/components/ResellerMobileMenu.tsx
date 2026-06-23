@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Zap } from 'lucide-react'
 
 interface ResellerMobileMenuProps {
   currentPage?: string
@@ -41,7 +42,7 @@ export default function ResellerMobileMenu({ currentPage }: ResellerMobileMenuPr
       <nav className={`mobile-menu ${isOpen ? 'open' : ''}`}>
         <div className="mobile-menu-header">
           <div className="brand-mark">
-            <span className="brand-bolt">⚡</span>
+            <span className="brand-bolt"><Zap size={18} /></span>
             <strong>Ultra<span>Revenda</span></strong>
           </div>
           <button

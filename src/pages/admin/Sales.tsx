@@ -5,6 +5,7 @@ import { useToast } from '../../hooks/useToast'
 import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
 import { Button } from '../../components/ui/button'
+import { Download } from 'lucide-react'
 
 interface Purchase {
   id: string
@@ -256,25 +257,25 @@ export default function Sales() {
               onClick={exportToCSV}
               type="button"
             >
-              📥 Exportar CSV
+              <Download size={14} /> Exportar CSV
             </button>
           </div>
         </div>
 
         <div className="table-wrap">
           <table>
-            <thead>
-              <tr>
-                <th>Data</th>
-                <th>Revendedor</th>
-                <th>Comprador</th>
-                <th>Qtd</th>
-                <th>Valor</th>
-                <th>Status</th>
-                <th>Payment ID</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
+<thead>
+                <tr>
+                  <th scope="col">Data</th>
+                  <th scope="col">Revendedor</th>
+                  <th scope="col">Comprador</th>
+                  <th scope="col">Qtd</th>
+                  <th scope="col">Valor</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Payment ID</th>
+                  <th scope="col">Ações</th>
+                </tr>
+              </thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan={8}>Carregando...</td></tr>

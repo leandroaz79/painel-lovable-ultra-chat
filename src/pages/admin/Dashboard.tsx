@@ -8,6 +8,7 @@ import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import { Button } from '../../components/ui/button'
+import { BarChart3, Key } from 'lucide-react'
 
 interface License {
   license_key: string
@@ -402,7 +403,7 @@ export default function AdminDashboard() {
 
         <section className="glass-card" style={{ marginTop: '24px', padding: '24px' }}>
           <div className="card-heading" style={{ marginBottom: '16px' }}>
-            <span className="icon-pill">📊</span>
+            <span className="icon-pill" aria-hidden="true"><BarChart3 size={20} /></span>
             <h2>Vendas - Últimos 7 dias</h2>
           </div>
           <SalesChart data={salesChartData} />
@@ -410,7 +411,7 @@ export default function AdminDashboard() {
 
         <section className="work-grid">
           <article className="glass-card">
-            <div className="card-heading"><span className="icon-pill">🔑</span><h2>Gerar licença</h2></div>
+            <div className="card-heading"><span className="icon-pill" aria-hidden="true"><Key size={20} /></span><h2>Gerar licença</h2></div>
             <form id="license-form" className="stack-form" onSubmit={handleCreateLicense}>
               <div className="split-fields">
                 <label><span>Nome do cliente</span><input id="client-name" type="text" placeholder="Cliente" required /></label>
@@ -500,17 +501,17 @@ export default function AdminDashboard() {
           </div>
           <div className="table-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Chave</th>
-                  <th>Status</th>
-                  <th>Tipo</th>
-                  <th>Expira</th>
-                  <th>HWID</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
+<thead>
+                  <tr>
+                    <th scope="col">Cliente</th>
+                    <th scope="col">Chave</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Expira</th>
+                    <th scope="col">HWID</th>
+                    <th scope="col">Ações</th>
+                  </tr>
+                </thead>
               <tbody id="licenses-tbody" onClick={handleTableAction}>
                 {loading ? (
                   <tr><td colSpan={7}>Carregando...</td></tr>
