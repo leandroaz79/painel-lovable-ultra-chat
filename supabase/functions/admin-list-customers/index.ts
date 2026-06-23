@@ -40,6 +40,10 @@ serve(async (req) => {
   try {
     const { adminClient } = await requireAdmin(req);
 
+    const body = await req.json().catch(() => ({}));
+    const page = Math.max(1, Number(body.page) || 1);
+    const pageSize = Math.min(100, Math.max(5, Number(body.pageSize) || 10));
+
     const [
       { data: authUsersData, error: usersError },
       { data: rolesData, error: rolesError },
@@ -79,7 +83,7 @@ serve(async (req) => {
       licensesByUserId.set(license.user_id, current);
     }
 
-    const customers = (authUsersData?.users ?? [])
+    const allCustomers = (authUsersData?.users ?? [])
       .filter((authUser) => !excludedUserIds.has(authUser.id))
       .map((authUser) => {
         const licenses = licensesByUserId.get(authUser.id) ?? [];
@@ -112,10 +116,20 @@ serve(async (req) => {
         return timeB - timeA;
       });
 
+    const total = allCustomers.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const safePage = Math.min(page, totalPages);
+    const start = (safePage - 1) * pageSize;
+    const customers = allCustomers.slice(start, start + pageSize);
+
     return new Response(
       JSON.stringify({
         success: true,
         customers,
+        total,
+        page: safePage,
+        pageSize,
+        totalPages,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

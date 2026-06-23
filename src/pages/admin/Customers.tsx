@@ -51,10 +51,19 @@ export default function Customers() {
     customer: Customer | null
     isLoading: boolean
   }>({ isOpen: false, customer: null, isLoading: false })
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const PAGE_SIZE_OPTIONS = [5, 10, 25, 50, 100]
 
   useEffect(() => {
     loadCustomers()
-  }, [])
+  }, [page, pageSize])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchTerm, trialFilter, accountFilter])
 
   useEffect(() => {
     if (!selectedCustomer) return
@@ -83,8 +92,10 @@ export default function Customers() {
 
   async function loadCustomers() {
     try {
-      const result = await fetchAdminFunction(FUNCTIONS.ADMIN_LIST_CUSTOMERS)
+      const result = await fetchAdminFunction(FUNCTIONS.ADMIN_LIST_CUSTOMERS, { page, pageSize })
       setCustomers(result.customers || [])
+      setTotal(result.total ?? 0)
+      setTotalPages(result.totalPages ?? 1)
     } catch (error: unknown) {
       showToast(error instanceof Error ? error.message : 'Erro ao carregar clientes', 'error')
     } finally {
@@ -195,12 +206,7 @@ export default function Customers() {
     return matchesSearch && matchesTrial && matchesAccount
   })
 
-  const stats = {
-    total: customers.length,
-    withLicenses: customers.filter(customer => customer.license_count > 0).length,
-    usedTrial: customers.filter(customer => customer.has_used_trial).length,
-    blocked: customers.filter(customer => customer.account_status === 'blocked').length,
-  }
+  const safePage = Math.min(page, Math.max(1, totalPages))
 
   return (
     <AdminLayout currentPage="/admin/customers">
@@ -233,18 +239,11 @@ export default function Customers() {
           </div>
         </section>
 
-        <section className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-          <article className="metric-card"><span>Total</span><strong>{stats.total}</strong><small>clientes cadastrados</small></article>
-          <article className="metric-card"><span>Com licenças</span><strong>{stats.withLicenses}</strong><small>já possuem chaves</small></article>
-          <article className="metric-card"><span>Trial usado</span><strong>{stats.usedTrial}</strong><small>teste gratuito consumido</small></article>
-          <article className="metric-card"><span>Bloqueados</span><strong>{stats.blocked}</strong><small>acesso restrito</small></article>
-        </section>
-
         <section className="table-card reveal">
           <div className="table-head">
             <div>
               <h2>Clientes</h2>
-              <p>{filteredCustomers.length} de {customers.length}</p>
+              <p>{total} total · {filteredCustomers.length} nesta página {totalPages > 1 ? `· Página ${safePage} de ${totalPages}` : ''}</p>
             </div>
             <div className="table-tools">
               <input
@@ -311,6 +310,46 @@ export default function Customers() {
               </tbody>
             </table>
           </div>
+
+          {totalPages > 1 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              padding: '16px 0',
+              borderTop: '1px solid var(--line)',
+              marginTop: '8px'
+            }}>
+              <Button variant="outline" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
+                ← Anterior
+              </Button>
+              <span style={{ color: 'var(--muted)', fontSize: '14px' }}>
+                {safePage} / {totalPages}
+              </span>
+              <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
+                Próximo →
+              </Button>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                style={{
+                  marginLeft: '12px',
+                  padding: '4px 8px',
+                  borderRadius: '8px',
+                  background: 'var(--card)',
+                  border: '1px solid var(--line)',
+                  color: 'var(--text)',
+                  fontSize: '13px',
+                }}
+                aria-label="Itens por página"
+              >
+                {PAGE_SIZE_OPTIONS.map(size => (
+                  <option key={size} value={size}>{size} / pág</option>
+                ))}
+              </select>
+            </div>
+          )}
         </section>
 
         {showManageModal && selectedCustomer && (
