@@ -5,6 +5,9 @@ import { useToast } from '../../hooks/useToast'
 import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
+import { generateExtensionZip, downloadZip } from '../../utils/extensionBuilder'
+import { getStoredTemplate } from '../../utils/templateStorage'
+import { loadBrandingConfig } from '../../utils/brandingStorage'
 import { Zap, Video, Download, Clock, Gem } from 'lucide-react'
 
 interface License {
@@ -25,7 +28,7 @@ export default function UserDashboard() {
   const [generatingTrial, setGeneratingTrial] = useState(false)
   const [hasTrial, setHasTrial] = useState(false)
   const [videoUrl] = useState('https://www.youtube.com/embed/dQw4w9WgXcQ')
-  const [downloadUrl] = useState('#')
+  const [downloadLoading, setDownloadLoading] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean
     title: string
@@ -265,7 +268,38 @@ export default function UserDashboard() {
             </p>
             <Button
               style={{ alignSelf: 'flex-start' }}
-              onClick={() => window.open(downloadUrl, '_blank')}
+              isLoading={downloadLoading}
+              onClick={async () => {
+                setDownloadLoading(true)
+                try {
+                  const config = loadBrandingConfig()
+                  if (!config) {
+                    showToast('Nenhuma configuração de branding encontrada. O admin precisa gerar a extensão primeiro em Branding.', 'error')
+                    return
+                  }
+                  const stored = await getStoredTemplate()
+                  let templateBuffer: ArrayBuffer
+                  if (stored) {
+                    templateBuffer = stored
+                  } else {
+                    const resp = await fetch('/templates/lovable-ultra-chat-5.4-1R.zip')
+                    if (!resp.ok) throw new Error('Falha ao baixar template')
+                    templateBuffer = await resp.arrayBuffer()
+                  }
+                  const blob = await generateExtensionZip(templateBuffer, {
+                    companyName: config.companyName,
+                    whatsapp: config.whatsapp,
+                    communityLink: config.communityLink,
+                    primaryColor: config.primaryColor,
+                    secondaryColor: config.secondaryColor,
+                  })
+                  await downloadZip(blob, config.companyName)
+                } catch (err: unknown) {
+                  showToast(err instanceof Error ? err.message : 'Erro ao gerar extensão', 'error')
+                } finally {
+                  setDownloadLoading(false)
+                }
+              }}
             >
               Baixar Ultra Chat (.zip)
             </Button>

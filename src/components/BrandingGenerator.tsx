@@ -4,6 +4,7 @@ import type { BrandingData } from "../utils/extensionBuilder";
 import { Button } from "./ui/button";
 import { Palette, Upload, Image, Smartphone } from "lucide-react";
 import { getStoredTemplate } from "../utils/templateStorage";
+import { saveBrandingConfig } from "../utils/brandingStorage";
 
 const TEMPLATE_URL = "/templates/lovable-ultra-chat-5.4-1R.zip";
 
@@ -69,6 +70,13 @@ export default function BrandingGenerator() {
 
       const blob = await generateExtensionZip(templateBuffer, data);
       await downloadZip(blob, companyName);
+      saveBrandingConfig({
+        companyName: companyName.trim(),
+        whatsapp: whatsapp.replace(/\D/g, ""),
+        communityLink: communityLink.trim(),
+        primaryColor,
+        secondaryColor,
+      });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erro ao gerar extensão");
     } finally {
