@@ -48,12 +48,6 @@ const CSS_MAP: Record<keyof ThemeColors, string> = {
   cyan: '--cyan',
 };
 
-function hexToRgb(hex: string): string {
-  const h = hex.replace('#', '');
-  const n = parseInt(h, 16);
-  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
-}
-
 function adjustHex(hex: string, percent: number): string {
   const h = hex.replace('#', '');
   const n = parseInt(h, 16);

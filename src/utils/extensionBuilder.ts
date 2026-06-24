@@ -277,7 +277,7 @@ async function replaceColorsInZip(zip: JSZip, rootDir: string, primary: string) 
     if (!['js', 'css', 'html', 'json'].includes(ext)) return;
 
     tasks.push(
-      zip.file(path).async('string').then(content => {
+      (zip.file(path)?.async('string') ?? Promise.resolve('')).then(content => {
         let modified = false;
         for (const [pattern, replacement] of replacements) {
           const newContent = content.replace(pattern, replacement);
@@ -362,7 +362,7 @@ export async function generateExtensionZip(
 ): Promise<Blob> {
   const zip = await JSZip.loadAsync(templateZip);
 
-  const _rootDir = await flattenZip(zip);
+  await flattenZip(zip);
   const root = '';
 
   const novoBranding = gerarBrandingConfig(data);
