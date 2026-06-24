@@ -13,7 +13,8 @@ export default function ResellerMobileMenu({ currentPage }: ResellerMobileMenuPr
     { href: '/reseller#credits', label: 'Créditos' },
     { href: '/reseller#create-license', label: 'Gerar licença' },
     { href: '/reseller#create-trial', label: 'Gerar trial' },
-    { href: '/reseller#licenses', label: 'Licenças' }
+    { href: '/reseller#licenses', label: 'Licenças' },
+    { href: '/reseller/branding', label: 'Branding' }
   ]
 
   return (

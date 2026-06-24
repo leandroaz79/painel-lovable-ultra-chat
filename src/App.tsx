@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import { useAuth } from './hooks/useAuth'
+import { useTheme } from './hooks/useTheme'
 import Login from './pages/Login'
 import Landing from './pages/Landing'
 
@@ -11,6 +12,9 @@ const Resellers = lazy(() => import('./pages/admin/Resellers'))
 const Sales = lazy(() => import('./pages/admin/Sales'))
 const Products = lazy(() => import('./pages/admin/Products'))
 const ResellerDashboard = lazy(() => import('./pages/reseller/Dashboard'))
+const AdminBranding = lazy(() => import('./pages/admin/Branding'))
+const AdminTheme = lazy(() => import('./pages/admin/Theme'))
+const ResellerBranding = lazy(() => import('./pages/reseller/Branding'))
 
 function LoadingScreen() {
   return (
@@ -45,6 +49,7 @@ function ProtectedRoute({
 }
 
 function App() {
+  useTheme()
   return (
     <BrowserRouter>
       <Routes>
@@ -118,11 +123,44 @@ function App() {
         />
         
         <Route
-          path="/reseller/*"
+          path="/admin/branding"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<LoadingScreen />}>
+                <AdminBranding />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/admin/theme"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<LoadingScreen />}>
+                <AdminTheme />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/reseller"
           element={
             <ProtectedRoute requiredRole="reseller">
               <Suspense fallback={<LoadingScreen />}>
                 <ResellerDashboard />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/reseller/branding"
+          element={
+            <ProtectedRoute requiredRole="reseller">
+              <Suspense fallback={<LoadingScreen />}>
+                <ResellerBranding />
               </Suspense>
             </ProtectedRoute>
           }

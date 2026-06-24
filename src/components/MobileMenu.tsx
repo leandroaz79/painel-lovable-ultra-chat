@@ -14,7 +14,9 @@ export default function MobileMenu({ currentPage }: MobileMenuProps) {
     { href: '/admin/customers', label: 'Clientes' },
     { href: '/admin/resellers', label: 'Revendedores' },
     { href: '/admin/sales', label: 'Vendas' },
-    { href: '/admin/products', label: 'Produtos' }
+    { href: '/admin/products', label: 'Produtos' },
+    { href: '/admin/branding', label: 'Branding' },
+    { href: '/admin/theme', label: 'Tema' }
   ]
 
   return (

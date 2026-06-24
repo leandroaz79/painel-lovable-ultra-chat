@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { BarChart3, Key, Users, Store, DollarSign, Tag, Zap, LogOut } from 'lucide-react'
+import { BarChart3, Key, Users, Store, DollarSign, Tag, Palette, Paintbrush, Zap, LogOut } from 'lucide-react'
 
 interface AdminSidebarProps {
   currentPage: string
@@ -13,6 +13,8 @@ const iconMap: Record<string, React.ReactNode> = {
   resellers: <Store size={20} />,
   sales: <DollarSign size={20} />,
   products: <Tag size={20} />,
+  branding: <Palette size={20} />,
+  theme: <Paintbrush size={20} />,
 }
 
 export default function AdminSidebar({ currentPage }: AdminSidebarProps) {
@@ -26,6 +28,8 @@ export default function AdminSidebar({ currentPage }: AdminSidebarProps) {
     { href: '/admin/resellers', icon: 'resellers', label: 'Revendedores', key: '/admin/resellers' },
     { href: '/admin/sales', icon: 'sales', label: 'Vendas', key: '/admin/sales' },
     { href: '/admin/products', icon: 'products', label: 'Produtos', key: '/admin/products' },
+    { href: '/admin/branding', icon: 'branding', label: 'Branding', key: '/admin/branding' },
+    { href: '/admin/theme', icon: 'theme', label: 'Tema', key: '/admin/theme' },
   ]
 
   return (
