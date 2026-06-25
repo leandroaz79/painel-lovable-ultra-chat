@@ -169,11 +169,9 @@ Sistema de gestão de licenças, usuários e revendedores para a extensão Ultra
 │   ├── index.css                  # Estilos globais (Tailwind + custom)
 │   └── main.tsx                   # Entry point React + ToastProvider
 │
+├── DOCs/                          # Documentação e arquivos legados
+│
 ├── supabase/                      # Backend Supabase
-│   ├── docs/                      # Documentação do backend
-│   │   ├── CHECKLIST_DEPLOY.md
-│   │   ├── DATABASE_STRUCTURE.md
-│   │   └── EDGE_FUNCTIONS_GUIDE.md
 │   ├── functions/                 # Edge Functions (Deno)
 │   │   ├── admin-cleanup-expired-trials/
 │   │   ├── admin-create-license/

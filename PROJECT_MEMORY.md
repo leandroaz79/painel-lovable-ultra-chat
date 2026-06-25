@@ -1,6 +1,6 @@
 # 📝 Memória do Projeto - Painel Ultra Chat v4.4+
-**Data:** 13/06/2026  
-**Última atualização:** Adicionada funcionalidade de criar revendedores manualmente no painel admin
+**Data:** 24/06/2026  
+**Última atualização:** Limpeza de arquivos legados — movidos para pasta DOCs/
 
 
 ## 🚀 Contexto do Projeto
@@ -47,10 +47,10 @@ Painel administrativo para gerenciamento de licenças Ultra Chat, com:
 **Arquivos modificados:**
 - `supabase/functions/admin-list-licenses/index.ts`: Adicionado filtro `.is("reseller_id", null)` para retornar apenas licenças do admin
 - **Criados scripts SQL:**
-  - `supabase/fix_reseller_licenses.sql`: Script inicial para atribuir reseller_id
-  - `supabase/separate_admin_reseller_licenses.sql`: Script para separar licenças (com ID hardcoded)
-  - `supabase/separate_licenses_auto.sql`: Script AUTOMÁTICO (melhor) para separar licenças (busca revendedor ativo automaticamente)
-  - `supabase/recalculate_reseller_credits.sql`: Script PARA EXECUTAR AGORA para recalcular créditos e criar RPC
+  - `DOCs/supabase/fix_reseller_licenses.sql`: Script inicial para atribuir reseller_id
+  - `DOCs/supabase/separate_admin_reseller_licenses.sql`: Script para separar licenças (com ID hardcoded)
+  - `DOCs/supabase/separate_licenses_auto.sql`: Script AUTOMÁTICO (melhor) para separar licenças (busca revendedor ativo automaticamente)
+  - `DOCs/supabase/recalculate_reseller_credits.sql`: Script PARA EXECUTAR AGORA para recalcular créditos e criar RPC
 
 ---
 
@@ -62,7 +62,7 @@ Painel administrativo para gerenciamento de licenças Ultra Chat, com:
 - Quando revendedor excluía licença, o crédito não voltava corretamente
 **Arquivos relacionados:**
 - `supabase/migrations/004_resellers_system.sql`: Migration original com sistema de créditos
-- **Criado:** `supabase/recalculate_reseller_credits.sql`: Script para:
+- **Criado:** `DOCs/supabase/recalculate_reseller_credits.sql`: Script para:
   1. Criar a RPC `increment_reseller_credits()` que faltava
   2. Recalcular `total_licenses_created`
   3. Ajustar os créditos disponíveis para 8 (conforme mencionado)
@@ -93,16 +93,26 @@ Painel administrativo para gerenciamento de licenças Ultra Chat, com:
 ---
 
 
+### 7. **Limpeza de Arquivos Legados — Movidos para DOCs/**
+**Problema:** O projeto continha diversos arquivos de documentação, scripts SQL avulsos e pastas de temas/branding que poluíam a raiz e o diretório supabase/ sem fazer parte do código ou funções do sistema.
+**Arquivos movidos para `DOCs/`:**
+- **Raiz:** `CHECKLIST_MIGRACAO.md`, `CONVERSAO_COMPLETA.md`, `CREATE_RESELLER_USER.sql`, `DEPLOY_COMPRA_CREDITOS.md`, `INSERT_ADMIN_USER.sql`, `painel-branding/`
+- **supabase/:** `ACAO_URGENTE_REDEPLOY.md`, `ANALISE_FALTANTE.md`, `AUDITORIA_NOVO_PROJETO.md`, `MIGRACAO_COMPLETA.md`, `QUICK_START.md`, `README.md`, `RESUMO_ENTREGA.md`, `STATUS_FINAL.md`, `docs/`, `.temp/`, `fix_id_check.sql`, `fix_reseller_licenses.sql`, `recalculate_reseller_credits.sql`, `separate_admin_reseller_licenses.sql`, `separate_licenses_auto.sql`
+- **Preservados no lugar:** `PROJECT_MEMORY.md`, `README.md` (raiz), `public/templates/lovable-ultra-chat-5.4-1R.zip`
+**Benefício:** Raiz do projeto mais limpa e organizada, separação clara entre código ativo e documentação legada.
+
+---
+
 ## 📂 Lista Completa de Arquivos Modificados/Criados
 
 ### Criados do Zero:
 1. `supabase/functions/admin-delete-license/index.ts`: Função de exclusão para admin
 2. `supabase/functions/admin-create-reseller/index.ts`: Função de criação de revendedores para admin
-3. `supabase/fix_reseller_licenses.sql`: Primeiro script de correção de licenças
-4. `supabase/separate_admin_reseller_licenses.sql`: Segundo script de separação
-5. `supabase/separate_licenses_auto.sql`: Script automático de separação
-6. `supabase/fix_id_check.sql`: Verificação de ID do revendedor
-7. `supabase/recalculate_reseller_credits.sql`: SCRIPT PRINCIPAL A EXECUTAR
+3. `DOCs/supabase/fix_reseller_licenses.sql`: Primeiro script de correção de licenças
+4. `DOCs/supabase/separate_admin_reseller_licenses.sql`: Segundo script de separação
+5. `DOCs/supabase/separate_licenses_auto.sql`: Script automático de separação
+6. `DOCs/supabase/fix_id_check.sql`: Verificação de ID do revendedor
+7. `DOCs/supabase/recalculate_reseller_credits.sql`: SCRIPT PRINCIPAL A EXECUTAR
 8. `PROJECT_MEMORY.md`: Este arquivo!
 
 ### Modificados:
@@ -120,12 +130,12 @@ Painel administrativo para gerenciamento de licenças Ultra Chat, com:
 ## ⚠️ O Que Falta Fazer (Estado Atual)
 
 ### Passo 1: Executar o Script SQL de Recálculo
-Ainda NÃO EXECUTOU o script `supabase/recalculate_reseller_credits.sql`!
+Ainda NÃO EXECUTOU o script `DOCs/supabase/recalculate_reseller_credits.sql`!
 
 **Como executar:**
 1. Acesse o painel do Supabase
 2. Vá para **SQL Editor**
-3. Abra o arquivo `supabase/recalculate_reseller_credits.sql`
+3. Abra o arquivo `DOCs/supabase/recalculate_reseller_credits.sql`
 4. Clique em **Run**
 
 ### Passo 2: Fazer Deploy das Edge Functions
