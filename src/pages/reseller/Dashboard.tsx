@@ -4,6 +4,7 @@ import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
+import { Logo } from '../../components/ui/Logo'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import ResellerLayout from '../../components/ResellerLayout'
 import ResellerMobileMenu from '../../components/ResellerMobileMenu'
@@ -467,10 +468,7 @@ export default function ResellerDashboard() {
       {/* Header Mobile + Desktop Simplificado */}
       <header className="topbar">
         <ResellerMobileMenu currentPage="/reseller" />
-        <a className="brand" href="/reseller" aria-label="Ultra Revenda">
-          <span className="brand-bolt">⚡</span>
-          <strong>Ultra<span>Revenda</span></strong>
-        </a>
+        <Logo variant="reseller" href="/reseller" />
         <nav className="nav-links" aria-label="Navegação principal">
           <a href="/reseller">Painel</a>
           <a href="/reseller#credits">Créditos</a>

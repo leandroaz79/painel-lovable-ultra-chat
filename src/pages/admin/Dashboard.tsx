@@ -8,6 +8,7 @@ import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import { Button } from '../../components/ui/button'
+import { Logo } from '../../components/ui/Logo'
 import { BarChart3, Key } from 'lucide-react'
 
 interface License {
@@ -358,10 +359,7 @@ export default function AdminDashboard() {
       {/* Header Mobile + Desktop Simplificado */}
       <header className="topbar">
         <MobileMenu currentPage="/admin" />
-        <a className="brand" href="/admin" aria-label="Ultra Admin">
-          <span className="brand-bolt">⚡</span>
-          <strong>Ultra<span>Admin</span></strong>
-        </a>
+        <Logo variant="admin" href="/admin" />
         <nav className="nav-links" aria-label="Navegação principal">
           <a href="/admin">Painel</a>
           <a href="/admin#licenses">Licenças</a>

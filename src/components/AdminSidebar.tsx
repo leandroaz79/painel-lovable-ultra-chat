@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { BarChart3, Key, Users, Store, DollarSign, Tag, Palette, Paintbrush, Zap, LogOut } from 'lucide-react'
+import { Logo } from './ui/Logo'
 
 interface AdminSidebarProps {
   currentPage: string
@@ -37,10 +38,7 @@ export default function AdminSidebar({ currentPage }: AdminSidebarProps) {
       <aside className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         {/* Header */}
         <div className="sidebar-header">
-          <div className="sidebar-brand">
-            <span className="brand-bolt"><Zap size={18} /></span>
-            {!isCollapsed && <strong>Ultra<span>Admin</span></strong>}
-          </div>
+          <Logo variant="admin" href="/admin" />
           <button 
             className="sidebar-toggle"
             onClick={() => setIsCollapsed(!isCollapsed)}

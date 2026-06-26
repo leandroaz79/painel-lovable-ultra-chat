@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
 import { Button } from '../components/ui/button'
+import { Logo } from '../components/ui/Logo'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -46,10 +47,10 @@ export default function Login() {
       <div className="auth-shell">
         <div className="auth-card reveal">
           <div className="brand-mark">
-            <span className="brand-bolt">⚡</span>
+            <Logo variant="login" />
             <div>
-              <strong>Ultra<span>Admin</span></strong>
-              <small>Licenças e revendedores</small>
+              <strong style={{ color: 'var(--text)' }}>Ultra<span style={{ color: 'var(--brand-green)' }}>Admin</span></strong>
+              <small style={{ color: 'var(--muted)' }}>Licenças e revendedores</small>
             </div>
           </div>
 
@@ -123,6 +124,13 @@ export default function Login() {
               </Button>
             </div>
           )}
+
+          <p style={{ marginTop: '16px', textAlign: 'center', fontSize: '13px', color: 'var(--muted)' }}>
+            Não tem conta?{' '}
+            <a href="/signup" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
+              Criar conta grátis
+            </a>
+          </p>
         </div>
       </div>
     </div>

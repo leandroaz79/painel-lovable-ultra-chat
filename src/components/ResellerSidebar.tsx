@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { BarChart3, Key, PlusCircle, Clock, ClipboardList, Palette, Zap, LogOut } from 'lucide-react'
+import { Logo } from './ui/Logo'
 
 interface ResellerSidebarProps {
   currentPage: string
@@ -32,10 +33,7 @@ export default function ResellerSidebar({ currentPage }: ResellerSidebarProps) {
     <>
       <aside className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <div className="sidebar-brand">
-            <span className="brand-bolt"><Zap size={18} /></span>
-            {!isCollapsed && <strong>Ultra<span>Revenda</span></strong>}
-          </div>
+          <Logo variant="reseller" href="/reseller" />
           <button
             className="sidebar-toggle"
             onClick={() => setIsCollapsed(!isCollapsed)}

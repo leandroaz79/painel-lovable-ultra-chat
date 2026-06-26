@@ -1,10 +1,14 @@
 @charset "UTF-8";
 
-/* ============================================
-   Import: Design System Modular
-   ============================================ */
+/* ══════════════════════════════════════════
+   Import: Design System Modular (must be top)
+   ══════════════════════════════════════════ */
 @import './styles/tokens.css';
 @import './styles/base.css';
 @import './styles/components.css';
 @import './styles/layout.css';
 @import './styles/landing.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

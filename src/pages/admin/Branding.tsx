@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/button'
+import { Logo } from '../../components/ui/Logo'
 import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
 import BrandingGenerator from '../../components/BrandingGenerator'
@@ -13,10 +14,7 @@ export default function AdminBranding() {
     <AdminLayout currentPage="/admin/branding">
       <header className="topbar">
         <MobileMenu currentPage="/admin/branding" />
-        <a className="brand" href="/admin" aria-label="Ultra Admin">
-          <span className="brand-bolt">⚡</span>
-          <strong>Ultra<span>Admin</span></strong>
-        </a>
+        <Logo variant="admin" href="/admin" />
         <nav className="nav-links" aria-label="Navegação principal">
           <a href="/admin">Painel</a>
           <a href="/admin#licenses">Licenças</a>

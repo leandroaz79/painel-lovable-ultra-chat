@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useTheme } from './hooks/useTheme'
 import Login from './pages/Login'
+import Signup from './pages/Signup'
 import Landing from './pages/Landing'
 
 const UserDashboard = lazy(() => import('./pages/user/Dashboard'))
@@ -55,6 +56,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         
         <Route
           path="/user"

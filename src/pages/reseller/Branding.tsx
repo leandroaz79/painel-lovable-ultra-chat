@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/button'
+import { Logo } from '../../components/ui/Logo'
 import ResellerMobileMenu from '../../components/ResellerMobileMenu'
 import ResellerLayout from '../../components/ResellerLayout'
 import BrandingGenerator from '../../components/BrandingGenerator'
@@ -12,10 +13,7 @@ export default function ResellerBranding() {
     <ResellerLayout currentPage="/reseller/branding">
       <header className="topbar">
         <ResellerMobileMenu currentPage="/reseller/branding" />
-        <a className="brand" href="/reseller" aria-label="Ultra Revenda">
-          <span className="brand-bolt">⚡</span>
-          <strong>Ultra<span>Revenda</span></strong>
-        </a>
+        <Logo variant="reseller" href="/reseller" />
         <nav className="nav-links" aria-label="Navegação principal">
           <a href="/reseller">Painel</a>
           <a href="/reseller#credits">Créditos</a>

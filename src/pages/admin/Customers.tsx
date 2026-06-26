@@ -6,6 +6,16 @@ import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import { Button } from '../../components/ui/button'
+import { Logo } from '../../components/ui/Logo'
+
+function formatWhatsApp(value: string): string {
+  const cleaned = value.replace(/\D/g, '')
+  const trimmed = cleaned.slice(0, 11)
+  if (trimmed.length === 0) return ''
+  if (trimmed.length <= 2) return `(${trimmed}`
+  if (trimmed.length <= 7) return `(${trimmed.slice(0, 2)}) ${trimmed.slice(2)}`
+  return `(${trimmed.slice(0, 2)}) ${trimmed.slice(2, 3)} ${trimmed.slice(3, 7)}-${trimmed.slice(7)}`
+}
 
 interface CustomerLicense {
   license_key: string
@@ -19,6 +29,7 @@ interface Customer {
   id: string
   name: string
   email: string
+  whatsapp?: string
   created_at: string
   last_sign_in_at: string | null
   account_status: 'active' | 'blocked'
@@ -45,6 +56,7 @@ export default function Customers() {
   const [showManageModal, setShowManageModal] = useState(false)
   const [customerName, setCustomerName] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
+  const [customerWhatsapp, setCustomerWhatsapp] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean
@@ -69,6 +81,7 @@ export default function Customers() {
     if (!selectedCustomer) return
     setCustomerName(selectedCustomer.name || '')
     setCustomerEmail(selectedCustomer.email || '')
+    setCustomerWhatsapp(selectedCustomer.whatsapp || '')
   }, [selectedCustomer])
 
   async function fetchAdminFunction(path: string, payload?: Record<string, unknown>) {
@@ -113,6 +126,7 @@ export default function Customers() {
     setSelectedCustomer(null)
     setCustomerName('')
     setCustomerEmail('')
+    setCustomerWhatsapp('')
     setSavingProfile(false)
   }
 
@@ -126,15 +140,23 @@ export default function Customers() {
         action: 'update_profile',
         name: customerName.trim(),
         email: customerEmail.trim(),
+        whatsapp: customerWhatsapp.replace(/\D/g, ''),
       })
 
       showToast('Cadastro do cliente atualizado com sucesso.', 'success')
+
+      const formattedWhatsapp = customerWhatsapp
+      const updatedId = selectedCustomer.id
       setSelectedCustomer(prev => prev ? {
         ...prev,
         name: customerName.trim(),
         email: customerEmail.trim(),
+        whatsapp: formattedWhatsapp,
       } : prev)
       await loadCustomers()
+      setCustomers(prev => prev.map(c =>
+        c.id === updatedId ? { ...c, whatsapp: formattedWhatsapp } : c
+      ))
     } catch (error: unknown) {
       showToast(error instanceof Error ? error.message : 'Erro ao atualizar cliente', 'error')
     } finally {
@@ -212,10 +234,7 @@ export default function Customers() {
     <AdminLayout currentPage="/admin/customers">
       <header className="topbar">
         <MobileMenu currentPage="/admin/customers" />
-        <a className="brand" href="/admin" aria-label="Ultra Admin">
-          <span className="brand-bolt">⚡</span>
-          <strong>Ultra<span>Admin</span></strong>
-        </a>
+        <Logo variant="admin" href="/admin" />
         <nav className="nav-links" aria-label="Navegação principal">
           <a href="/admin">Painel</a>
           <a href="/admin#licenses">Licenças</a>
@@ -270,6 +289,7 @@ export default function Customers() {
               <thead>
                 <tr>
                   <th scope="col">Cliente</th>
+                  <th scope="col">WhatsApp</th>
                   <th scope="col">Trial</th>
                   <th scope="col">Licenças</th>
                   <th scope="col">Status</th>
@@ -280,9 +300,9 @@ export default function Customers() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={7}>Carregando...</td></tr>
+                  <tr><td colSpan={8}>Carregando...</td></tr>
                 ) : filteredCustomers.length === 0 ? (
-                  <tr><td colSpan={7}>Nenhum cliente encontrado.</td></tr>
+                  <tr><td colSpan={8}>Nenhum cliente encontrado.</td></tr>
                 ) : (
                   filteredCustomers.map((customer) => (
                     <tr key={customer.id}>
@@ -290,6 +310,7 @@ export default function Customers() {
                         <strong>{customer.name || 'Sem nome'}</strong>
                         <small>{customer.email || '—'}</small>
                       </td>
+                      <td data-label="WhatsApp">{customer.whatsapp || '—'}</td>
                       <td data-label="Trial">{customer.has_used_trial ? `Usado em ${formatDate(customer.trial_used_at)}` : 'Disponível'}</td>
                       <td data-label="Licenças">
                         {customer.license_count}
@@ -373,7 +394,7 @@ export default function Customers() {
               <div className="stack-form">
                 <div>
                   <h3 style={{ margin: '0 0 6px', fontSize: '16px' }}>Dados cadastrais</h3>
-                  <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px' }}>Atualize nome e email da conta do cliente.</p>
+                  <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px' }}>Atualize nome, email e WhatsApp da conta do cliente.</p>
                 </div>
 
                 <label>
@@ -384,6 +405,11 @@ export default function Customers() {
                 <label>
                   <span>Email</span>
                   <input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="email@exemplo.com" />
+                </label>
+
+                <label>
+                  <span>WhatsApp</span>
+                  <input type="text" value={customerWhatsapp} onChange={(e) => setCustomerWhatsapp(formatWhatsApp(e.target.value))} placeholder="(11) 9 9999-9999" />
                 </label>
 
                 <div className="split-fields">

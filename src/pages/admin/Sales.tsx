@@ -5,6 +5,7 @@ import { useToast } from '../../hooks/useToast'
 import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
 import { Button } from '../../components/ui/button'
+import { Logo } from '../../components/ui/Logo'
 import { Download } from 'lucide-react'
 
 interface Purchase {
@@ -192,10 +193,7 @@ export default function Sales() {
     <AdminLayout currentPage="/admin/sales">
       <header className="topbar">
         <MobileMenu currentPage="/admin/sales" />
-        <a className="brand" href="/admin" aria-label="Ultra Admin">
-          <span className="brand-bolt">⚡</span>
-          <strong>Ultra<span>Admin</span></strong>
-        </a>
+        <Logo variant="admin" href="/admin" />
         <nav className="nav-links" aria-label="Navegação principal">
           <a href="/admin">Painel</a>
           <a href="/admin#licenses">Licenças</a>

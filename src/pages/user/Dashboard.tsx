@@ -4,11 +4,12 @@ import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
+import { Logo } from '../../components/ui/Logo'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import { generateExtensionZip, downloadZip } from '../../utils/extensionBuilder'
 import { getStoredTemplate } from '../../utils/templateStorage'
 import { loadBrandingConfig } from '../../utils/brandingStorage'
-import { Zap, Video, Download, Clock, Gem } from 'lucide-react'
+import { Video, Download, Clock, Gem } from 'lucide-react'
 
 interface License {
   license_key: string
@@ -194,12 +195,7 @@ export default function UserDashboard() {
       {/* Header */}
       <header className="landing-header">
         <div className="landing-header-inner">
-          <a href="/user" className="brand">
-            <span className="brand-bolt"><Zap size={18} /></span>
-            <strong>
-              Ultra<span>Chat</span>
-            </strong>
-          </a>
+          <Logo variant="user" href="/user" />
           <div className="session-box">
             <span>{user?.email || 'Usuário'}</span>
             <Button variant="ghost" onClick={signOut}>
@@ -524,12 +520,7 @@ export default function UserDashboard() {
       {/* Footer */}
       <footer className="landing-footer">
         <div className="footer-inner">
-          <div className="brand">
-            <span className="brand-bolt"><Zap size={18} /></span>
-            <strong>
-              Ultra<span>Chat</span>
-            </strong>
-          </div>
+          <Logo variant="user" href="/user" />
           <p>© 2026 Ultra Chat. Todos os direitos reservados.</p>
         </div>
       </footer>

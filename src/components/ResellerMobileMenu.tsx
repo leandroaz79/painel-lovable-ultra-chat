@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Zap } from 'lucide-react'
+import { Logo } from './ui/Logo'
 
 interface ResellerMobileMenuProps {
   currentPage?: string
@@ -42,10 +42,7 @@ export default function ResellerMobileMenu({ currentPage }: ResellerMobileMenuPr
       {/* Menu Lateral */}
       <nav className={`mobile-menu ${isOpen ? 'open' : ''}`}>
         <div className="mobile-menu-header">
-          <div className="brand-mark">
-            <span className="brand-bolt"><Zap size={18} /></span>
-            <strong>Ultra<span>Revenda</span></strong>
-          </div>
+          <Logo variant="reseller" href="/reseller" />
           <button
             className="mobile-menu-close"
             onClick={() => setIsOpen(false)}
