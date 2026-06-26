@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
-import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
+import AdminTopbar from '../../components/AdminTopbar'
 import { Button } from '../../components/ui/button'
-import { Logo } from '../../components/ui/Logo'
 import { Info, AlertTriangle } from 'lucide-react'
 
 interface PricingTier {
@@ -99,28 +98,13 @@ export default function Products() {
 
   return (
     <AdminLayout currentPage="/admin/products">
-      <header className="topbar">
-        <MobileMenu currentPage="/admin/products" />
-        <Logo variant="admin" href="/admin" />
-        <nav className="nav-links" aria-label="Navegação principal">
-          <a href="/admin">Painel</a>
-          <a href="/admin#licenses">Licenças</a>
-          <a href="/admin/customers">Clientes</a>
-          <a href="/admin/resellers">Revendedores</a>
-          <a href="/admin/sales">Vendas</a>
-          <a href="/admin/products">Produtos</a>
-        </nav>
-        <div className="session-box">
-          <span>{user?.email || 'Admin'}</span>
-          <Button variant="ghost" onClick={() => { supabase.auth.signOut(); window.location.href = '/login'; }}>Sair</Button>
-        </div>
-      </header>
+      <AdminTopbar currentPage="/admin/products" />
 
       <div className="app-shell">
         <section className="hero-panel reveal">
           <div>
-            <p className="eyebrow">Gestão de Produtos</p>
-            <h1>Preços de créditos</h1>
+            <p className="eyebrow">Gestão de Preços</p>
+            <h1>Tabela de Preços para Revendedores</h1>
             <p>Configure a tabela de preços progressivos para venda de créditos.</p>
           </div>
         </section>

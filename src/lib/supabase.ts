@@ -24,6 +24,7 @@ export const FUNCTIONS = {
   ADMIN_MANAGE_RESELLER: '/functions/v1/admin-manage-reseller',
   ADMIN_LIST_CUSTOMERS: '/functions/v1/admin-list-customers',
   ADMIN_MANAGE_CUSTOMER: '/functions/v1/admin-manage-customer',
+  ADMIN_LIST_CUSTOMER_PURCHASES: '/functions/v1/admin-list-customer-purchases',
   
   // Revendedor
   RESELLER_DASHBOARD: '/functions/v1/reseller-dashboard',
@@ -34,4 +35,6 @@ export const FUNCTIONS = {
   
   // Usuário final
   USER_CREATE_TRIAL: '/functions/v1/user-create-trial',
+  CUSTOMER_CREATE_PAYMENT: '/functions/v1/customer-create-payment',
+  CUSTOMER_CHECK_PAYMENT: '/functions/v1/customer-check-payment',
 }

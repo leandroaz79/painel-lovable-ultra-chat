@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Menu, X, MessageCircleHeart } from "lucide-react"
+import { Menu, X, MessageCircleHeart, LayoutDashboard } from "lucide-react"
+import { useAuth } from "../../hooks/useAuth"
 
 const links = [
   { href: "#funcionalidades", label: "Funcionalidades" },
@@ -8,9 +9,17 @@ const links = [
   { href: "#planos", label: "Planos" },
 ]
 
+function dashboardPath(role: string | null) {
+  if (role === 'admin') return '/admin'
+  if (role === 'reseller') return '/reseller'
+  return '/user'
+}
+
 export function Navbar() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const { user, role, loading } = useAuth()
+  const isLoggedIn = !loading && !!user
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/5" style={{ background: 'rgba(5, 11, 18, 0.82)', backdropFilter: 'blur(22px)' }}>
@@ -40,16 +49,29 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
-          <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login') }}
-            className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
-            style={{ color: 'var(--muted)' }}>
-            Entrar
-          </a>
-          <a href="/signup" onClick={(e) => { e.preventDefault(); navigate('/signup') }}
-            className="inline-flex items-center justify-center rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white shadow-lg hover:opacity-95 transition-all"
-            style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}>
-            Começar grátis
-          </a>
+          {isLoggedIn ? (
+            <button
+              onClick={() => navigate(dashboardPath(role))}
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white shadow-lg hover:opacity-95 transition-all"
+              style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}
+            >
+              <LayoutDashboard className="size-4" />
+              Painel
+            </button>
+          ) : (
+            <>
+              <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login') }}
+                className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
+                style={{ color: 'var(--muted)' }}>
+                Entrar
+              </a>
+              <a href="/signup" onClick={(e) => { e.preventDefault(); navigate('/signup') }}
+                className="inline-flex items-center justify-center rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white shadow-lg hover:opacity-95 transition-all"
+                style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}>
+                Começar grátis
+              </a>
+            </>
+          )}
         </div>
 
         <button
@@ -78,11 +100,22 @@ export function Navbar() {
                 {l.label}
               </a>
             ))}
-            <a href="/signup" onClick={(e) => { e.preventDefault(); setOpen(false); navigate('/signup') }}
-              className="inline-flex items-center justify-center rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white mt-2 transition-all"
-              style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}>
-              Começar grátis
-            </a>
+            {isLoggedIn ? (
+              <button
+                onClick={() => { setOpen(false); navigate(dashboardPath(role)) }}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white mt-2 transition-all"
+                style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}
+              >
+                <LayoutDashboard className="size-4" />
+                Painel
+              </button>
+            ) : (
+              <a href="/signup" onClick={(e) => { e.preventDefault(); setOpen(false); navigate('/signup') }}
+                className="inline-flex items-center justify-center rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white mt-2 transition-all"
+                style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}>
+                Começar grátis
+              </a>
+            )}
           </div>
         </div>
       )}

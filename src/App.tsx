@@ -5,6 +5,7 @@ import { useTheme } from './hooks/useTheme'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Landing from './pages/Landing'
+import Checkout from './pages/Checkout'
 
 const UserDashboard = lazy(() => import('./pages/user/Dashboard'))
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
@@ -16,6 +17,8 @@ const ResellerDashboard = lazy(() => import('./pages/reseller/Dashboard'))
 const AdminBranding = lazy(() => import('./pages/admin/Branding'))
 const AdminTheme = lazy(() => import('./pages/admin/Theme'))
 const ResellerBranding = lazy(() => import('./pages/reseller/Branding'))
+const EndcustomerProducts = lazy(() => import('./pages/admin/EndcustomerProducts'))
+const CustomerPurchases = lazy(() => import('./pages/admin/CustomerPurchases'))
 
 function LoadingScreen() {
   return (
@@ -57,6 +60,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/checkout/:slug" element={<Checkout />} />
         
         <Route
           path="/user"
@@ -141,6 +145,28 @@ function App() {
             <ProtectedRoute requiredRole="admin">
               <Suspense fallback={<LoadingScreen />}>
                 <AdminTheme />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/endcustomer-products"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<LoadingScreen />}>
+                <EndcustomerProducts />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/customer-purchases"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<LoadingScreen />}>
+                <CustomerPurchases />
               </Suspense>
             </ProtectedRoute>
           }

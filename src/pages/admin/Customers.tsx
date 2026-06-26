@@ -1,21 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useAuth } from '../../hooks/useAuth'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
-import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
+import AdminTopbar from '../../components/AdminTopbar'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import { Button } from '../../components/ui/button'
-import { Logo } from '../../components/ui/Logo'
-
-function formatWhatsApp(value: string): string {
-  const cleaned = value.replace(/\D/g, '')
-  const trimmed = cleaned.slice(0, 11)
-  if (trimmed.length === 0) return ''
-  if (trimmed.length <= 2) return `(${trimmed}`
-  if (trimmed.length <= 7) return `(${trimmed.slice(0, 2)}) ${trimmed.slice(2)}`
-  return `(${trimmed.slice(0, 2)}) ${trimmed.slice(2, 3)} ${trimmed.slice(3, 7)}-${trimmed.slice(7)}`
-}
+import { formatWhatsApp, cleanDigits } from '../../utils/format'
 
 interface CustomerLicense {
   license_key: string
@@ -45,7 +35,6 @@ interface Customer {
 }
 
 export default function Customers() {
-  const { user, signOut } = useAuth()
   const { showToast } = useToast()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
@@ -81,7 +70,7 @@ export default function Customers() {
     if (!selectedCustomer) return
     setCustomerName(selectedCustomer.name || '')
     setCustomerEmail(selectedCustomer.email || '')
-    setCustomerWhatsapp(selectedCustomer.whatsapp || '')
+    setCustomerWhatsapp(selectedCustomer.whatsapp ? formatWhatsApp(selectedCustomer.whatsapp) : '')
   }, [selectedCustomer])
 
   async function fetchAdminFunction(path: string, payload?: Record<string, unknown>) {
@@ -140,22 +129,22 @@ export default function Customers() {
         action: 'update_profile',
         name: customerName.trim(),
         email: customerEmail.trim(),
-        whatsapp: customerWhatsapp.replace(/\D/g, ''),
+        whatsapp: cleanDigits(customerWhatsapp),
       })
 
       showToast('Cadastro do cliente atualizado com sucesso.', 'success')
 
-      const formattedWhatsapp = customerWhatsapp
+      const cleanedWhatsapp = cleanDigits(customerWhatsapp)
       const updatedId = selectedCustomer.id
       setSelectedCustomer(prev => prev ? {
         ...prev,
         name: customerName.trim(),
         email: customerEmail.trim(),
-        whatsapp: formattedWhatsapp,
+        whatsapp: cleanedWhatsapp,
       } : prev)
       await loadCustomers()
       setCustomers(prev => prev.map(c =>
-        c.id === updatedId ? { ...c, whatsapp: formattedWhatsapp } : c
+        c.id === updatedId ? { ...c, whatsapp: cleanedWhatsapp } : c
       ))
     } catch (error: unknown) {
       showToast(error instanceof Error ? error.message : 'Erro ao atualizar cliente', 'error')
@@ -232,22 +221,7 @@ export default function Customers() {
 
   return (
     <AdminLayout currentPage="/admin/customers">
-      <header className="topbar">
-        <MobileMenu currentPage="/admin/customers" />
-        <Logo variant="admin" href="/admin" />
-        <nav className="nav-links" aria-label="Navegação principal">
-          <a href="/admin">Painel</a>
-          <a href="/admin#licenses">Licenças</a>
-          <a href="/admin/customers">Clientes</a>
-          <a href="/admin/resellers">Revendedores</a>
-          <a href="/admin/sales">Vendas</a>
-          <a href="/admin/products">Produtos</a>
-        </nav>
-        <div className="session-box">
-          <span>{user?.email || 'Carregando...'}</span>
-          <Button variant="ghost" onClick={() => signOut()}>Sair</Button>
-        </div>
-      </header>
+      <AdminTopbar currentPage="/admin/customers" />
 
       <div className="app-shell">
         <section className="hero-panel reveal">
@@ -310,7 +284,7 @@ export default function Customers() {
                         <strong>{customer.name || 'Sem nome'}</strong>
                         <small>{customer.email || '—'}</small>
                       </td>
-                      <td data-label="WhatsApp">{customer.whatsapp || '—'}</td>
+                      <td data-label="WhatsApp">{customer.whatsapp ? formatWhatsApp(customer.whatsapp) : '—'}</td>
                       <td data-label="Trial">{customer.has_used_trial ? `Usado em ${formatDate(customer.trial_used_at)}` : 'Disponível'}</td>
                       <td data-label="Licenças">
                         {customer.license_count}

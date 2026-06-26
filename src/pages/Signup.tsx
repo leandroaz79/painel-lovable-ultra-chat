@@ -1,29 +1,25 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
 import { Button } from '../components/ui/button'
 import { Logo } from '../components/ui/Logo'
+import { formatWhatsApp } from '../utils/format'
 
-function formatWhatsApp(value: string): string {
-  // Remove tudo que não é número
-  const cleaned = value.replace(/\D/g, '')
-  
-  // Limita a 11 dígitos (Brasil)
-  const trimmed = cleaned.slice(0, 11)
-  
-  // Formata: (XX) 9 XXXX-XXXX
-  if (trimmed.length === 0) return ''
-  if (trimmed.length <= 2) return `(${trimmed}`
-  if (trimmed.length <= 7) return `(${trimmed.slice(0, 2)}) ${trimmed.slice(2)}`
-  return `(${trimmed.slice(0, 2)}) ${trimmed.slice(2, 3)} ${trimmed.slice(3, 7)}-${trimmed.slice(7)}`
+function formatCPF(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`
 }
 
 export default function Signup() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
+  const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -31,29 +27,41 @@ export default function Signup() {
   const { user, role } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirect = searchParams.get('redirect')
 
   useEffect(() => {
     if (user && role === 'user') {
-      navigate('/user', { replace: true })
+      navigate(redirect || '/user', { replace: true })
       return
     }
-  }, [role, user, navigate])
+  }, [role, user, navigate, redirect])
 
   function handleWhatsAppChange(e: React.ChangeEvent<HTMLInputElement>) {
     const formatted = formatWhatsApp(e.target.value)
     setWhatsapp(formatted)
   }
 
+  function handleCpfChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setCpf(formatCPF(e.target.value))
+  }
+
   async function handleSignup(e: FormEvent) {
     e.preventDefault()
     setError('')
-    if (!name || !email || !whatsapp || !password) return
+    if (!name || !email || !whatsapp || !cpf || !password) return
 
-    // Valida se tem 11 dígitos (formato correto)
     const cleanedWhatsApp = whatsapp.replace(/\D/g, '')
     if (cleanedWhatsApp.length !== 11) {
       setError('WhatsApp deve ter 11 dígitos')
       showToast('WhatsApp deve ter 11 dígitos', 'error')
+      return
+    }
+
+    const cleanedCPF = cpf.replace(/\D/g, '')
+    if (cleanedCPF.length !== 11) {
+      setError('CPF deve ter 11 dígitos')
+      showToast('CPF deve ter 11 dígitos', 'error')
       return
     }
 
@@ -62,12 +70,19 @@ export default function Signup() {
       const { data, error: signupError } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { name, whatsapp: cleanedWhatsApp } },
+        options: {
+          data: {
+            name,
+            whatsapp: cleanedWhatsApp,
+            cpf: cleanedCPF,
+          },
+        },
       })
       if (signupError) throw signupError
       if (data.user) {
-        showToast('Conta criada com sucesso! Redirecionando...', 'success')
-        setTimeout(() => navigate('/user'), 1500)
+        showToast('Conta criada com sucesso!', 'success')
+        const destination = redirect || '/user'
+        setTimeout(() => navigate(destination), 1500)
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao criar conta'
@@ -88,7 +103,7 @@ export default function Signup() {
 
           <div className="auth-copy">
             <h1>Criar conta grátis</h1>
-            <p>Cadastre-se e comece a testar a extensão Lovable Ultra Chat por 30 min.</p>
+            <p>Cadastre-se para comprar planos ou testar a extensão Ultra Chat.</p>
           </div>
 
           <form className="stack-form" onSubmit={handleSignup}>
@@ -112,16 +127,28 @@ export default function Signup() {
                 required
               />
             </label>
-            <label>
-              <span>WhatsApp</span>
-              <input
-                type="text"
-                value={whatsapp}
-                onChange={handleWhatsAppChange}
-                placeholder="(11) 9 9999-9999"
-                required
-              />
-            </label>
+            <div className="split-fields">
+              <label>
+                <span>WhatsApp</span>
+                <input
+                  type="text"
+                  value={whatsapp}
+                  onChange={handleWhatsAppChange}
+                  placeholder="(11) 9 9999-9999"
+                  required
+                />
+              </label>
+              <label>
+                <span>CPF</span>
+                <input
+                  type="text"
+                  value={cpf}
+                  onChange={handleCpfChange}
+                  placeholder="000.000.000-00"
+                  required
+                />
+              </label>
+            </div>
             <label>
               <span>Senha</span>
               <input
@@ -134,7 +161,7 @@ export default function Signup() {
               />
             </label>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Criando conta...' : 'Criar conta e testar grátis'}
+              {loading ? 'Criando conta...' : redirect ? 'Criar conta e continuar' : 'Criar conta'}
             </Button>
           </form>
 
@@ -142,7 +169,7 @@ export default function Signup() {
 
           <p style={{ marginTop: '16px', textAlign: 'center', fontSize: '13px', color: 'var(--muted)' }}>
             Já tem conta?{' '}
-            <a href="/login" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
+            <a href={redirect ? `/login?redirect=${redirect}` : '/login'} style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
               Fazer login
             </a>
           </p>

@@ -4,6 +4,7 @@ import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
+import { formatWhatsApp, cleanDigits } from '../../utils/format'
 import { Logo } from '../../components/ui/Logo'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import ResellerLayout from '../../components/ResellerLayout'
@@ -179,7 +180,7 @@ export default function ResellerDashboard() {
     
     const payload = {
       user_name: (form.querySelector('#user-name') as HTMLInputElement).value.trim(),
-      phone: (form.querySelector('#phone') as HTMLInputElement).value.trim(),
+      phone: cleanDigits((form.querySelector('#phone') as HTMLInputElement).value),
       license_type: selectedType,
       days: selectedType === 'lifetime' ? null : daysValue,
       lifetime: selectedType === 'lifetime'
@@ -351,7 +352,7 @@ export default function ResellerDashboard() {
       quantity,
       buyer_name: buyerName,
       buyer_cpf: buyerCPF,
-      buyer_phone: buyerPhone,
+      buyer_phone: cleanDigits(buyerPhone),
       buyer_email: buyerEmail || user?.email,
       total_amount: total
     }
@@ -766,7 +767,7 @@ export default function ResellerDashboard() {
                   <input 
                     type="tel" 
                     value={buyerPhone}
-                    onChange={(e) => setBuyerPhone(e.target.value)}
+                    onChange={(e) => setBuyerPhone(formatWhatsApp(e.target.value))}
                     placeholder="(11) 99999-9999"
                     required 
                   />

@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
@@ -16,10 +16,14 @@ export default function Login() {
   const { signIn, role, user } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirect = searchParams.get('redirect')
 
   useEffect(() => {
     if (user && role) {
-      if (role === 'admin') {
+      if (redirect) {
+        navigate(redirect, { replace: true })
+      } else if (role === 'admin') {
         navigate('/admin')
       } else if (role === 'reseller') {
         navigate('/reseller')
@@ -27,7 +31,7 @@ export default function Login() {
         navigate('/user')
       }
     }
-  }, [role, user, navigate])
+  }, [role, user, navigate, redirect])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()

@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
-import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
+import AdminTopbar from '../../components/AdminTopbar'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import { Button } from '../../components/ui/button'
-import { Logo } from '../../components/ui/Logo'
+import { formatWhatsApp, cleanDigits } from '../../utils/format'
 
 interface Reseller {
   id: string
@@ -69,7 +69,7 @@ export default function Resellers() {
     if (!selectedReseller) return
     setResellerName(selectedReseller.name || '')
     setResellerEmail(selectedReseller.email || '')
-    setResellerWhatsapp(selectedReseller.whatsapp || '')
+    setResellerWhatsapp(selectedReseller.whatsapp ? formatWhatsApp(selectedReseller.whatsapp) : '')
     setResellerStatus(selectedReseller.status)
   }, [selectedReseller])
 
@@ -210,7 +210,7 @@ export default function Resellers() {
         body: JSON.stringify({
           name: newResellerName,
           email: newResellerEmail,
-          whatsapp: newResellerWhatsapp,
+          whatsapp: cleanDigits(newResellerWhatsapp),
           password: newResellerPassword,
           initial_credits: newResellerCredits,
           status: newResellerStatus
@@ -249,16 +249,17 @@ export default function Resellers() {
         action: 'update_profile',
         name: resellerName.trim(),
         email: resellerEmail.trim(),
-        whatsapp: resellerWhatsapp.trim(),
+        whatsapp: cleanDigits(resellerWhatsapp),
         status: resellerStatus,
       })
 
       showToast('Cadastro do revendedor atualizado com sucesso.', 'success')
+      const cleanedWhatsapp = cleanDigits(resellerWhatsapp)
       setSelectedReseller(prev => prev ? ({
         ...prev,
         name: resellerName.trim(),
         email: resellerEmail.trim(),
-        whatsapp: resellerWhatsapp.trim(),
+        whatsapp: cleanedWhatsapp,
         status: resellerStatus,
       }) : prev)
       await loadResellers()
@@ -352,22 +353,7 @@ export default function Resellers() {
 
   return (
     <AdminLayout currentPage="/admin/resellers">
-      <header className="topbar">
-        <MobileMenu currentPage="/admin/resellers" />
-        <Logo variant="admin" href="/admin" />
-        <nav className="nav-links" aria-label="Navegação principal">
-          <a href="/admin">Painel</a>
-          <a href="/admin#licenses">Licenças</a>
-          <a href="/admin/customers">Clientes</a>
-          <a href="/admin/resellers">Revendedores</a>
-          <a href="/admin/sales">Vendas</a>
-          <a href="/admin/products">Produtos</a>
-        </nav>
-        <div className="session-box">
-          <span>{user?.email || 'Carregando...'}</span>
-          <Button variant="ghost" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login'; }}>Sair</Button>
-        </div>
-      </header>
+      <AdminTopbar currentPage="/admin/resellers" />
 
       <div className="app-shell">
       <section className="hero-panel reveal">
@@ -434,7 +420,7 @@ export default function Resellers() {
                   <tr key={reseller.id}>
                     <td data-label="Nome"><strong>{reseller.name || '—'}</strong></td>
                     <td data-label="Email">{reseller.email}</td>
-                    <td data-label="WhatsApp">{reseller.whatsapp || '—'}</td>
+                    <td data-label="WhatsApp">{reseller.whatsapp ? formatWhatsApp(reseller.whatsapp) : '—'}</td>
                     <td data-label="Créditos">{reseller.credits}</td>
                     <td data-label="Licenças Criadas">{reseller.total_licenses_created}</td>
                     <td data-label="Total Comprado">{reseller.total_credits_purchased}</td>
@@ -526,7 +512,7 @@ export default function Resellers() {
                   <input
                     type="tel"
                     value={resellerWhatsapp}
-                    onChange={(e) => setResellerWhatsapp(e.target.value)}
+                    onChange={(e) => setResellerWhatsapp(formatWhatsApp(e.target.value))}
                     placeholder="(11) 99999-9999"
                   />
                 </label>
@@ -670,7 +656,7 @@ export default function Resellers() {
                   <input 
                     type="tel" 
                     value={newResellerWhatsapp}
-                    onChange={(e) => setNewResellerWhatsapp(e.target.value)}
+                    onChange={(e) => setNewResellerWhatsapp(formatWhatsApp(e.target.value))}
                     placeholder="(11) 99999-9999"
                   />
                 </label>

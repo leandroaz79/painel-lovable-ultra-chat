@@ -1,7 +1,5 @@
-import { useState, useEffect, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { useToast } from '../hooks/useToast'
 import { PromoBar } from '../components/landing/PromoBar'
 import { Navbar } from '../components/landing/Navbar'
 import { Hero } from '../components/landing/Hero'

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { BarChart3, Key, PlusCircle, Clock, ClipboardList, Palette, Zap, LogOut } from 'lucide-react'
+import { BarChart3, Key, PlusCircle, Clock, ClipboardList, Palette, LogOut } from 'lucide-react'
 import { Logo } from './ui/Logo'
 
 interface ResellerSidebarProps {

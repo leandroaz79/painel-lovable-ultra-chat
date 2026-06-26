@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
-import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
-import { Button } from '../../components/ui/button'
-import { Logo } from '../../components/ui/Logo'
+import AdminTopbar from '../../components/AdminTopbar'
 import { Download } from 'lucide-react'
 
 interface Purchase {
@@ -25,7 +22,6 @@ interface Purchase {
 }
 
 export default function Sales() {
-  const { user } = useAuth()
   const { showToast } = useToast()
   const [purchases, setPurchases] = useState<Purchase[]>([])
   const [loading, setLoading] = useState(true)
@@ -191,22 +187,7 @@ export default function Sales() {
 
   return (
     <AdminLayout currentPage="/admin/sales">
-      <header className="topbar">
-        <MobileMenu currentPage="/admin/sales" />
-        <Logo variant="admin" href="/admin" />
-        <nav className="nav-links" aria-label="Navegação principal">
-          <a href="/admin">Painel</a>
-          <a href="/admin#licenses">Licenças</a>
-          <a href="/admin/customers">Clientes</a>
-          <a href="/admin/resellers">Revendedores</a>
-          <a href="/admin/sales">Vendas</a>
-          <a href="/admin/products">Produtos</a>
-        </nav>
-        <div className="session-box">
-          <span>{user?.email || 'Admin'}</span>
-          <Button variant="ghost" onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login'; }}>Sair</Button>
-        </div>
-      </header>
+      <AdminTopbar currentPage="/admin/sales" />
 
       <div className="app-shell">
       <section className="hero-panel reveal">

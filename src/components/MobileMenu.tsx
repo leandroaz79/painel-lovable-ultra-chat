@@ -5,23 +5,44 @@ interface MobileMenuProps {
   currentPage?: string
 }
 
+const sections = [
+  {
+    label: 'Geral',
+    items: [
+      { href: '/admin', label: 'Painel' },
+      { href: '/admin#licenses', label: 'Licenças' },
+      { href: '/admin/customers', label: 'Clientes' },
+    ],
+  },
+  {
+    label: 'Revendedores',
+    items: [
+      { href: '/admin/products', label: 'Tabela de Preços' },
+      { href: '/admin/resellers', label: 'Revendedores' },
+      { href: '/admin/sales', label: 'Vendas' },
+    ],
+  },
+  {
+    label: 'Clientes Finais',
+    items: [
+      { href: '/admin/endcustomer-products', label: 'Planos' },
+      { href: '/admin/customer-purchases', label: 'Compras' },
+    ],
+  },
+  {
+    label: 'Personalização',
+    items: [
+      { href: '/admin/branding', label: 'Branding' },
+      { href: '/admin/theme', label: 'Tema' },
+    ],
+  },
+]
+
 export default function MobileMenu({ currentPage }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const links = [
-    { href: '/admin', label: 'Painel' },
-    { href: '/admin#licenses', label: 'Licenças' },
-    { href: '/admin/customers', label: 'Clientes' },
-    { href: '/admin/resellers', label: 'Revendedores' },
-    { href: '/admin/sales', label: 'Vendas' },
-    { href: '/admin/products', label: 'Produtos' },
-    { href: '/admin/branding', label: 'Branding' },
-    { href: '/admin/theme', label: 'Tema' }
-  ]
-
   return (
     <>
-      {/* Botão Hamburger */}
       <button
         className="mobile-menu-btn"
         onClick={() => setIsOpen(!isOpen)}
@@ -33,7 +54,6 @@ export default function MobileMenu({ currentPage }: MobileMenuProps) {
         <span className={isOpen ? 'open' : ''}></span>
       </button>
 
-      {/* Overlay */}
       {isOpen && (
         <div 
           className="mobile-menu-overlay"
@@ -41,7 +61,6 @@ export default function MobileMenu({ currentPage }: MobileMenuProps) {
         />
       )}
 
-      {/* Menu Lateral */}
       <nav className={`mobile-menu ${isOpen ? 'open' : ''}`}>
         <div className="mobile-menu-header">
           <Logo variant="admin" href="/admin" />
@@ -56,22 +75,28 @@ export default function MobileMenu({ currentPage }: MobileMenuProps) {
         </div>
 
         <ul className="mobile-menu-links">
-          {links.map(link => (
-            <li key={link.href}>
-              <a 
-                href={link.href}
-                className={currentPage === link.href ? 'active' : ''}
-                onClick={() => setIsOpen(false)}
-              >
-                {link.label}
-              </a>
+          {sections.map((section) => (
+            <li key={section.label}>
+              <span className="mobile-menu-section-label">{section.label}</span>
+              <ul>
+                {section.items.map((link) => (
+                  <li key={link.href}>
+                    <a 
+                      href={link.href}
+                      className={currentPage === link.href ? 'active' : ''}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>
       </nav>
 
       <style>{`
-        /* Botão Hamburger */
         .mobile-menu-btn {
           display: none;
           flex-direction: column;
@@ -103,7 +128,6 @@ export default function MobileMenu({ currentPage }: MobileMenuProps) {
           transform: translateY(-7px) rotate(-45deg);
         }
 
-        /* Menu Lateral */
         .mobile-menu {
           position: fixed;
           top: 0;
@@ -154,11 +178,28 @@ export default function MobileMenu({ currentPage }: MobileMenuProps) {
 
         .mobile-menu-links {
           list-style: none;
-          padding: 16px 0;
+          padding: 8px 0;
           margin: 0;
         }
 
-        .mobile-menu-links li {
+        .mobile-menu-links > li {
+          margin: 0;
+        }
+
+        .mobile-menu-section-label {
+          display: block;
+          padding: 16px 20px 4px;
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--muted);
+          opacity: 0.5;
+        }
+
+        .mobile-menu-links ul {
+          list-style: none;
+          padding: 0;
           margin: 0;
         }
 
@@ -179,7 +220,6 @@ export default function MobileMenu({ currentPage }: MobileMenuProps) {
           border-left-color: var(--accent);
         }
 
-        /* Mostrar apenas no mobile */
         @media (max-width: 767px) {
           .mobile-menu-btn {
             display: flex;

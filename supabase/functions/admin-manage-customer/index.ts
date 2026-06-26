@@ -39,7 +39,7 @@ serve(async (req) => {
 
   try {
     const { adminClient, user } = await requireAdmin(req);
-    const { user_id, action, name, email } = await req.json();
+    const { user_id, action, name, email, whatsapp } = await req.json();
 
     if (!user_id || !action) {
       throw new Error("user_id e action são obrigatórios");
@@ -69,6 +69,7 @@ serve(async (req) => {
 
       const normalizedName = String(name).trim();
       const normalizedEmail = String(email).trim().toLowerCase();
+      const normalizedWhatsapp = typeof whatsapp === 'string' ? whatsapp.trim() : '';
 
       const { data: listedUsers, error: listUsersError } = await adminClient.auth.admin.listUsers();
       if (listUsersError) throw listUsersError;
@@ -89,6 +90,7 @@ serve(async (req) => {
         user_metadata: {
           ...currentUser.user_metadata,
           name: normalizedName,
+          ...(normalizedWhatsapp ? { whatsapp: normalizedWhatsapp } : {}),
         },
       };
 
@@ -124,6 +126,7 @@ serve(async (req) => {
           previous_email: currentEmail,
           name: normalizedName,
           email: normalizedEmail,
+          whatsapp: normalizedWhatsapp,
         },
       });
 
@@ -131,6 +134,7 @@ serve(async (req) => {
         id: updatedUserData.user?.id ?? user_id,
         name: normalizedName,
         email: normalizedEmail,
+        whatsapp: normalizedWhatsapp,
       };
     } else {
       const { error: deleteError } = await adminClient.auth.admin.deleteUser(user_id);

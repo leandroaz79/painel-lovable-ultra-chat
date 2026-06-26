@@ -95,6 +95,7 @@ serve(async (req) => {
         return {
           id: authUser.id,
           name: typeof metadata.name === "string" ? metadata.name : "",
+          whatsapp: typeof metadata.whatsapp === "string" ? metadata.whatsapp : "",
           email: authUser.email ?? "",
           created_at: authUser.created_at,
           last_sign_in_at: authUser.last_sign_in_at,

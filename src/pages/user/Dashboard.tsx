@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
@@ -20,12 +21,37 @@ interface License {
   created_at: string
 }
 
+interface Purchase {
+  id: string
+  product_name: string
+  amount: number
+  status: string
+  paid_at: string
+  created_at: string
+}
+
+interface EndcustomerProduct {
+  id: string
+  name: string
+  slug: string
+  description: string
+  days: number
+  price_cents: number
+  devices: number
+  has_priority_support: boolean
+}
+
 export default function UserDashboard() {
   const { user, signOut } = useAuth()
+  const navigate = useNavigate()
   const { showToast } = useToast()
   const { copyLicenseKey } = useLicenseActions()
   const [licenses, setLicenses] = useState<License[]>([])
+  const [purchases, setPurchases] = useState<Purchase[]>([])
+  const [endcustomerProducts, setEndcustomerProducts] = useState<EndcustomerProduct[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingPurchases, setLoadingPurchases] = useState(true)
+  const [loadingProducts, setLoadingProducts] = useState(true)
   const [generatingTrial, setGeneratingTrial] = useState(false)
   const [hasTrial, setHasTrial] = useState(false)
   const [videoUrl] = useState('https://www.youtube.com/embed/dQw4w9WgXcQ')
@@ -49,6 +75,8 @@ export default function UserDashboard() {
   useEffect(() => {
     document.body.classList.add('session-ready')
     loadLicenses()
+    loadPurchases()
+    loadEndcustomerProducts()
     checkTrialStatus()
   }, [])
 
@@ -88,6 +116,40 @@ export default function UserDashboard() {
       console.error('Erro ao carregar licenças:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function loadPurchases() {
+    try {
+      const { data, error } = await supabase
+        .from('customer_purchases')
+        .select('id, product_name, amount, status, paid_at, created_at')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setPurchases(data || [])
+    } catch (error) {
+      console.error('Erro ao carregar compras:', error)
+    } finally {
+      setLoadingPurchases(false)
+    }
+  }
+
+  async function loadEndcustomerProducts() {
+    try {
+      const { data, error } = await supabase
+        .from('products_endcustomer')
+        .select('*')
+        .eq('active', true)
+        .order('sort_order')
+
+      if (error) throw error
+      setEndcustomerProducts(data || [])
+    } catch (error) {
+      console.error('Erro ao carregar produtos:', error)
+    } finally {
+      setLoadingProducts(false)
     }
   }
 
@@ -186,6 +248,18 @@ export default function UserDashboard() {
       trial: 'Trial',
       expired: 'Expirada',
       suspended: 'Suspensa',
+    }
+    return map[status] || status
+  }
+
+  function purchaseStatusLabel(status: string) {
+    const map: Record<string, string> = {
+      approved: 'Aprovado',
+      paid: 'Pago',
+      pending: 'Pendente',
+      expired: 'Expirado',
+      refunded: 'Reembolsado',
+      cancelled: 'Cancelado',
     }
     return map[status] || status
   }
@@ -343,106 +417,47 @@ export default function UserDashboard() {
               <span className="icon-pill" aria-hidden="true"><Gem size={20} /></span>
               <h2>Planos disponíveis</h2>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '16px',
-                  borderRadius: '14px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid var(--line)',
-                }}
-              >
-                <div>
-                  <strong style={{ fontSize: '16px' }}>Mensal</strong>
-                  <p style={{ fontSize: '13px', margin: '2px 0 0' }}>
-                    Acesso por 30 dias
-                  </p>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <strong style={{ fontSize: '22px', color: 'var(--accent)' }}>
-                    R$ 29,90
-                  </strong>
-                  <span style={{ fontSize: '12px', color: 'var(--muted)', display: 'block' }}>
-                    /mês
-                  </span>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '16px',
-                  borderRadius: '14px',
-                  background: 'rgba(157,255,47,0.03)',
-                  border: '1px solid rgba(157,255,47,0.2)',
-                }}
-              >
-                <div>
-                  <strong style={{ fontSize: '16px' }}>Semestral</strong>
-                  <p style={{ fontSize: '13px', margin: '2px 0 0' }}>
-                    Acesso por 6 meses
-                  </p>
-                  <span
+            {loadingProducts ? (
+              <p style={{ color: 'var(--muted)' }}>Carregando...</p>
+            ) : endcustomerProducts.length === 0 ? (
+              <p style={{ color: 'var(--muted)' }}>Nenhum plano disponível no momento.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {endcustomerProducts.map((p, idx) => (
+                  <div
+                    key={p.id}
                     style={{
-                      fontSize: '11px',
-                      color: 'var(--accent)',
-                      fontWeight: 700,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '16px',
+                      borderRadius: '14px',
+                      background: idx === 1 ? 'rgba(157,255,47,0.03)' : 'rgba(255,255,255,0.03)',
+                      border: idx === 1 ? '1px solid rgba(157,255,47,0.2)' : '1px solid var(--line)',
                     }}
                   >
-                    Economize R$ 79,50
-                  </span>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <strong style={{ fontSize: '22px', color: 'var(--accent)' }}>
-                    R$ 99,90
-                  </strong>
-                  <span style={{ fontSize: '12px', color: 'var(--muted)', display: 'block' }}>
-                    /semestre
-                  </span>
-                </div>
+                    <div>
+                      <strong style={{ fontSize: '16px' }}>{p.name}</strong>
+                      <p style={{ fontSize: '13px', margin: '2px 0 0' }}>
+                        {p.days} dias • {p.devices} dispositivo{p.devices > 1 ? 's' : ''}
+                        {p.has_priority_support ? ' • Suporte prioritário' : ''}
+                      </p>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <strong style={{ fontSize: '22px', color: 'var(--accent)' }}>
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.price_cents / 100)}
+                      </strong>
+                      <span style={{ fontSize: '12px', color: 'var(--muted)', display: 'block' }}>
+                        pagamento único
+                      </span>
+                    </div>
+                    <Button size="tiny" onClick={() => navigate(`/checkout/${p.slug}`)}>
+                      Comprar
+                    </Button>
+                  </div>
+                ))}
               </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '16px',
-                  borderRadius: '14px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid var(--line)',
-                }}
-              >
-                <div>
-                  <strong style={{ fontSize: '16px' }}>Anual</strong>
-                  <p style={{ fontSize: '13px', margin: '2px 0 0' }}>
-                    Acesso por 12 meses
-                  </p>
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      color: 'var(--accent)',
-                      fontWeight: 700,
-                    }}
-                  >
-                    Economize R$ 178,90
-                  </span>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <strong style={{ fontSize: '22px', color: 'var(--accent)' }}>
-                    R$ 179,90
-                  </strong>
-                  <span style={{ fontSize: '12px', color: 'var(--muted)', display: 'block' }}>
-                    /ano
-                  </span>
-                </div>
-              </div>
-            </div>
+            )}
           </article>
         </div>
       </section>
@@ -508,6 +523,57 @@ export default function UserDashboard() {
                           </Button>
                         </div>
                       </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* Minhas Compras */}
+      <section className="landing-section" style={{ paddingTop: '0' }}>
+        <div className="section-header" style={{ textAlign: 'left', marginBottom: '24px' }}>
+          <p className="eyebrow">Compras</p>
+          <h2>Minhas compras</h2>
+        </div>
+
+        <div className="table-card reveal">
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Produto</th>
+                  <th scope="col">Valor</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Pago em</th>
+                  <th scope="col">Criada em</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadingPurchases ? (
+                  <tr>
+                    <td colSpan={5}>Carregando...</td>
+                  </tr>
+                ) : purchases.length === 0 ? (
+                  <tr>
+                    <td colSpan={5}>Nenhuma compra encontrada</td>
+                  </tr>
+                ) : (
+                  purchases.map((p) => (
+                    <tr key={p.id}>
+                      <td data-label="Produto"><strong>{p.product_name}</strong></td>
+                      <td data-label="Valor">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.amount / 100)}
+                      </td>
+                      <td data-label="Status">
+                        <span className={`badge ${p.status === 'paid' || p.status === 'approved' ? 'active' : p.status === 'pending' ? 'trial' : 'expired'}`}>
+                          {purchaseStatusLabel(p.status)}
+                        </span>
+                      </td>
+                      <td data-label="Pago em">{p.paid_at ? new Date(p.paid_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                      <td data-label="Criada em">{new Date(p.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                     </tr>
                   ))
                 )}

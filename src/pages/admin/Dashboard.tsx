@@ -1,14 +1,13 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { useAuth } from '../../hooks/useAuth'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import { useLicenseActions } from '../../hooks/useLicenseActions'
 import SalesChart from '../../components/SalesChart'
-import MobileMenu from '../../components/MobileMenu'
 import AdminLayout from '../../components/AdminLayout'
+import AdminTopbar from '../../components/AdminTopbar'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import { Button } from '../../components/ui/button'
-import { Logo } from '../../components/ui/Logo'
+import { cleanDigits } from '../../utils/format'
 import { BarChart3, Key } from 'lucide-react'
 
 interface License {
@@ -34,12 +33,11 @@ interface Stats {
 }
 
 export default function AdminDashboard() {
-  const { user, signOut } = useAuth()
   const { showToast } = useToast()
   const { copyLicenseKey, renewLicense, resetHwid, revokeLicense, deleteLicense, submitMutation } = useLicenseActions()
   const [licenses, setLicenses] = useState<License[]>([])
   const [stats, setStats] = useState<Stats>({ total: 0, active: 0, trial: 0, lifetime: 0, expired: 0, suspended: 0 })
-  const [commercialStats, setCommercialStats] = useState({ totalRevenue: 0, totalResellers: 0, totalSales: 0, avgTicket: 0 })
+  const [commercialStats, setCommercialStats] = useState({ totalRevenue: 0, totalResellers: 0, totalSales: 0, avgTicket: 0, endcustomerRevenue: 0, endcustomerSales: 0 })
   const [salesChartData, setSalesChartData] = useState<Array<{date: string, sales: number, revenue: number}>>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -102,11 +100,22 @@ export default function AdminDashboard() {
         .select('id', { count: 'exact' })
         .eq('status', 'active')
 
+      // Endcustomer stats
+      const { data: endcustomerPurchases } = await supabase
+        .from('customer_purchases')
+        .select('amount, status, paid_at')
+        .gte('created_at', thirtyDaysAgo.toISOString())
+
+      const endcustomerPaid = endcustomerPurchases?.filter(p => p.status === 'paid' || p.status === 'approved') || []
+      const endcustomerRevenue = endcustomerPaid.reduce((sum, p) => sum + p.amount, 0)
+
       setCommercialStats({
         totalRevenue,
         totalResellers: resellers?.length || 0,
         totalSales,
-        avgTicket
+        avgTicket,
+        endcustomerRevenue,
+        endcustomerSales: endcustomerPaid.length,
       })
 
       const chartData: Array<{date: string, sales: number, revenue: number}> = []
@@ -166,7 +175,7 @@ export default function AdminDashboard() {
     const payload = {
       user_name: (form.querySelector('#client-name') as HTMLInputElement).value.trim(),
       email: (form.querySelector('#client-email') as HTMLInputElement).value.trim(),
-      phone: (form.querySelector('#client-phone') as HTMLInputElement).value.trim(),
+      phone: cleanDigits((form.querySelector('#client-phone') as HTMLInputElement).value),
       license_type: selectedType,
       days: selectedType === 'lifetime' ? null : daysValue,
       lifetime: selectedType === 'lifetime'
@@ -357,22 +366,7 @@ export default function AdminDashboard() {
   return (
     <AdminLayout currentPage="/admin">
       {/* Header Mobile + Desktop Simplificado */}
-      <header className="topbar">
-        <MobileMenu currentPage="/admin" />
-        <Logo variant="admin" href="/admin" />
-        <nav className="nav-links" aria-label="Navegação principal">
-          <a href="/admin">Painel</a>
-          <a href="/admin#licenses">Licenças</a>
-          <a href="/admin/customers">Clientes</a>
-          <a href="/admin/resellers">Revendedores</a>
-          <a href="/admin/sales">Vendas</a>
-          <a href="/admin/products">Produtos</a>
-        </nav>
-        <div className="session-box">
-          <span id="admin-email">{user?.email || 'Carregando...'}</span>
-          <Button variant="ghost" onClick={() => signOut()}>Sair</Button>
-        </div>
-      </header>
+      <AdminTopbar currentPage="/admin" />
 
       <main className="app-shell">
         <section id="dashboard" className="hero-panel reveal">
@@ -393,10 +387,12 @@ export default function AdminDashboard() {
         </section>
 
         <section className="stats-grid" aria-label="Métricas Comerciais" style={{ marginTop: '24px' }}>
-          <article className="metric-card"><span>Receita Total</span><strong>R$ {commercialStats.totalRevenue.toFixed(2)}</strong><small>últimos 30 dias</small></article>
+          <article className="metric-card"><span>Receita Revendedores</span><strong>R$ {commercialStats.totalRevenue.toFixed(2)}</strong><small>últimos 30 dias</small></article>
+          <article className="metric-card"><span>Receita Clientes Finais</span><strong>R$ {(commercialStats.endcustomerRevenue / 100).toFixed(2)}</strong><small>últimos 30 dias</small></article>
+          <article className="metric-card"><span>Receita Total</span><strong>R$ {(commercialStats.totalRevenue + commercialStats.endcustomerRevenue / 100).toFixed(2)}</strong><small>combinada</small></article>
           <article className="metric-card"><span>Revendedores</span><strong>{commercialStats.totalResellers}</strong><small>ativos</small></article>
-          <article className="metric-card"><span>Vendas</span><strong>{commercialStats.totalSales}</strong><small>compras aprovadas</small></article>
-          <article className="metric-card"><span>Ticket Médio</span><strong>R$ {commercialStats.avgTicket.toFixed(2)}</strong><small>por venda</small></article>
+          <article className="metric-card"><span>Vendas Rev.</span><strong>{commercialStats.totalSales}</strong><small>compras aprovadas</small></article>
+          <article className="metric-card"><span>Vendas Cli.</span><strong>{commercialStats.endcustomerSales}</strong><small>pagamentos</small></article>
         </section>
 
         <section className="glass-card" style={{ marginTop: '24px', padding: '24px' }}>
@@ -413,7 +409,7 @@ export default function AdminDashboard() {
             <form id="license-form" className="stack-form" onSubmit={handleCreateLicense}>
               <div className="split-fields">
                 <label><span>Nome do cliente</span><input id="client-name" type="text" placeholder="Cliente" required /></label>
-                <label><span>Telefone</span><input id="client-phone" type="tel" placeholder="84 000 0000" /></label>
+                <label><span>Telefone</span><input id="client-phone" type="tel" placeholder="(11) 9 9999-9999" /></label>
               </div>
               <label><span>Email</span><input id="client-email" type="email" placeholder="cliente@email.com" /></label>
               <div className="segmented" role="group" aria-label="Tipo de licença">
