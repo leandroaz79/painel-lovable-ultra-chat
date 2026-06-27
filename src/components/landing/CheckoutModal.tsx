@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 import { Button } from '../ui/button'
 import { formatWhatsApp, cleanDigits } from '../../utils/format'
-import { ArrowLeft, CheckCircle, Clock, Smartphone, Headphones, User, Mail, Phone, CreditCard, X } from 'lucide-react'
+import { CheckCircle, Clock, Smartphone, Headphones, User, Mail, Phone, CreditCard } from 'lucide-react'
 
 interface Product {
   id: string

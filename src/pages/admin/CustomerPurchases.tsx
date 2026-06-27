@@ -3,7 +3,6 @@ import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import AdminLayout from '../../components/AdminLayout'
 import AdminTopbar from '../../components/AdminTopbar'
-import ConfirmationDialog from '../../components/ConfirmationDialog'
 import { Button } from '../../components/ui/button'
 
 interface Purchase {
