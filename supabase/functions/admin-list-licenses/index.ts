@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     const stats = (licenses || []).reduce((acc, item) => {
       acc.total += 1;
       acc[item.status] = (acc[item.status] || 0) + 1;
-      if (item.license_type === "trial") acc.trial += 1;
+      if (item.license_type === "trial" && item.status === "active") acc.trial += 1;
       if (item.lifetime) acc.lifetime += 1;
       return acc;
     }, { total: 0, active: 0, trial: 0, expired: 0, suspended: 0, lifetime: 0 });

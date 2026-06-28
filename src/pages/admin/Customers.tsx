@@ -20,6 +20,7 @@ interface Customer {
   name: string
   email: string
   whatsapp?: string
+  cpf?: string
   created_at: string
   last_sign_in_at: string | null
   account_status: 'active' | 'blocked'
@@ -183,6 +184,15 @@ export default function Customers() {
     setConfirmDialog({ isOpen: false, customer: null, isLoading: false })
   }
 
+  function formatCPF(value: string | undefined) {
+    if (!value) return '—'
+    const d = value.replace(/\D/g, '').slice(0, 11)
+    if (d.length <= 3) return d
+    if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`
+    if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`
+    return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`
+  }
+
   function formatDate(value: string | null) {
     if (!value) return '—'
     const date = new Date(value)
@@ -267,7 +277,7 @@ export default function Customers() {
                   <th scope="col">Trial</th>
                   <th scope="col">Licenças</th>
                   <th scope="col">Status</th>
-                  <th scope="col">Último acesso</th>
+                  <th scope="col">CPF</th>
                   <th scope="col">Cadastro</th>
                   <th scope="col">Ações</th>
                 </tr>
@@ -291,7 +301,7 @@ export default function Customers() {
                         <small>Ativas: {customer.active_licenses} · Trial: {customer.trial_licenses}</small>
                       </td>
                       <td data-label="Status"><span className={`badge ${customer.account_status}`}>{labelStatus(customer.account_status)}</span></td>
-                      <td data-label="Último acesso">{formatDate(customer.last_sign_in_at)}</td>
+                      <td data-label="CPF">{formatCPF(customer.cpf)}</td>
                       <td data-label="Cadastro">{formatDate(customer.created_at)}</td>
                       <td data-label="Ações">
                         <div className="actions-row">
