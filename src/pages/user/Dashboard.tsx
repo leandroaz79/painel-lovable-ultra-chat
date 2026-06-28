@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
 import { useToast } from '../../hooks/useToast'
 import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
 import { Logo } from '../../components/ui/Logo'
-import ConfirmationDialog from '../../components/ConfirmationDialog'
+import CheckoutModal from '../../components/landing/CheckoutModal'
 import { generateExtensionZip, downloadZip } from '../../utils/extensionBuilder'
 import { getStoredTemplate } from '../../utils/templateStorage'
 import { loadBrandingConfig } from '../../utils/brandingStorage'
-import { Video, Download, Clock, Gem } from 'lucide-react'
+import { Video, Download, Clock, Key, ShoppingBag, Package } from 'lucide-react'
 
 interface License {
   license_key: string
@@ -23,11 +23,10 @@ interface License {
 
 interface Purchase {
   id: string
-  product_name: string
-  amount: number
-  status: string
-  paid_at: string
+  payment_status: string
+  approved_at: string | null
   created_at: string
+  product: { name: string, price_cents: number } | null
 }
 
 interface EndcustomerProduct {
@@ -43,8 +42,8 @@ interface EndcustomerProduct {
 
 export default function UserDashboard() {
   const { user, signOut } = useAuth()
-  const navigate = useNavigate()
   const { showToast } = useToast()
+  const navigate = useNavigate()
   const { copyLicenseKey } = useLicenseActions()
   const [licenses, setLicenses] = useState<License[]>([])
   const [purchases, setPurchases] = useState<Purchase[]>([])
@@ -54,43 +53,36 @@ export default function UserDashboard() {
   const [loadingProducts, setLoadingProducts] = useState(true)
   const [generatingTrial, setGeneratingTrial] = useState(false)
   const [hasTrial, setHasTrial] = useState(false)
-  const [videoUrl] = useState('https://www.youtube.com/embed/dQw4w9WgXcQ')
   const [downloadLoading, setDownloadLoading] = useState(false)
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean
-    title: string
-    message: string
-    action: null | 'delete'
-    licenseKey: string
-    isLoading: boolean
-  }>({
-    isOpen: false,
-    title: '',
-    message: '',
-    action: null,
-    licenseKey: '',
-    isLoading: false,
-  })
+  const [activeTab, setActiveTab] = useState<'licenses' | 'purchases'>('licenses')
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
+  const [checkoutOpen, setCheckoutOpen] = useState(false)
+
+  const activeLicenses = licenses.filter(l => l.status === 'active')
+  const nearestExpiry = activeLicenses.length > 0
+    ? activeLicenses.reduce((prev, curr) =>
+        new Date(prev.expires_at) < new Date(curr.expires_at) ? prev : curr
+      )
+    : null
 
   useEffect(() => {
+    if (!user) return
     document.body.classList.add('session-ready')
     loadLicenses()
     loadPurchases()
     loadEndcustomerProducts()
     checkTrialStatus()
-  }, [])
+  }, [user])
 
   async function checkTrialStatus() {
     try {
       const { data, error } = await supabase
         .from('user_trials')
         .select('id')
-        .eq('user_id', user?.id)
+        .eq('user_id', user!.id)
         .maybeSingle()
 
       if (error) {
-        // Tabela pode não existir ainda (migration não executada)
-        // Trata como "sem trial" para não bloquear o usuário
         console.warn('user_trials pode não existir:', error.message)
         setHasTrial(false)
         return
@@ -107,7 +99,7 @@ export default function UserDashboard() {
       const { data, error } = await supabase
         .from('ts_licenses')
         .select('license_key, status, license_type, expires_at, device_id, created_at')
-        .eq('user_id', user?.id)
+        .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -123,12 +115,18 @@ export default function UserDashboard() {
     try {
       const { data, error } = await supabase
         .from('customer_purchases')
-        .select('id, product_name, amount, status, paid_at, created_at')
-        .eq('user_id', user?.id)
+        .select('id, payment_status, approved_at, created_at, product:product_id!inner(name, price_cents)')
+        .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setPurchases(data || [])
+      setPurchases((data || []).map((p: Record<string, unknown>) => ({
+        id: p.id as string,
+        payment_status: p.payment_status as string,
+        approved_at: p.approved_at as string | null,
+        created_at: p.created_at as string,
+        product: (Array.isArray(p.product) ? (p.product as Array<{ name: string; price_cents: number }>)[0] : p.product) as { name: string; price_cents: number } | null,
+      })))
     } catch (error) {
       console.error('Erro ao carregar compras:', error)
     } finally {
@@ -188,49 +186,6 @@ export default function UserDashboard() {
     }
   }
 
-  async function handleDeleteLicense(licenseKey: string) {
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Deletar Licença',
-      message: 'Tem certeza que deseja deletar esta licença? Esta ação não pode ser desfeita.',
-      action: 'delete',
-      licenseKey: licenseKey,
-      isLoading: false,
-    })
-  }
-
-  async function handleConfirmDialog() {
-    const { action, licenseKey } = confirmDialog
-    setConfirmDialog(prev => ({ ...prev, isLoading: true }))
-
-    try {
-      if (action === 'delete') {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-license`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          },
-          body: JSON.stringify({ license_key: licenseKey }),
-        })
-        
-        const result = await response.json()
-        if (!result.success) throw new Error(result.error)
-        
-        showToast('Licença deletada com sucesso.', 'success')
-        setConfirmDialog(prev => ({ ...prev, isOpen: false }))
-        await loadLicenses()
-      }
-    } catch (error) {
-      showToast('Erro ao deletar licença.', 'error')
-      setConfirmDialog(prev => ({ ...prev, isLoading: false }))
-    }
-  }
-
-  function handleCloseDialog() {
-    setConfirmDialog(prev => ({ ...prev, isOpen: false }))
-  }
-
   function formatDate(dateStr: string | null) {
     if (!dateStr) return '—'
     return new Date(dateStr).toLocaleDateString('pt-BR', {
@@ -255,23 +210,29 @@ export default function UserDashboard() {
   function purchaseStatusLabel(status: string) {
     const map: Record<string, string> = {
       approved: 'Aprovado',
-      paid: 'Pago',
       pending: 'Pendente',
-      expired: 'Expirado',
+      rejected: 'Rejeitado',
       refunded: 'Reembolsado',
       cancelled: 'Cancelado',
     }
     return map[status] || status
   }
 
+  function daysUntil(dateStr: string) {
+    const diff = new Date(dateStr).getTime() - Date.now()
+    return Math.ceil(diff / (1000 * 60 * 60 * 24))
+  }
+
   return (
     <div className="landing-page">
-      {/* Header */}
       <header className="landing-header">
         <div className="landing-header-inner">
           <Logo variant="user" href="/user" />
           <div className="session-box">
             <span>{user?.email || 'Usuário'}</span>
+            <Button variant="ghost" onClick={() => navigate('/profile')}>
+              Perfil
+            </Button>
             <Button variant="ghost" onClick={signOut}>
               Sair
             </Button>
@@ -279,23 +240,306 @@ export default function UserDashboard() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="landing-section" style={{ paddingTop: '48px' }}>
+      <section className="landing-section" style={{ paddingTop: '40px' }}>
         <div className="hero-panel" style={{ alignItems: 'flex-start' }}>
           <div style={{ flex: 1 }}>
             <p className="eyebrow">Painel do Usuário</p>
-            <h1>Bem-vindo ao Ultra Chat</h1>
-            <p style={{ fontSize: '16px' }}>
-              Gerencie suas licenças, teste a extensão e escolha o plano ideal para você.
-            </p>
+            {loading ? (
+              <>
+                <div className="skeleton skeleton-line skeleton-line-lg" style={{ marginBottom: '12px' }} />
+                <div className="skeleton skeleton-line skeleton-line-md" />
+              </>
+            ) : (
+              <>
+                <h1 style={{ maxWidth: 'none' }}>
+                  {licenses.length === 0
+                    ? 'Comece agora com Ultra Chat'
+                    : activeLicenses.length > 0
+                      ? `Você tem ${activeLicenses.length} licença${activeLicenses.length > 1 ? 's' : ''} ativa${activeLicenses.length > 1 ? 's' : ''}`
+                      : 'Suas licenças expiraram'}
+                </h1>
+                <p style={{ fontSize: '16px', maxWidth: '480px' }}>
+                  {licenses.length === 0
+                    ? 'Adquira um plano e tenha acesso a todos os recursos do Ultra Chat.'
+                    : nearestExpiry
+                      ? `Próxima expira em ${daysUntil(nearestExpiry.expires_at)} dia${daysUntil(nearestExpiry.expires_at) !== 1 ? 's' : ''}`
+                      : 'Gerencie suas licenças e acompanhe suas compras.'}
+                </p>
+                <div className="user-hero-stats">
+                  <div className="user-hero-stat">
+                    <strong>{activeLicenses.length}</strong>
+                    <span>Ativas</span>
+                  </div>
+                  <div className="user-hero-stat">
+                    <strong>{licenses.length}</strong>
+                    <span>Total</span>
+                  </div>
+                  <div className="user-hero-stat">
+                    <strong>{purchases.length}</strong>
+                    <span>Compras</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '24px' }}>
+                  {licenses.length === 0 && (
+                    <Button onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })}>
+                      Ver planos
+                    </Button>
+                  )}
+                  {activeLicenses.length > 0 && (
+                    <Button variant="ghost" onClick={() => {
+                      setActiveTab('licenses')
+                      document.getElementById('content-tabs')?.scrollIntoView({ behavior: 'smooth' })
+                    }}>
+                      Gerenciar licenças
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Vídeo + Download */}
+      <section id="planos" className="landing-section" style={{ paddingTop: '0' }}>
+        <div className="section-header">
+          <p className="eyebrow">Planos</p>
+          <h2>Escolha o plano ideal para você</h2>
+        </div>
+        {loadingProducts ? (
+          <div className="user-pricing-grid">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="skeleton skeleton-card" />
+            ))}
+          </div>
+        ) : endcustomerProducts.length > 0 ? (
+          <div className="user-pricing-grid">
+            {endcustomerProducts.map((p, idx) => (
+              <div
+                key={p.id}
+                className={`user-pricing-card ${idx === 1 ? 'featured' : ''} stagger-enter`}
+                style={{ animationDelay: `${idx * 80}ms` }}
+              >
+                {idx === 1 && <span className="pricing-popular-badge">★ Popular</span>}
+                <div>
+                  <h3 className="user-pricing-name">{p.name}</h3>
+                  {p.description && <p className="user-pricing-desc">{p.description}</p>}
+                </div>
+                <div className="user-pricing-price">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.price_cents / 100)}
+                  <small> / único</small>
+                </div>
+                <div className="user-pricing-perday">
+                  ~{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.price_cents / 100 / p.days)}/dia
+                </div>
+                <ul className="user-pricing-features">
+                  <li>{p.devices} dispositivo{p.devices > 1 ? 's' : ''}</li>
+                  <li>{p.days} dias de acesso</li>
+                  {p.has_priority_support && <li>Suporte prioritário via WhatsApp</li>}
+                </ul>
+                <div className="user-pricing-cta">
+                  <Button onClick={() => { setSelectedSlug(p.slug); setCheckoutOpen(true) }}>
+                    Comprar agora
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <Package size={48} className="empty-state-icon" />
+            <h3>Nenhum plano disponível</h3>
+            <p>Os planos ainda não foram cadastrados pelo administrador.</p>
+          </div>
+        )}
+      </section>
+
+      {!hasTrial && !loading && (
+        <section className="landing-section" style={{ paddingTop: '0' }}>
+          <div className="trial-banner stagger-enter" style={{ animationDelay: '240ms' }}>
+            <div className="trial-banner-info">
+              <span className="icon-pill" aria-hidden="true"><Clock size={18} /></span>
+              <div className="trial-banner-text">
+                <strong>Teste grátis de 30 minutos</strong>
+                <p>Experimente a extensão antes de comprar. Limite de 1 teste por usuário.</p>
+              </div>
+            </div>
+            <Button onClick={handleGenerateTrial} disabled={generatingTrial} style={{ flexShrink: 0 }}>
+              {generatingTrial ? 'Gerando...' : 'Gerar teste grátis'}
+            </Button>
+          </div>
+        </section>
+      )}
+      {hasTrial && !loading && (
+        <section className="landing-section" style={{ paddingTop: '0' }}>
+          <div className="trial-banner-used stagger-enter" style={{ animationDelay: '240ms' }}>
+            <Clock size={18} color="var(--accent)" />
+            <span>✓ Você já utilizou seu teste gratuito</span>
+          </div>
+        </section>
+      )}
+
+      <section id="content-tabs" className="landing-section" style={{ paddingTop: '0' }}>
+        <div className="section-header">
+          <p className="eyebrow">Seu conteúdo</p>
+          <h2>Licenças e compras</h2>
+        </div>
+        <div className="user-tabs">
+          <button
+            className={`user-tab ${activeTab === 'licenses' ? 'active' : ''}`}
+            onClick={() => setActiveTab('licenses')}
+          >
+            <Key size={16} />
+            Licenças
+            <span className="user-tab-badge">{licenses.length}</span>
+          </button>
+          <button
+            className={`user-tab ${activeTab === 'purchases' ? 'active' : ''}`}
+            onClick={() => setActiveTab('purchases')}
+          >
+            <ShoppingBag size={16} />
+            Compras
+            <span className="user-tab-badge">{purchases.length}</span>
+          </button>
+        </div>
+
+        {activeTab === 'licenses' && (
+          <div className="table-card reveal">
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Chave</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Expira em</th>
+                    <th scope="col">HWID</th>
+                    <th scope="col">Criada em</th>
+                    <th scope="col">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    [1, 2, 3].map(i => (
+                      <tr key={i}>
+                        <td colSpan={7} style={{ padding: '12px 18px' }}>
+                          <div className="skeleton skeleton-line" style={{ width: '80%' }} />
+                        </td>
+                      </tr>
+                    ))
+                  ) : licenses.length === 0 ? (
+                    <tr>
+                      <td colSpan={7}>
+                        <div className="empty-state" style={{ padding: '32px 24px' }}>
+                          <Key size={40} className="empty-state-icon" style={{ fontSize: '40px' }} />
+                          <h3>Nenhuma licença encontrada</h3>
+                          <p>Adquira um plano para gerar sua primeira licença.</p>
+                          <Button onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })}>
+                            Ver planos
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    licenses.map((license) => (
+                      <tr key={license.license_key}>
+                        <td data-label="Chave">
+                          <span className="license-key">{license.license_key}</span>
+                        </td>
+                        <td data-label="Status">
+                          <span className={`badge ${license.status}`}>
+                            {statusLabel(license.status)}
+                          </span>
+                        </td>
+                        <td data-label="Tipo">{license.license_type === 'trial' ? 'Trial' : license.license_type === 'lifetime' ? 'Vitalícia' : 'Paga'}</td>
+                        <td data-label="Expira em">{formatDate(license.expires_at)}</td>
+                        <td data-label="HWID">{license.device_id ? 'vinculado' : 'livre'}</td>
+                        <td data-label="Criada em">{formatDate(license.created_at)}</td>
+                        <td data-label="Ações">
+                          <div className="actions-row">
+                            <Button
+                              size="tiny"
+                              onClick={() => copyLicenseKey(license.license_key)}
+                            >
+                              Copiar
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'purchases' && (
+          <div className="table-card reveal">
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Produto</th>
+                    <th scope="col">Valor</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Pago em</th>
+                    <th scope="col">Criada em</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadingPurchases ? (
+                    [1, 2, 3].map(i => (
+                      <tr key={i}>
+                        <td colSpan={5} style={{ padding: '12px 18px' }}>
+                          <div className="skeleton skeleton-line" style={{ width: '70%' }} />
+                        </td>
+                      </tr>
+                    ))
+                  ) : purchases.length === 0 ? (
+                    <tr>
+                      <td colSpan={5}>
+                        <div className="empty-state" style={{ padding: '32px 24px' }}>
+                          <ShoppingBag size={40} className="empty-state-icon" style={{ fontSize: '40px' }} />
+                          <h3>Nenhuma compra encontrada</h3>
+                          <p>Você ainda não realizou nenhuma compra.</p>
+                          <Button onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })}>
+                            Ver planos
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    purchases.map((p) => (
+                      <tr key={p.id}>
+                        <td data-label="Produto"><strong>{p.product?.name || '—'}</strong></td>
+                        <td data-label="Valor">
+                          {p.product?.price_cents
+                            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.product.price_cents / 100)
+                            : '—'}
+                        </td>
+                        <td data-label="Status">
+                          <span className={`badge ${p.payment_status === 'approved' ? 'active' : p.payment_status === 'pending' ? 'trial' : 'expired'}`}>
+                            {purchaseStatusLabel(p.payment_status)}
+                          </span>
+                        </td>
+                        <td data-label="Pago em">{p.approved_at ? formatDate(p.approved_at) : '—'}</td>
+                        <td data-label="Criada em">{formatDate(p.created_at)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </section>
+
       <section className="landing-section" style={{ paddingTop: '0' }}>
+        <div className="section-header">
+          <p className="eyebrow">Recursos</p>
+          <h2>Comece a usar</h2>
+        </div>
         <div className="work-grid">
-          {/* Vídeo Tutorial */}
           <article className="glass-card">
             <div className="card-heading">
               <span className="icon-pill" aria-hidden="true"><Video size={20} /></span>
@@ -311,7 +555,7 @@ export default function UserDashboard() {
               }}
             >
               <iframe
-                src={videoUrl}
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ"
                 title="Tutorial Ultra Chat"
                 style={{
                   position: 'absolute',
@@ -327,7 +571,6 @@ export default function UserDashboard() {
             </div>
           </article>
 
-          {/* Download */}
           <article className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div className="card-heading">
               <span className="icon-pill" aria-hidden="true"><Download size={20} /></span>
@@ -377,213 +620,6 @@ export default function UserDashboard() {
         </div>
       </section>
 
-      {/* Trial + Planos */}
-      <section className="landing-section" style={{ paddingTop: '0' }}>
-        <div className="work-grid">
-          {/* Gerar Trial */}
-          <article className="glass-card">
-            <div className="card-heading">
-              <span className="icon-pill" aria-hidden="true"><Clock size={20} /></span>
-              <h2>Teste Grátis</h2>
-            </div>
-            <p style={{ marginBottom: '20px' }}>
-              Experimente a extensão gratuitamente por <strong>30 minutos</strong>.
-              Cada usuário tem direito a apenas 1 teste.
-            </p>
-            {hasTrial ? (
-              <div
-                style={{
-                  padding: '16px',
-                  borderRadius: '14px',
-                  background: 'rgba(157, 255, 47, 0.06)',
-                  border: '1px solid rgba(157, 255, 47, 0.2)',
-                  color: 'var(--accent)',
-                  fontWeight: 700,
-                  fontSize: '14px',
-                }}
-              >
-                ✓ Você já utilizou seu teste gratuito
-              </div>
-            ) : (
-              <Button onClick={handleGenerateTrial} disabled={generatingTrial}>
-                {generatingTrial ? 'Gerando...' : 'Gerar teste de 30 min'}
-              </Button>
-            )}
-          </article>
-
-          {/* Planos */}
-          <article className="glass-card">
-            <div className="card-heading">
-              <span className="icon-pill" aria-hidden="true"><Gem size={20} /></span>
-              <h2>Planos disponíveis</h2>
-            </div>
-            {loadingProducts ? (
-              <p style={{ color: 'var(--muted)' }}>Carregando...</p>
-            ) : endcustomerProducts.length === 0 ? (
-              <p style={{ color: 'var(--muted)' }}>Nenhum plano disponível no momento.</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {endcustomerProducts.map((p, idx) => (
-                  <div
-                    key={p.id}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '16px',
-                      borderRadius: '14px',
-                      background: idx === 1 ? 'rgba(157,255,47,0.03)' : 'rgba(255,255,255,0.03)',
-                      border: idx === 1 ? '1px solid rgba(157,255,47,0.2)' : '1px solid var(--line)',
-                    }}
-                  >
-                    <div>
-                      <strong style={{ fontSize: '16px' }}>{p.name}</strong>
-                      <p style={{ fontSize: '13px', margin: '2px 0 0' }}>
-                        {p.days} dias • {p.devices} dispositivo{p.devices > 1 ? 's' : ''}
-                        {p.has_priority_support ? ' • Suporte prioritário' : ''}
-                      </p>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <strong style={{ fontSize: '22px', color: 'var(--accent)' }}>
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.price_cents / 100)}
-                      </strong>
-                      <span style={{ fontSize: '12px', color: 'var(--muted)', display: 'block' }}>
-                        pagamento único
-                      </span>
-                    </div>
-                    <Button size="tiny" onClick={() => navigate(`/checkout/${p.slug}`)}>
-                      Comprar
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </article>
-        </div>
-      </section>
-
-      {/* Licenças */}
-      <section className="landing-section" style={{ paddingTop: '0' }}>
-        <div className="section-header" style={{ textAlign: 'left', marginBottom: '24px' }}>
-          <p className="eyebrow">Minhas Licenças</p>
-          <h2>Suas licenças</h2>
-        </div>
-
-        <div className="table-card reveal">
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">Chave</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Tipo</th>
-                  <th scope="col">Expira em</th>
-                  <th scope="col">HWID</th>
-                  <th scope="col">Criada em</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={6}>Carregando...</td>
-                  </tr>
-                ) : licenses.length === 0 ? (
-                  <tr>
-                    <td colSpan={6}>Nenhuma licença encontrada</td>
-                  </tr>
-                ) : (
-                  licenses.map((license) => (
-                    <tr key={license.license_key}>
-                      <td data-label="Chave">
-                        <span className="license-key">{license.license_key}</span>
-                      </td>
-                      <td data-label="Status">
-                        <span className={`badge ${license.status}`}>
-                          {statusLabel(license.status)}
-                        </span>
-                      </td>
-                      <td data-label="Tipo">{license.license_type === 'trial' ? 'Trial' : license.license_type === 'lifetime' ? 'Vitalícia' : 'Paga'}</td>
-                      <td data-label="Expira em">{formatDate(license.expires_at)}</td>
-                      <td data-label="HWID">{license.device_id ? 'vinculado' : 'livre'}</td>
-                      <td data-label="Criada em">{formatDate(license.created_at)}</td>
-                      <td data-label="Ações">
-                        <div className="actions-row">
-                          <Button 
-                            size="tiny" 
-                            onClick={() => copyLicenseKey(license.license_key)}
-                          >
-                            Copiar
-                          </Button>
-                          <Button 
-                            size="tiny" 
-                            variant="destructive" 
-                            onClick={() => handleDeleteLicense(license.license_key)}
-                          >
-                            Deletar
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* Minhas Compras */}
-      <section className="landing-section" style={{ paddingTop: '0' }}>
-        <div className="section-header" style={{ textAlign: 'left', marginBottom: '24px' }}>
-          <p className="eyebrow">Compras</p>
-          <h2>Minhas compras</h2>
-        </div>
-
-        <div className="table-card reveal">
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">Produto</th>
-                  <th scope="col">Valor</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Pago em</th>
-                  <th scope="col">Criada em</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loadingPurchases ? (
-                  <tr>
-                    <td colSpan={5}>Carregando...</td>
-                  </tr>
-                ) : purchases.length === 0 ? (
-                  <tr>
-                    <td colSpan={5}>Nenhuma compra encontrada</td>
-                  </tr>
-                ) : (
-                  purchases.map((p) => (
-                    <tr key={p.id}>
-                      <td data-label="Produto"><strong>{p.product_name}</strong></td>
-                      <td data-label="Valor">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.amount / 100)}
-                      </td>
-                      <td data-label="Status">
-                        <span className={`badge ${p.status === 'paid' || p.status === 'approved' ? 'active' : p.status === 'pending' ? 'trial' : 'expired'}`}>
-                          {purchaseStatusLabel(p.status)}
-                        </span>
-                      </td>
-                      <td data-label="Pago em">{p.paid_at ? new Date(p.paid_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                      <td data-label="Criada em">{new Date(p.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
       <footer className="landing-footer">
         <div className="footer-inner">
           <Logo variant="user" href="/user" />
@@ -591,17 +627,13 @@ export default function UserDashboard() {
         </div>
       </footer>
 
-      <ConfirmationDialog
-        isOpen={confirmDialog.isOpen}
-        title={confirmDialog.title}
-        message={confirmDialog.message}
-        confirmText="Deletar"
-        cancelText="Cancelar"
-        isDangerous={true}
-        isLoading={confirmDialog.isLoading}
-        onConfirm={handleConfirmDialog}
-        onCancel={handleCloseDialog}
-      />
+      {checkoutOpen && selectedSlug && (
+        <CheckoutModal
+          isOpen={checkoutOpen}
+          onClose={() => setCheckoutOpen(false)}
+          productSlug={selectedSlug}
+        />
+      )}
     </div>
   )
 }

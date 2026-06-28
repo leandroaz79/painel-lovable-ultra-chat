@@ -10,6 +10,7 @@ import { formatWhatsApp, cleanDigits } from '../../utils/format'
 
 interface Reseller {
   id: string
+  user_id: string
   name?: string
   whatsapp?: string
   email: string
@@ -37,6 +38,8 @@ export default function Resellers() {
   const [resellerWhatsapp, setResellerWhatsapp] = useState('')
   const [resellerStatus, setResellerStatus] = useState<'active' | 'pending' | 'suspended'>('active')
   const [savingProfile, setSavingProfile] = useState(false)
+  const [resetPasswordValue, setResetPasswordValue] = useState('')
+  const [resettingPassword, setResettingPassword] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean
     title: string
@@ -110,6 +113,8 @@ export default function Resellers() {
     setResellerWhatsapp('')
     setResellerStatus('active')
     setSavingProfile(false)
+    setResetPasswordValue('')
+    setResettingPassword(false)
   }
 
   async function loadResellers() {
@@ -132,7 +137,8 @@ export default function Resellers() {
       }
 
       const combined: Reseller[] = resellersData.map(r => ({
-      id: r.user_id,
+      id: r.id,
+      user_id: r.user_id,
       name: r.name,
       whatsapp: r.whatsapp,
       email: r.email || 'N/A',
@@ -162,7 +168,7 @@ export default function Resellers() {
       const { data: resellerData } = await supabase
         .from('resellers')
         .select('credits')
-        .eq('user_id', selectedReseller.id)
+        .eq('user_id', selectedReseller.user_id)
         .single()
 
       if (!resellerData) throw new Error('Revendedor não encontrado')
@@ -173,13 +179,13 @@ export default function Resellers() {
         .update({
           credits: Math.max(0, resellerData.credits + amount)
         })
-        .eq('user_id', selectedReseller.id)
+        .eq('user_id', selectedReseller.user_id)
 
       if (error) throw error
 
       // Log da ação
       await supabase.from('reseller_credits_log').insert({
-        reseller_id: selectedReseller.id,
+        reseller_id: selectedReseller.user_id,
         amount: amount,
         reason: creditsReason,
         admin_id: user?.id
@@ -190,6 +196,30 @@ export default function Resellers() {
       await loadResellers()
     } catch (error: unknown) {
       showToast(error instanceof Error ? error.message : 'Erro ao gerenciar créditos', 'error')
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!selectedReseller || !resetPasswordValue) return
+    if (resetPasswordValue.length < 6) {
+      showToast('Senha deve ter no mínimo 6 caracteres', 'error')
+      return
+    }
+
+    setResettingPassword(true)
+    try {
+      await callAdminManageReseller({
+        reseller_id: selectedReseller.id,
+        user_id: selectedReseller.user_id,
+        action: 'reset_password',
+        password: resetPasswordValue,
+      })
+      showToast('Senha do revendedor redefinida com sucesso!', 'success')
+      setResetPasswordValue('')
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Erro ao redefinir senha', 'error')
+    } finally {
+      setResettingPassword(false)
     }
   }
 
@@ -245,7 +275,8 @@ export default function Resellers() {
     setSavingProfile(true)
     try {
       await callAdminManageReseller({
-        user_id: selectedReseller.id,
+        reseller_id: selectedReseller.id,
+        user_id: selectedReseller.user_id,
         action: 'update_profile',
         name: resellerName.trim(),
         email: resellerEmail.trim(),
@@ -280,7 +311,7 @@ export default function Resellers() {
         .update({
           status: reseller.status === 'active' ? 'suspended' : 'active'
         })
-        .eq('user_id', reseller.id)
+        .eq('user_id', reseller.user_id)
 
       showToast(`Revendedor ${action === 'suspender' ? 'suspenso' : 'reativado'}`)
       await loadResellers()
@@ -306,7 +337,8 @@ export default function Resellers() {
 
     try {
       await callAdminManageReseller({
-        user_id: confirmDialog.reseller.id,
+        reseller_id: confirmDialog.reseller.id,
+        user_id: confirmDialog.reseller.user_id,
         action: 'delete',
       })
 
@@ -563,6 +595,34 @@ export default function Resellers() {
                 >
                   Excluir revendedor
                 </Button>
+              </div>
+
+              <div style={{ marginBottom: '8px', paddingTop: '8px', borderTop: '1px solid var(--line)' }}>
+                <h3 style={{ margin: '16px 0 6px', fontSize: '16px' }}>Redefinir senha</h3>
+                <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px' }}>
+                  Defina uma nova senha para o revendedor acessar o sistema.
+                </p>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                  <label style={{ flex: 1 }}>
+                    <span>Nova senha</span>
+                    <input
+                      type="text"
+                      value={resetPasswordValue}
+                      onChange={(e) => setResetPasswordValue(e.target.value)}
+                      placeholder="Mínimo 6 caracteres"
+                      minLength={6}
+                    />
+                  </label>
+                  <Button
+                    type="button"
+                    onClick={handleResetPassword}
+                    disabled={!resetPasswordValue || resettingPassword}
+                    isLoading={resettingPassword}
+                    style={{ marginBottom: '2px' }}
+                  >
+                    {resettingPassword ? 'Redefinindo...' : 'Redefinir'}
+                  </Button>
+                </div>
               </div>
 
               <div style={{ marginBottom: '8px', paddingTop: '8px', borderTop: '1px solid var(--line)' }}>

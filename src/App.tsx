@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Landing from './pages/Landing'
 import Checkout from './pages/Checkout'
+import Profile from './pages/Profile'
 
 const UserDashboard = lazy(() => import('./pages/user/Dashboard'))
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
@@ -30,10 +31,12 @@ function LoadingScreen() {
 
 function ProtectedRoute({ 
   children, 
-  requiredRole 
+  requiredRole,
+  anyRole,
 }: { 
   children: React.ReactNode
-  requiredRole: 'admin' | 'reseller' | 'user'
+  requiredRole?: 'admin' | 'reseller' | 'user'
+  anyRole?: boolean
 }) {
   const { user, role, loading } = useAuth()
 
@@ -45,7 +48,15 @@ function ProtectedRoute({
     )
   }
 
-  if (!user || role !== requiredRole) {
+  if (!user || !role) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (anyRole) {
+    return <>{children}</>
+  }
+
+  if (requiredRole && role !== requiredRole) {
     return <Navigate to="/login" replace />
   }
 
@@ -61,6 +72,17 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/checkout/:slug" element={<Checkout />} />
+        
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute anyRole>
+              <Suspense fallback={<LoadingScreen />}>
+                <Profile />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
         
         <Route
           path="/user"

@@ -36,6 +36,12 @@ const sections = [
       { href: '/admin/theme', label: 'Tema' },
     ],
   },
+  {
+    label: 'Conta',
+    items: [
+      { href: '/profile', label: 'Perfil' },
+    ],
+  },
 ]
 
 export default function MobileMenu({ currentPage }: MobileMenuProps) {

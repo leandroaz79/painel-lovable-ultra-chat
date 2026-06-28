@@ -103,11 +103,14 @@ export default function AdminDashboard() {
       // Endcustomer stats
       const { data: endcustomerPurchases } = await supabase
         .from('customer_purchases')
-        .select('amount, status, paid_at')
+        .select('payment_status, approved_at, product:product_id!inner(price_cents)')
         .gte('created_at', thirtyDaysAgo.toISOString())
 
-      const endcustomerPaid = endcustomerPurchases?.filter(p => p.status === 'paid' || p.status === 'approved') || []
-      const endcustomerRevenue = endcustomerPaid.reduce((sum, p) => sum + p.amount, 0)
+      const endcustomerPaid = (endcustomerPurchases || []).filter((p: Record<string, unknown>) => p.payment_status === 'approved')
+      const endcustomerRevenue = endcustomerPaid.reduce((sum: number, p: Record<string, unknown>) => {
+        const prod = Array.isArray(p.product) ? (p.product as Array<{ price_cents: number }>)[0] : p.product as { price_cents: number } | null
+        return sum + (prod?.price_cents || 0)
+      }, 0)
 
       setCommercialStats({
         totalRevenue,

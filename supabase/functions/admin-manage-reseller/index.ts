@@ -44,14 +44,15 @@ serve(async (req) => {
       email,
       whatsapp,
       status,
+      password,
     } = await req.json();
 
     if ((!reseller_id && !user_id) || !action) {
       throw new Error("reseller_id ou user_id e action são obrigatórios");
     }
 
-    if (!["approve", "suspend", "add_credits", "update_profile", "delete"].includes(action)) {
-      throw new Error("Action inválida. Use: approve, suspend, add_credits, update_profile, delete");
+    if (!["approve", "suspend", "add_credits", "update_profile", "delete", "reset_password"].includes(action)) {
+      throw new Error("Action inválida. Use: approve, suspend, add_credits, update_profile, delete, reset_password");
     }
 
     const resellerLookupColumn = reseller_id ? "id" : "user_id";
@@ -187,14 +188,16 @@ serve(async (req) => {
         throw new Error("Já existe um usuário com este email");
       }
 
-      if (normalizedEmail !== currentEmail) {
-        const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(reseller.user_id, {
-          email: normalizedEmail,
-          email_confirm: true,
-        });
+      const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(reseller.user_id, {
+        email: normalizedEmail,
+        email_confirm: true,
+        user_metadata: {
+          name: normalizedName,
+          whatsapp: normalizedWhatsapp,
+        }
+      });
 
-        if (updateAuthError) throw updateAuthError;
-      }
+      if (updateAuthError) throw updateAuthError;
 
       const { data, error } = await adminClient
         .from("resellers")
@@ -226,6 +229,26 @@ serve(async (req) => {
           status: normalizedStatus,
         }
       });
+    } else if (action === "reset_password") {
+      if (!password || String(password).length < 6) {
+        throw new Error("Senha deve ter no mínimo 6 caracteres");
+      }
+
+      const { error: updateError } = await adminClient.auth.admin.updateUserById(reseller.user_id, {
+        password: String(password),
+      });
+
+      if (updateError) throw updateError;
+      result = { user_id: reseller.user_id, password_reset: true };
+
+      await adminClient.from("admin_audit_logs").insert({
+        admin_user_id: user.user.id,
+        action: "reset_reseller_password",
+        target_table: "resellers",
+        target_id: reseller.id,
+        metadata: { user_id: reseller.user_id }
+      });
+
     } else if (action === "delete") {
       await adminClient
         .from("user_roles")

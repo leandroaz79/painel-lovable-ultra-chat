@@ -50,18 +50,11 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-shell">
         <div className="auth-card reveal">
-          <div className="brand-mark">
+          <div className="auth-copy" style={{ marginTop: '0' }}>
             <Logo variant="login" />
-            <div>
-              <strong style={{ color: 'var(--text)' }}>Ultra<span style={{ color: 'var(--brand-green)' }}>Admin</span></strong>
-              <small style={{ color: 'var(--muted)' }}>Licenças e revendedores</small>
-            </div>
-          </div>
-
-          <div className="auth-copy">
-            <p className="eyebrow">Acesso restrito</p>
-            <h1>Controle licenças.</h1>
-            <p>Entre com conta autorizada para criar, renovar, revogar e auditar licenças Ultra Chat.</p>
+            <p className="eyebrow" style={{ marginTop: '24px' }}>Bem-vindo</p>
+            <h1>Entrar na sua conta</h1>
+            <p>Use seu email e senha para acessar o Ultra Chat.</p>
           </div>
 
           <form className="stack-form" onSubmit={handleSubmit}>

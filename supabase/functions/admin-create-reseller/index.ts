@@ -97,12 +97,14 @@ serve(async (req) => {
     if (resellerError) throw resellerError;
 
     // Criar role de revendedor
-    await adminClient
+    const { error: roleInsertError } = await adminClient
       .from("user_roles")
       .insert({
         user_id: targetUserId,
         role: "reseller"
       });
+
+    if (roleInsertError) throw roleInsertError;
 
     // Log de auditoria
     await adminClient.from("admin_audit_logs").insert({

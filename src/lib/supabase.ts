@@ -37,4 +37,5 @@ export const FUNCTIONS = {
   USER_CREATE_TRIAL: '/functions/v1/user-create-trial',
   CUSTOMER_CREATE_PAYMENT: '/functions/v1/customer-create-payment',
   CUSTOMER_CHECK_PAYMENT: '/functions/v1/customer-check-payment',
+  USER_DELETE_ACCOUNT: '/functions/v1/user-delete-account',
 }
