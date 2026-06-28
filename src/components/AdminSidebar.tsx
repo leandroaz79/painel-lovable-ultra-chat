@@ -68,7 +68,7 @@ export default function AdminSidebar({ currentPage }: AdminSidebarProps) {
     <>
       <aside className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <Logo variant="admin" href="/admin" />
+          <Logo variant="admin" href="/admin" showText={!isCollapsed} />
           <button 
             className="sidebar-toggle"
             onClick={() => setIsCollapsed(!isCollapsed)}

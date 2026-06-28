@@ -39,14 +39,15 @@ serve(async (req) => {
 
   try {
     const { adminClient, user } = await requireAdmin(req);
-    const { user_id, action, name, email, whatsapp } = await req.json();
+    const body = await req.json();
+    const { user_id, action, name, email, whatsapp, password } = body;
 
     if (!user_id || !action) {
       throw new Error("user_id e action são obrigatórios");
     }
 
-    if (!["update_profile", "delete"].includes(action)) {
-      throw new Error("Action inválida. Use: update_profile, delete");
+    if (!["update_profile", "reset_password", "delete"].includes(action)) {
+      throw new Error("Action inválida. Use: update_profile, reset_password, delete");
     }
 
     const { data: authUserData, error: authUserError } = await adminClient.auth.admin.getUserById(user_id);
@@ -136,7 +137,27 @@ serve(async (req) => {
         email: normalizedEmail,
         whatsapp: normalizedWhatsapp,
       };
-    } else {
+    } else if (action === "reset_password") {
+      if (!password || String(password).length < 6) {
+        throw new Error("Senha deve ter no mínimo 6 caracteres");
+      }
+
+      const { error: updateError } = await adminClient.auth.admin.updateUserById(user_id, {
+        password: String(password),
+      });
+
+      if (updateError) throw updateError;
+
+      await adminClient.from("admin_audit_logs").insert({
+        admin_user_id: user.id,
+        action: "reset_customer_password",
+        target_table: "customer_purchases",
+        target_id: user_id,
+        metadata: { user_id },
+      });
+
+      result = { user_id, password_reset: true };
+    } else if (action === "delete") {
       const { error: deleteError } = await adminClient.auth.admin.deleteUser(user_id);
       if (deleteError) throw deleteError;
 

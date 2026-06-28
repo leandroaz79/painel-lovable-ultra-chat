@@ -48,6 +48,8 @@ export default function Customers() {
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerWhatsapp, setCustomerWhatsapp] = useState('')
   const [savingProfile, setSavingProfile] = useState(false)
+  const [resetPasswordValue, setResetPasswordValue] = useState('')
+  const [resettingPassword, setResettingPassword] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean
     customer: Customer | null
@@ -151,6 +153,29 @@ export default function Customers() {
       showToast(error instanceof Error ? error.message : 'Erro ao atualizar cliente', 'error')
     } finally {
       setSavingProfile(false)
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!selectedCustomer || !resetPasswordValue) return
+    if (resetPasswordValue.length < 6) {
+      showToast('Senha deve ter no mínimo 6 caracteres', 'error')
+      return
+    }
+
+    setResettingPassword(true)
+    try {
+      await fetchAdminFunction(FUNCTIONS.ADMIN_MANAGE_CUSTOMER, {
+        user_id: selectedCustomer.id,
+        action: 'reset_password',
+        password: resetPasswordValue,
+      })
+      showToast('Senha do cliente redefinida com sucesso!', 'success')
+      setResetPasswordValue('')
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Erro ao redefinir senha', 'error')
+    } finally {
+      setResettingPassword(false)
     }
   }
 
@@ -414,6 +439,30 @@ export default function Customers() {
                   <Button type="button" variant="destructive" onClick={() => handleAskDeleteCustomer(selectedCustomer)}>
                     Excluir cliente
                   </Button>
+                </div>
+
+                <div style={{ padding: '16px', background: 'rgba(109,232,255,0.08)', borderRadius: '14px', marginBottom: '24px' }}>
+                  <h3 style={{ margin: '0 0 6px', fontSize: '16px' }}>Redefinir senha</h3>
+                  <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '12px' }}>Defina uma nova senha para o cliente.</p>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                    <label style={{ flex: 1, margin: 0 }}>
+                      <span>Nova senha</span>
+                      <input
+                        type="text"
+                        value={resetPasswordValue}
+                        onChange={(e) => setResetPasswordValue(e.target.value)}
+                        placeholder="Mínimo 6 caracteres"
+                      />
+                    </label>
+                    <Button
+                      type="button"
+                      onClick={handleResetPassword}
+                      disabled={!resetPasswordValue || resettingPassword}
+                      style={{ whiteSpace: 'nowrap', minHeight: '40px' }}
+                    >
+                      {resettingPassword ? 'Redefinindo...' : 'Redefinir'}
+                    </Button>
+                  </div>
                 </div>
 
                 <div style={{ marginBottom: '8px', paddingTop: '8px', borderTop: '1px solid var(--line)' }}>

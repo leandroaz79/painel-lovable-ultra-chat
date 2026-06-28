@@ -3,13 +3,17 @@ import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import AdminLayout from '../../components/AdminLayout'
 import AdminTopbar from '../../components/AdminTopbar'
+import ConfirmationDialog from '../../components/ConfirmationDialog'
 import { Button } from '../../components/ui/button'
+import { Download, Undo2, XCircle, Trash2 } from 'lucide-react'
 
 interface Purchase {
   id: string
   user_id: string
   user_name: string
   user_email: string
+  user_cpf: string
+  user_whatsapp: string
   product_name: string
   product_slug: string
   amount: number
@@ -126,6 +130,84 @@ export default function CustomerPurchases() {
     return <span className={`badge ${className}`}>{statusLabel(status)}</span>
   }
 
+  function exportToCSV() {
+    const headers = ['Data', 'Hora', 'Cliente', 'Email', 'CPF', 'WhatsApp', 'Produto', 'Valor', 'Status', 'Licença', 'Payment ID']
+    const rows = purchases.map(p => [
+      new Date(p.paid_at || p.created_at).toLocaleDateString('pt-BR'),
+      new Date(p.paid_at || p.created_at).toLocaleTimeString('pt-BR'),
+      p.user_name,
+      p.user_email,
+      p.user_cpf,
+      p.user_whatsapp,
+      p.product_name,
+      formatPrice(p.amount),
+      statusLabel(p.status),
+      p.license_key || '',
+      p.payment_id || '',
+    ])
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(c => '"' + c + '"').join(','))
+    ].join('\n')
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = 'compras_' + new Date().toISOString().split('T')[0] + '.csv'
+    link.click()
+    showToast('CSV exportado com sucesso')
+  }
+
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    action: 'refund' | 'cancel' | 'delete' | null
+    purchaseId: string
+    isLoading: boolean
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    action: null,
+    purchaseId: '',
+    isLoading: false,
+  })
+
+  async function handleAction(purchaseId: string, action: 'refund' | 'cancel' | 'delete') {
+    setConfirmDialog(prev => ({ ...prev, isLoading: true }))
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const response = await fetch(`${SUPABASE_URL}${FUNCTIONS.ADMIN_MANAGE_CUSTOMER_PURCHASE}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ purchase_id: purchaseId, action }),
+      })
+      const result = await response.json()
+      if (!result.success) throw new Error(result.error)
+      showToast(result.message)
+      setConfirmDialog(prev => ({ ...prev, isOpen: false }))
+      await loadPurchases()
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Erro ao executar ação', 'error')
+      setConfirmDialog(prev => ({ ...prev, isLoading: false }))
+    }
+  }
+
+  function openConfirmDialog(purchaseId: string, action: 'refund' | 'cancel' | 'delete') {
+    const config = {
+      refund: { title: 'Reembolsar compra', message: 'Tem certeza que deseja reembolsar esta compra? O cliente será notificado.' },
+      cancel: { title: 'Cancelar compra', message: 'Tem certeza que deseja cancelar esta compra pendente?' },
+      delete: { title: 'Excluir compra', message: 'Tem certeza que deseja excluir永久mente esta compra? Esta ação não pode ser desfeita.' },
+    }
+    const { title, message } = config[action]
+    setConfirmDialog({ isOpen: true, title, message, action, purchaseId, isLoading: false })
+  }
+
   const safePage = Math.min(page, Math.max(1, totalPages))
 
   return (
@@ -172,6 +254,13 @@ export default function CustomerPurchases() {
                 <option value="refunded">Reembolsado</option>
                 <option value="cancelled">Cancelado</option>
               </select>
+              <button
+                className="primary-action compact"
+                onClick={exportToCSV}
+                type="button"
+              >
+                <Download size={14} /> Exportar Excel
+              </button>
             </div>
           </div>
 
@@ -180,20 +269,21 @@ export default function CustomerPurchases() {
               <thead>
                 <tr>
                   <th scope="col">Cliente</th>
+                  <th scope="col">CPF</th>
+                  <th scope="col">WhatsApp</th>
                   <th scope="col">Produto</th>
                   <th scope="col">Valor</th>
-                  <th scope="col">Dias</th>
                   <th scope="col">Status</th>
                   <th scope="col">Licença</th>
-                  <th scope="col">Pagamento</th>
                   <th scope="col">Data</th>
+                  <th scope="col">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={8}>Carregando...</td></tr>
+                  <tr><td colSpan={9}>Carregando...</td></tr>
                 ) : purchases.length === 0 ? (
-                  <tr><td colSpan={8}>Nenhuma compra encontrada.</td></tr>
+                  <tr><td colSpan={9}>Nenhuma compra encontrada.</td></tr>
                 ) : (
                   purchases.map((p) => (
                     <tr key={p.id}>
@@ -201,21 +291,34 @@ export default function CustomerPurchases() {
                         <strong>{p.user_name || '—'}</strong>
                         <small>{p.user_email || '—'}</small>
                       </td>
+                      <td data-label="CPF">{p.user_cpf || '—'}</td>
+                      <td data-label="WhatsApp">{p.user_whatsapp || '—'}</td>
                       <td data-label="Produto">{p.product_name}</td>
                       <td data-label="Valor"><strong>{formatPrice(p.amount)}</strong></td>
-                      <td data-label="Dias">{p.days}</td>
                       <td data-label="Status">{statusBadge(p.status)}</td>
                       <td data-label="Licença">
                         {p.license_key ? (
                           <code style={{ fontSize: '11px' }}>{p.license_key.slice(0, 16)}...</code>
                         ) : '—'}
                       </td>
-                      <td data-label="Pagamento">
-                        {p.payment_id ? (
-                          <code style={{ fontSize: '11px' }}>{p.payment_id.slice(0, 16)}...</code>
-                        ) : '—'}
-                      </td>
                       <td data-label="Data">{formatDate(p.paid_at || p.created_at)}</td>
+                      <td data-label="Ações">
+                        <div className="actions-row">
+                          {(p.status === 'approved' || p.status === 'paid') && (
+                            <Button size="tiny" variant="destructive" onClick={() => openConfirmDialog(p.id, 'refund')}>
+                              <Undo2 size={12} /> Reembolsar
+                            </Button>
+                          )}
+                          {p.status === 'pending' && (
+                            <Button size="tiny" variant="destructive" onClick={() => openConfirmDialog(p.id, 'cancel')}>
+                              <XCircle size={12} /> Cancelar
+                            </Button>
+                          )}
+                          <Button size="tiny" variant="destructive" onClick={() => openConfirmDialog(p.id, 'delete')}>
+                            <Trash2 size={12} /> Excluir
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -264,6 +367,18 @@ export default function CustomerPurchases() {
           )}
         </section>
       </div>
+
+      <ConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.action === 'delete' ? 'Excluir' : confirmDialog.action === 'refund' ? 'Reembolsar' : 'Cancelar'}
+        cancelText="Cancelar"
+        isDangerous={true}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={() => confirmDialog.purchaseId && confirmDialog.action && handleAction(confirmDialog.purchaseId, confirmDialog.action)}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+      />
     </AdminLayout>
   )
 }

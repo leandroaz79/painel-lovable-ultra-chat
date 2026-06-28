@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../../lib/supabase'
+import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import AdminLayout from '../../components/AdminLayout'
 import AdminTopbar from '../../components/AdminTopbar'
-import { Download } from 'lucide-react'
+import ConfirmationDialog from '../../components/ConfirmationDialog'
+import { Button } from '../../components/ui/button'
+import { Download, Check, RotateCcw, Trash2 } from 'lucide-react'
 
 interface Purchase {
   id: string
@@ -68,87 +70,15 @@ export default function Sales() {
     }
   }
 
-  async function handleApprove(purchase: Purchase) {
-    if (!confirm(`Aprovar manualmente compra de ${purchase.quantity} créditos?\n\nISTO IRÁ ADICIONAR os créditos ao revendedor.`)) return
-
-    try {
-      // Buscar saldo atual
-      const { data: resellerData } = await supabase
-        .from('resellers')
-        .select('credits, total_credits_purchased')
-        .eq('user_id', purchase.reseller_id)
-        .single()
-
-      if (!resellerData) throw new Error('Revendedor não encontrado')
-
-      // Adicionar créditos
-      await supabase
-        .from('resellers')
-        .update({
-          credits: resellerData.credits + purchase.quantity,
-          total_credits_purchased: resellerData.total_credits_purchased + purchase.quantity
-        })
-        .eq('user_id', purchase.reseller_id)
-
-      // Atualizar status da compra
-      await supabase
-        .from('credit_purchases')
-        .update({ 
-          status: 'approved',
-          approved_at: new Date().toISOString()
-        })
-        .eq('id', purchase.id)
-
-      showToast(`${purchase.quantity} créditos adicionados com sucesso`)
-      await loadPurchases()
-    } catch (error: unknown) {
-      showToast(error instanceof Error ? error.message : 'Erro ao aprovar', 'error')
-    }
-  }
-
-  async function handleRefund(purchase: Purchase) {
-    if (!confirm(`Estornar compra de ${purchase.quantity} créditos?\n\nISTO IRÁ REMOVER os créditos do revendedor.`)) return
-
-    try {
-      // Buscar saldo atual
-      const { data: resellerData } = await supabase
-        .from('resellers')
-        .select('credits, total_credits_purchased')
-        .eq('user_id', purchase.reseller_id)
-        .single()
-
-      if (!resellerData) throw new Error('Revendedor não encontrado')
-
-      // Remover créditos
-      await supabase
-        .from('resellers')
-        .update({
-          credits: Math.max(0, resellerData.credits - purchase.quantity),
-          total_credits_purchased: Math.max(0, resellerData.total_credits_purchased - purchase.quantity)
-        })
-        .eq('user_id', purchase.reseller_id)
-
-      // Atualizar status da compra
-      await supabase
-        .from('credit_purchases')
-        .update({ status: 'refunded' })
-        .eq('id', purchase.id)
-
-      showToast('Compra estornada e créditos removidos')
-      await loadPurchases()
-    } catch (error: unknown) {
-      showToast(error instanceof Error ? error.message : 'Erro ao estornar', 'error')
-    }
-  }
-
   function exportToCSV() {
-    const headers = ['Data', 'Hora', 'Revendedor', 'Comprador', 'CPF', 'Email', 'Quantidade', 'Valor', 'Status', 'Payment ID']
+    const headers = ['Data', 'Hora', 'Revendedor', 'Comprador', 'CPF', 'Telefone', 'Email', 'Quantidade', 'Valor', 'Status', 'Payment ID']
     const rows = filteredPurchases.map(p => [
       new Date(p.created_at).toLocaleDateString('pt-BR'),
       new Date(p.created_at).toLocaleTimeString('pt-BR'),
       p.reseller_email,
       p.buyer_name,
       p.buyer_cpf,
+      p.buyer_phone,
       p.buyer_email,
       p.quantity,
       p.amount.toFixed(2),
@@ -167,6 +97,48 @@ export default function Sales() {
     link.download = 'vendas_' + new Date().toISOString().split('T')[0] + '.csv'
     link.click()
     showToast('CSV exportado com sucesso')
+  }
+
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    action: 'approve' | 'refund' | 'delete' | null
+    purchase: Purchase | null
+    isLoading: boolean
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    action: null,
+    purchase: null,
+    isLoading: false,
+  })
+
+  async function handleConfirmDialog() {
+    const { action, purchase } = confirmDialog
+    if (!purchase || !action) return
+    setConfirmDialog(prev => ({ ...prev, isLoading: true }))
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const response = await fetch(`${SUPABASE_URL}${FUNCTIONS.ADMIN_MANAGE_CREDIT_PURCHASE}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ purchase_id: purchase.id, action }),
+      })
+      const result = await response.json()
+      if (!result.success) throw new Error(result.error)
+      showToast(result.message)
+      setConfirmDialog(prev => ({ ...prev, isOpen: false }))
+      await loadPurchases()
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Erro ao executar ação', 'error')
+      setConfirmDialog(prev => ({ ...prev, isLoading: false }))
+    }
   }
 
   const filteredPurchases = purchases.filter(p => {
@@ -236,7 +208,7 @@ export default function Sales() {
               onClick={exportToCSV}
               type="button"
             >
-              <Download size={14} /> Exportar CSV
+              <Download size={14} /> Exportar Excel
             </button>
           </div>
         </div>
@@ -248,18 +220,19 @@ export default function Sales() {
                   <th scope="col">Data</th>
                   <th scope="col">Revendedor</th>
                   <th scope="col">Comprador</th>
+                  <th scope="col">CPF</th>
+                  <th scope="col">Telefone</th>
                   <th scope="col">Qtd</th>
                   <th scope="col">Valor</th>
                   <th scope="col">Status</th>
-                  <th scope="col">Payment ID</th>
                   <th scope="col">Ações</th>
                 </tr>
               </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8}>Carregando...</td></tr>
+                <tr><td colSpan={9}>Carregando...</td></tr>
               ) : filteredPurchases.length === 0 ? (
-                <tr><td colSpan={8}>Nenhuma compra encontrada</td></tr>
+                <tr><td colSpan={9}>Nenhuma compra encontrada</td></tr>
               ) : (
                 filteredPurchases.map(purchase => (
                   <tr key={purchase.id}>
@@ -272,6 +245,8 @@ export default function Sales() {
                       <strong>{purchase.buyer_name}</strong>
                       <small>{purchase.buyer_email}</small>
                     </td>
+                    <td data-label="CPF">{purchase.buyer_cpf || '—'}</td>
+                    <td data-label="Telefone">{purchase.buyer_phone || '—'}</td>
                     <td data-label="Qtd">{purchase.quantity}</td>
                     <td data-label="Valor">R$ {purchase.amount.toFixed(2)}</td>
                     <td data-label="Status">
@@ -282,29 +257,53 @@ export default function Sales() {
                         {purchase.status === 'refunded' && 'Estornado'}
                       </span>
                     </td>
-                    <td data-label="Payment ID">
-                      <span style={{ fontFamily: 'monospace', fontSize: '11px' }}>
-                        {purchase.payment_id.substring(0, 12)}...
-                      </span>
-                    </td>
                     <td data-label="Ações">
                       <div className="actions-row">
                         {purchase.status === 'pending' && (
-                          <button 
-                            className="tiny-action success-action"
-                            onClick={() => handleApprove(purchase)}
+                          <Button
+                            size="tiny"
+                            onClick={() => setConfirmDialog({
+                              isOpen: true,
+                              title: 'Aprovar compra',
+                              message: `Aprovar manualmente compra de ${purchase.quantity} créditos? Isto irá ADICIONAR os créditos ao revendedor.`,
+                              action: 'approve',
+                              purchase,
+                              isLoading: false,
+                            })}
                           >
-                            Aprovar
-                          </button>
+                            <Check size={12} /> Aprovar
+                          </Button>
                         )}
                         {purchase.status === 'approved' && (
-                          <button 
-                            className="tiny-action danger-action"
-                            onClick={() => handleRefund(purchase)}
+                          <Button
+                            size="tiny"
+                            variant="destructive"
+                            onClick={() => setConfirmDialog({
+                              isOpen: true,
+                              title: 'Estornar compra',
+                              message: `Estornar compra de ${purchase.quantity} créditos? Isto irá REMOVER os créditos do revendedor.`,
+                              action: 'refund',
+                              purchase,
+                              isLoading: false,
+                            })}
                           >
-                            Estornar
-                          </button>
+                            <RotateCcw size={12} /> Estornar
+                          </Button>
                         )}
+                        <Button
+                          size="tiny"
+                          variant="destructive"
+                          onClick={() => setConfirmDialog({
+                            isOpen: true,
+                            title: 'Excluir compra',
+                            message: 'Tem certeza que deseja excluir permanentemente esta compra? Esta ação não pode ser desfeita.',
+                            action: 'delete',
+                            purchase,
+                            isLoading: false,
+                          })}
+                        >
+                          <Trash2 size={12} /> Excluir
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -316,6 +315,18 @@ export default function Sales() {
       </section>
 
       </div>
+
+      <ConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.action === 'delete' ? 'Excluir' : confirmDialog.action === 'refund' ? 'Estornar' : 'Aprovar'}
+        cancelText="Cancelar"
+        isDangerous={confirmDialog.action === 'delete' || confirmDialog.action === 'refund'}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={handleConfirmDialog}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+      />
     </AdminLayout>
   )
 }

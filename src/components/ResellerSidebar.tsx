@@ -35,7 +35,7 @@ export default function ResellerSidebar({ currentPage }: ResellerSidebarProps) {
     <>
       <aside className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <Logo variant="reseller" href="/reseller" />
+          <Logo variant="reseller" href="/reseller" showText={!isCollapsed} />
           <button
             className="sidebar-toggle"
             onClick={() => setIsCollapsed(!isCollapsed)}

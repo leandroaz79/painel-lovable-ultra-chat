@@ -38,4 +38,6 @@ export const FUNCTIONS = {
   CUSTOMER_CREATE_PAYMENT: '/functions/v1/customer-create-payment',
   CUSTOMER_CHECK_PAYMENT: '/functions/v1/customer-check-payment',
   USER_DELETE_ACCOUNT: '/functions/v1/user-delete-account',
+  ADMIN_MANAGE_CUSTOMER_PURCHASE: '/functions/v1/admin-manage-customer-purchase',
+  ADMIN_MANAGE_CREDIT_PURCHASE: '/functions/v1/admin-manage-credit-purchase',
 }

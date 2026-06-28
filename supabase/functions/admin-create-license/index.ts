@@ -50,10 +50,23 @@ Deno.serve(async (req) => {
     const licenseType = body.license_type === "trial" ? "trial" : body.lifetime ? "lifetime" : "paid";
     const lifetime = licenseType === "lifetime";
     const expiresAt = lifetime ? null : licenseType === "trial" ? addMinutes(Math.min(Number(body.trial_minutes || 30), 30)) : addDays(Math.max(Number(body.days || 30), 1));
+
+    // Buscar user_id pelo email, se informado
+    let userId = null;
+    const email = body.email ? String(body.email).trim().toLowerCase() : null;
+    if (email) {
+      const { data: usersList } = await adminClient.auth.admin.listUsers();
+      const foundUser = usersList?.users.find((u) => u.email?.toLowerCase() === email);
+      if (foundUser) {
+        userId = foundUser.id;
+      }
+    }
+
     const payload = {
       license_key: generateLicenseKey(),
+      user_id: userId,
       user_name: body.user_name || null,
-      email: body.email || null,
+      email: email,
       phone: body.phone || null,
       status: licenseType === "trial" ? "trial" : "active",
       license_type: licenseType,

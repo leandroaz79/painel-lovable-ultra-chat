@@ -98,16 +98,19 @@ serve(async (req) => {
       const product = p.products_endcustomer as { name: string; days: number; devices: number } | null;
       const userInfo = userMap.get(p.user_id);
       const licenseUserName = p.license_key ? licenseUserMap.get(p.license_key) : null;
+      const pd = p.payment_data as Record<string, unknown> | null;
 
       return {
         id: p.id,
         user_id: p.user_id,
         user_name: licenseUserName || userInfo?.name || "",
         user_email: userInfo?.email || "",
+        user_cpf: (pd?.buyer_cpf as string) || "",
+        user_whatsapp: (pd?.buyer_whatsapp as string) || "",
         product_name: product?.name ?? "",
         product_slug: (p as any).product_slug ?? "",
-        amount: p.payment_data && typeof (p.payment_data as any).transaction_amount === "number"
-          ? Math.round((p.payment_data as any).transaction_amount * 100)
+        amount: pd && typeof pd.transaction_amount === "number"
+          ? Math.round((pd.transaction_amount as number) * 100)
           : 0,
         days: product?.days ?? 0,
         devices: product?.devices ?? 1,
