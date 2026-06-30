@@ -6,6 +6,7 @@ interface ConfirmationDialogProps {
   isOpen: boolean
   title: string
   message: string
+  children?: React.ReactNode
   confirmText?: string
   cancelText?: string
   isLoading?: boolean
@@ -18,6 +19,7 @@ export default function ConfirmationDialog({
   isOpen,
   title,
   message,
+  children,
   confirmText = 'Confirmar',
   cancelText = 'Cancelar',
   isLoading = false,
@@ -38,10 +40,7 @@ export default function ConfirmationDialog({
     setPortalElement(container)
 
     return () => {
-      // Limpar apenas se vazio
-      if (container && container.childNodes.length === 0) {
-        document.body.removeChild(container)
-      }
+      // Container compartilhado entre múltiplas instâncias — não remover
     }
   }, [])
 
@@ -137,6 +136,7 @@ export default function ConfirmationDialog({
           >
             {message}
           </p>
+          {children}
         </div>
 
         {/* Actions */}

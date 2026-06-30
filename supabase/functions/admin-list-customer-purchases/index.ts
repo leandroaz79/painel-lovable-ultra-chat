@@ -51,7 +51,7 @@ serve(async (req) => {
       .from("customer_purchases")
       .select(`
         *,
-        products_endcustomer!inner(name, days, devices)
+        products_endcustomer!inner(name, days, devices, is_lifetime)
       `)
       .order("created_at", { ascending: false });
 
@@ -95,7 +95,7 @@ serve(async (req) => {
 
     // Build enriched list
     const enriched = (purchases ?? []).map((p) => {
-      const product = p.products_endcustomer as { name: string; days: number; devices: number } | null;
+      const product = p.products_endcustomer as { name: string; days: number; devices: number; is_lifetime: boolean } | null;
       const userInfo = userMap.get(p.user_id);
       const licenseUserName = p.license_key ? licenseUserMap.get(p.license_key) : null;
       const pd = p.payment_data as Record<string, unknown> | null;
@@ -114,6 +114,7 @@ serve(async (req) => {
           : 0,
         days: product?.days ?? 0,
         devices: product?.devices ?? 1,
+        is_lifetime: product?.is_lifetime ?? false,
         status: p.payment_status,
         payment_id: p.payment_id,
         paid_at: p.approved_at ?? p.created_at,

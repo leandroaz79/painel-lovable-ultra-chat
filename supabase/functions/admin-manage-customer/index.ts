@@ -40,14 +40,14 @@ serve(async (req) => {
   try {
     const { adminClient, user } = await requireAdmin(req);
     const body = await req.json();
-    const { user_id, action, name, email, whatsapp, password } = body;
+    const { user_id, action, name, email, whatsapp, password, initial_credits } = body;
 
     if (!user_id || !action) {
       throw new Error("user_id e action são obrigatórios");
     }
 
-    if (!["update_profile", "reset_password", "delete"].includes(action)) {
-      throw new Error("Action inválida. Use: update_profile, reset_password, delete");
+    if (!["update_profile", "reset_password", "delete", "promote_to_reseller"].includes(action)) {
+      throw new Error("Action inválida. Use: update_profile, reset_password, delete, promote_to_reseller");
     }
 
     const { data: authUserData, error: authUserError } = await adminClient.auth.admin.getUserById(user_id);
@@ -173,6 +173,57 @@ serve(async (req) => {
       });
 
       result = { deleted: true, user_id };
+    } else if (action === "promote_to_reseller") {
+      const initial_credits = typeof body.initial_credits === "number" ? Math.max(0, Math.floor(body.initial_credits)) : 0;
+
+      const { data: existingReseller, error: existingError } = await adminClient
+        .from("resellers")
+        .select("id, status")
+        .eq("user_id", user_id)
+        .maybeSingle();
+
+      if (existingError) throw existingError;
+      if (existingReseller) {
+        throw new Error("Usuário já é revendedor (status: " + existingReseller.status + ")");
+      }
+
+      const { data: reseller, error: resellerError } = await adminClient
+        .from("resellers")
+        .insert({
+          user_id,
+          name: currentName || currentUser.email || "Revendedor",
+          status: "active",
+          credits: initial_credits,
+          activation_fee_paid: true,
+        })
+        .select()
+        .single();
+
+      if (resellerError) throw resellerError;
+
+      const { error: roleError } = await adminClient
+        .from("user_roles")
+        .insert({
+          user_id,
+          role: "reseller",
+        });
+
+      if (roleError) throw roleError;
+
+      await adminClient.from("admin_audit_logs").insert({
+        admin_user_id: user.id,
+        action: "promote_to_reseller",
+        target_table: "resellers",
+        target_id: reseller.id,
+        metadata: {
+          user_id,
+          name: currentName,
+          email: currentEmail,
+          initial_credits,
+        },
+      });
+
+      result = { user_id, reseller_id: reseller.id, credits: initial_credits };
     }
 
     return new Response(

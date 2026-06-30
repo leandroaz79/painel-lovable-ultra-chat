@@ -265,6 +265,7 @@ button:disabled,
   height: 340px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.18), transparent 68%);
+  pointer-events: none;
 }
 .glass-card { padding: 24px; }
 .wide-card { grid-column: 1 / -1; }

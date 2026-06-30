@@ -40,14 +40,15 @@ export function useAuth() {
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .maybeSingle()
 
       if (error) throw error
-      
-      if (data?.role === 'admin' || data?.role === 'reseller') {
-        setRole(data.role)
+
+      const roles = data?.map(r => r.role) || []
+      if (roles.includes('admin')) {
+        setRole('admin')
+      } else if (roles.includes('reseller')) {
+        setRole('reseller')
       } else {
-        // Usuário sem role na tabela = usuário final
         setRole('user')
       }
     } catch (error) {

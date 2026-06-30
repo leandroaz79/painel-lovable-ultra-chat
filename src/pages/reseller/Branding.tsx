@@ -1,4 +1,3 @@
-import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../../components/ui/button'
 import { Logo } from '../../components/ui/Logo'
@@ -7,7 +6,7 @@ import ResellerLayout from '../../components/ResellerLayout'
 import BrandingGenerator from '../../components/BrandingGenerator'
 
 export default function ResellerBranding() {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
 
   return (
     <ResellerLayout currentPage="/reseller/branding">
@@ -24,7 +23,7 @@ export default function ResellerBranding() {
         </nav>
         <div className="session-box">
           <span>{user?.email || 'Revendedor'}</span>
-          <Button variant="ghost" onClick={() => { supabase.auth.signOut(); window.location.href = '/login'; }}>Sair</Button>
+          <Button variant="ghost" onClick={() => signOut()}>Sair</Button>
         </div>
       </header>
 

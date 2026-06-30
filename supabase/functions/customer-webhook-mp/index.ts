@@ -110,9 +110,12 @@ serve(async (req) => {
       const randomHex = crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()
       const licenseKey = `${prefix}-${randomHex}`
 
-      // Calcular expiração
-      const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + product.days)
+      // Calcular expiração (NULL = vitalício)
+      const expiresAt = product.is_lifetime ? null : (() => {
+        const d = new Date()
+        d.setDate(d.getDate() + product.days)
+        return d.toISOString()
+      })()
 
       // Inserir licença
       const { error: licenseError } = await supabaseAdmin
@@ -125,7 +128,7 @@ serve(async (req) => {
           phone: userPhone,
           status: 'active',
           license_type: 'paid',
-          expires_at: expiresAt.toISOString(),
+          expires_at: expiresAt,
           metadata: {
             product_id: productId,
             product_name: product.name,

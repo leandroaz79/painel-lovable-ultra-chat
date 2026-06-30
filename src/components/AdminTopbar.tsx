@@ -1,5 +1,4 @@
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../lib/supabase'
 import { Button } from './ui/button'
 import { Logo } from './ui/Logo'
 import MobileMenu from './MobileMenu'
@@ -22,7 +21,7 @@ const navLinks = [
 ]
 
 export default function AdminTopbar({ currentPage }: AdminTopbarProps) {
-  const { user } = useAuth()
+  const { user, signOut } = useAuth()
 
   return (
     <header className="topbar">
@@ -41,7 +40,7 @@ export default function AdminTopbar({ currentPage }: AdminTopbarProps) {
       </nav>
       <div className="session-box">
         <span>{user?.email || 'Carregando...'}</span>
-        <Button variant="ghost" onClick={() => { supabase.auth.signOut(); window.location.href = '/login'; }}>Sair</Button>
+        <Button variant="ghost" onClick={signOut}>Sair</Button>
       </div>
     </header>
   )

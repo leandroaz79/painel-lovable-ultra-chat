@@ -55,6 +55,12 @@ export default function Customers() {
     customer: Customer | null
     isLoading: boolean
   }>({ isOpen: false, customer: null, isLoading: false })
+  const [promoteDialog, setPromoteDialog] = useState<{
+    isOpen: boolean
+    customer: Customer | null
+    initialCredits: string
+    isLoading: boolean
+  }>({ isOpen: false, customer: null, initialCredits: '0', isLoading: false })
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [total, setTotal] = useState(0)
@@ -209,6 +215,36 @@ export default function Customers() {
     setConfirmDialog({ isOpen: false, customer: null, isLoading: false })
   }
 
+  function handleAskPromoteCustomer(customer: Customer) {
+    setPromoteDialog({ isOpen: true, customer, initialCredits: '0', isLoading: false })
+  }
+
+  function handleClosePromoteDialog() {
+    setPromoteDialog({ isOpen: false, customer: null, initialCredits: '0', isLoading: false })
+  }
+
+  async function handleConfirmPromoteCustomer() {
+    const customer = promoteDialog.customer
+    if (!customer) return
+
+    setPromoteDialog(prev => ({ ...prev, isLoading: true }))
+    try {
+      const credits = Math.max(0, Math.floor(Number(promoteDialog.initialCredits) || 0))
+      await fetchAdminFunction(FUNCTIONS.ADMIN_MANAGE_CUSTOMER, {
+        user_id: customer.id,
+        action: 'promote_to_reseller',
+        initial_credits: credits,
+      })
+
+      showToast(`${customer.name || customer.email} promovido a revendedor com ${credits} crédito(s)!`, 'success')
+      handleClosePromoteDialog()
+      await loadCustomers()
+    } catch (error: unknown) {
+      showToast(error instanceof Error ? error.message : 'Erro ao promover cliente', 'error')
+      setPromoteDialog(prev => ({ ...prev, isLoading: false }))
+    }
+  }
+
   function formatCPF(value: string | undefined) {
     if (!value) return '—'
     const d = value.replace(/\D/g, '').slice(0, 11)
@@ -331,6 +367,7 @@ export default function Customers() {
                       <td data-label="Ações">
                         <div className="actions-row">
                           <Button size="tiny" onClick={() => openManageModal(customer)}>Gerenciar</Button>
+                          <Button size="tiny" variant="outline" onClick={() => handleAskPromoteCustomer(customer)}>Promover</Button>
                           <Button size="tiny" variant="destructive" onClick={() => handleAskDeleteCustomer(customer)}>Excluir</Button>
                         </div>
                       </td>
@@ -512,6 +549,40 @@ export default function Customers() {
           onConfirm={handleConfirmDeleteCustomer}
           onCancel={handleCloseDeleteDialog}
         />
+
+        <ConfirmationDialog
+          isOpen={promoteDialog.isOpen}
+          title="Promover a Revendedor"
+          message={promoteDialog.customer ? `Deseja promover ${promoteDialog.customer.name || promoteDialog.customer.email} a revendedor? Ele terá acesso ao painel de revendedor e poderá criar licenças.` : ''}
+          confirmText="Promover"
+          cancelText="Cancelar"
+          isDangerous={false}
+          isLoading={promoteDialog.isLoading}
+          onConfirm={handleConfirmPromoteCustomer}
+          onCancel={handleClosePromoteDialog}
+        >
+          <div style={{ marginTop: '16px' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '0.875rem', color: '#94a3b8' }}>Créditos iniciais</span>
+              <input
+                type="number"
+                min="0"
+                value={promoteDialog.initialCredits}
+                onChange={(e) => setPromoteDialog(prev => ({ ...prev, initialCredits: e.target.value }))}
+                placeholder="0"
+                disabled={promoteDialog.isLoading}
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  background: '#1e293b',
+                  border: '1px solid #334155',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                }}
+              />
+            </label>
+          </div>
+        </ConfirmationDialog>
       </div>
     </AdminLayout>
   )
