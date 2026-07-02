@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom"
 import { Zap, ShieldCheck, MessageCircle, RefreshCcw } from "lucide-react"
-import { AppMock } from "./AppMock"
 
 const avatars = [11, 12, 13, 14, 15].map(
   (n) => `https://i.pravatar.cc/120?u=ultra-${n}`,
@@ -81,8 +80,14 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative">
-          <AppMock />
+        <div className="relative flex items-center justify-center">
+          <img
+            src="/hero-preview.png"
+            alt="Lovable Ultra Chat preview"
+            className="w-4/5 sm:w-3/5 max-w-xs rounded-2xl shadow-2xl"
+            style={{ boxShadow: '0 0 50px rgba(168, 85, 247, 0.25)' }}
+            loading="lazy"
+          />
         </div>
       </div>
     </section>
