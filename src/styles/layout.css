@@ -5,7 +5,6 @@
 /* Mobile (<768px) */
 @media (max-width: 767px) {
   body { overflow-x: hidden; }
-  * { max-width: 100%; }
 
   .topbar { height: auto; min-height: 64px; padding: 12px 20px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
   .topbar .brand { grid-column: 2; justify-self: center; }
@@ -64,13 +63,13 @@
   .table-head { flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px; }
   .table-tools { width: 100%; flex-direction: column; }
   .table-tools input { width: 100%; }
-  table { font-size: 12px; min-width: 800px; }
+  table { font-size: 12px; }
   th, td { padding: 12px 10px; }
 
   .primary-action, .ghost-action, .danger-action { min-height: 44px; padding: 0 18px; font-size: 14px; }
   .tiny-action { min-height: 36px; padding: 0 12px; font-size: 12px; }
 
-  .modal-content { width: calc(100% - 24px); max-height: 95vh; padding: 24px 20px; border-radius: 20px 20px 0 0; }
+  .modal-content { width: calc(100% - 24px); max-height: 90dvh; max-height: 90vh; padding: 24px 20px; border-radius: 20px; }
   .modal-close { width: 40px; height: 40px; top: 16px; right: 16px; }
   .toast { right: 12px; bottom: auto; top: 72px; max-width: calc(100% - 24px); }
   .mobile-menu-btn { display: flex !important; }
