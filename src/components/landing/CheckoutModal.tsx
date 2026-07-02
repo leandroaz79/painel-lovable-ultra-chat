@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 import { Button } from '../ui/button'
 import { formatWhatsApp, cleanDigits } from '../../utils/format'
-import { CheckCircle, Clock, Smartphone, Headphones, User, Mail, Phone, CreditCard } from 'lucide-react'
+import { CheckCircle, Clock, Smartphone, Headphones, User, Mail, Phone, CreditCard, Banknote } from 'lucide-react'
 
 interface Product {
   id: string
@@ -16,13 +16,15 @@ interface Product {
   price_cents: number
   devices: number
   has_priority_support: boolean
+  is_lifetime: boolean
 }
 
 interface PaymentResponse {
   success: boolean
   payment_id: string
+  payment_method: 'pix' | 'credit_card'
   product: { name: string; days: number; devices: number; has_priority_support: boolean }
-  pix: { qr_code: string; qr_code_base64: string; ticket_url: string }
+  pix?: { qr_code: string; qr_code_base64: string; ticket_url: string }
 }
 
 type FlowStep = 'signup' | 'login' | 'checkout' | 'pix' | 'success'
@@ -60,6 +62,43 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
   const [buyerWhatsapp, setBuyerWhatsapp] = useState('')
   const [buyerCpf, setBuyerCpf] = useState('')
 
+  // Payment method
+  const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit_card'>('pix')
+
+  // Card form
+  const [cardNumber, setCardNumber] = useState('')
+  const [cardExpiry, setCardExpiry] = useState('')
+  const [cardCvv, setCardCvv] = useState('')
+  const [cardHolderName, setCardHolderName] = useState('')
+
+  function formatCardNumber(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 16)
+    return digits.replace(/(\d{4})(?=\d)/g, '$1 ')
+  }
+
+  function formatExpiry(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 4)
+    if (digits.length >= 3) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+    return digits
+  }
+
+  async function getCardToken(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const mp = new (window as any).MercadoPago('APP_USR-8b185660-9eba-4246-826b-0e71a9428388')
+      const expiryParts = cardExpiry.replace(/\s/g, '').split('/')
+      mp.createCardToken({
+        cardNumber: cardNumber.replace(/\s/g, ''),
+        cardholderName: cardHolderName,
+        cardExpirationMonth: expiryParts[0] || '',
+        cardExpirationYear: expiryParts[1] || '',
+        securityCode: cardCvv,
+        identificationType: 'CPF',
+        identificationNumber: buyerCpf.replace(/\D/g, ''),
+      }).then((token: { id: string }) => resolve(token.id))
+        .catch((err: any) => reject(new Error(err?.message || 'Erro ao validar cartão')))
+    })
+  }
+
   // Signup form
   const [signupName, setSignupName] = useState('')
   const [signupEmail, setSignupEmail] = useState('')
@@ -74,6 +113,15 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
   const [loginPassword, setLoginPassword] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
   const [loginError, setLoginError] = useState('')
+
+  useEffect(() => {
+    if (!document.querySelector('script[src="https://sdk.mercadopago.com/js/v2"]')) {
+      const script = document.createElement('script')
+      script.src = 'https://sdk.mercadopago.com/js/v2'
+      script.async = true
+      document.body.appendChild(script)
+    }
+  }, [])
 
   useEffect(() => {
     if (!isOpen) return
@@ -210,8 +258,24 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
       return
     }
 
+    if (paymentMethod === 'credit_card') {
+      if (!cardNumber.replace(/\s/g, '') || !cardExpiry || !cardCvv || !cardHolderName) {
+        showToast('Preencha todos os dados do cartão', 'error')
+        return
+      }
+      if (cardNumber.replace(/\s/g, '').length < 13) {
+        showToast('Número do cartão inválido', 'error')
+        return
+      }
+    }
+
     setGenerating(true)
     try {
+      let card_token: string | undefined
+      if (paymentMethod === 'credit_card') {
+        card_token = await getCardToken()
+      }
+
       const { data: { session } } = await supabase.auth.getSession()
       const response = await fetch(`${SUPABASE_URL}${FUNCTIONS.CUSTOMER_CREATE_PAYMENT}`, {
         method: 'POST',
@@ -225,6 +289,8 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
           buyer_email: buyerEmail.trim(),
           buyer_whatsapp: cleanDigits(buyerWhatsapp),
           buyer_cpf: cleanedCPF,
+          payment_method: paymentMethod,
+          card_token,
         }),
       })
 
@@ -232,8 +298,15 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
       if (!response.ok || !result.success) throw new Error(result.error || 'Erro ao gerar pagamento')
 
       setPayment(result)
-      setStep('pix')
-      startPolling(result.payment_id)
+
+      if (result.payment_method === 'pix') {
+        setStep('pix')
+        startPolling(result.payment_id)
+      } else {
+        showToast('Pagamento aprovado! Sua licença está sendo gerada.', 'success')
+        setStep('success')
+        startPolling(result.payment_id)
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erro ao gerar pagamento'
       setErrorMsg(msg)
@@ -272,7 +345,7 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
   }
 
   function handleCopyCode() {
-    if (!payment?.pix.qr_code) return
+    if (!payment?.pix?.qr_code) return
     navigator.clipboard.writeText(payment.pix.qr_code)
     setCopied(true)
     showToast('Código Pix copiado!', 'success')
@@ -289,6 +362,11 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
     setCopied(false)
     setErrorMsg('')
     setGenerating(false)
+    setPaymentMethod('pix')
+    setCardNumber('')
+    setCardExpiry('')
+    setCardCvv('')
+    setCardHolderName('')
     setSignupError('')
     setLoginError('')
     setSignupName('')
@@ -435,12 +513,12 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
 
             <div className="mt-6 rounded-xl p-4" style={{ background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.15)' }}>
               <div className="text-3xl font-black">{formatPrice(product.price_cents)}</div>
-              <div className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>Pagamento único via Pix</div>
+              <div className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>Pagamento único</div>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-4 text-sm" style={{ color: 'var(--muted)' }}>
               <span className="inline-flex items-center gap-1.5">
-                <Clock className="size-3.5" style={{ color: 'var(--brand-green)' }} /> {product.days} dias
+                <Clock className="size-3.5" style={{ color: 'var(--brand-green)' }} /> {product.is_lifetime ? 'Acesso vitalício' : `${product.days} dias`}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <Smartphone className="size-3.5" style={{ color: 'var(--brand-green)' }} /> {product.devices} dispositivo{product.devices > 1 ? 's' : ''}
@@ -450,6 +528,25 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
                   <Headphones className="size-3.5" style={{ color: 'var(--brand-green)' }} /> Suporte prioritário
                 </span>
               )}
+            </div>
+
+            <div className="mt-4 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('pix')}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'pix' ? 'border-[var(--brand-green)] bg-[rgba(45,212,191,0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
+                style={{ color: paymentMethod === 'pix' ? 'var(--brand-green)' : 'var(--muted)' }}
+              >
+                <Banknote className="size-5" /> Pix
+              </button>
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('credit_card')}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'credit_card' ? 'border-[var(--brand-green)] bg-[rgba(45,212,191,0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
+                style={{ color: paymentMethod === 'credit_card' ? 'var(--brand-green)' : 'var(--muted)' }}
+              >
+                <CreditCard className="size-5" /> Cartão
+              </button>
             </div>
 
             <div className="mt-6 rounded-xl border p-4" style={{ borderColor: 'rgba(168, 85, 247, 0.15)', background: 'rgba(168, 85, 247, 0.03)' }}>
@@ -478,6 +575,34 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
               </div>
             </div>
 
+            {paymentMethod === 'credit_card' && (
+              <div className="mt-4 rounded-xl border p-4" style={{ borderColor: 'rgba(168, 85, 247, 0.15)', background: 'rgba(168, 85, 247, 0.03)' }}>
+                <h3 className="flex items-center gap-2 text-sm font-semibold mb-4">
+                  <CreditCard className="size-4" /> Dados do cartão
+                </h3>
+                <div className="stack-form" style={{ gap: '12px' }}>
+                  <label>
+                    <span>Número do cartão</span>
+                    <input type="text" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} placeholder="0000 0000 0000 0000" inputMode="numeric" />
+                  </label>
+                  <label>
+                    <span>Nome do titular</span>
+                    <input type="text" value={cardHolderName} onChange={(e) => setCardHolderName(e.target.value)} placeholder="JOÃO SILVA" />
+                  </label>
+                  <div className="split-fields">
+                    <label>
+                      <span>Validade</span>
+                      <input type="text" value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} placeholder="MM/AA" inputMode="numeric" />
+                    </label>
+                    <label>
+                      <span>CVV</span>
+                      <input type="text" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="123" inputMode="numeric" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {errorMsg && (
               <p className="form-message error" role="status" style={{ marginTop: '12px' }}>{errorMsg}</p>
             )}
@@ -488,13 +613,15 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
               disabled={generating}
               isLoading={generating}
             >
-              {generating ? 'Gerando Pix...' : 'Gerar Pix para pagamento'}
+              {generating
+                ? (paymentMethod === 'credit_card' ? 'Processando...' : 'Gerando Pix...')
+                : (paymentMethod === 'credit_card' ? 'Pagar com cartão' : 'Gerar Pix para pagamento')}
             </Button>
           </div>
         )}
 
         {/* PIX STEP */}
-        {step === 'pix' && payment && (
+        {step === 'pix' && payment && payment.pix && (
           <div className="text-center">
             <h2>Pague com Pix</h2>
             <p className="mt-2 text-sm" style={{ color: 'var(--muted)' }}>

@@ -30,7 +30,7 @@ serve(async (req) => {
       throw new Error('Não autenticado')
     }
 
-    const { product_slug, buyer_name, buyer_email, buyer_whatsapp, buyer_cpf } = await req.json()
+    const { product_slug, buyer_name, buyer_email, buyer_whatsapp, buyer_cpf, payment_method, card_token } = await req.json()
 
     if (!product_slug) {
       throw new Error('product_slug é obrigatório')
@@ -38,6 +38,12 @@ serve(async (req) => {
 
     if (!buyer_name || !buyer_email || !buyer_cpf) {
       throw new Error('buyer_name, buyer_email e buyer_cpf são obrigatórios')
+    }
+
+    const isCreditCard = payment_method === 'credit_card'
+
+    if (isCreditCard && !card_token) {
+      throw new Error('card_token é obrigatório para pagamento com cartão')
     }
 
     // Buscar produto
@@ -71,10 +77,9 @@ serve(async (req) => {
     }
 
     // Criar pagamento no Mercado Pago
-    const paymentPayload = {
+    const paymentPayload: Record<string, unknown> = {
       transaction_amount: product.price_cents / 100,
       description: `${product.name} - Lovable Ultra Chat`,
-      payment_method_id: 'pix',
       payer,
       notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/customer-webhook-mp`,
       metadata: {
@@ -86,6 +91,14 @@ serve(async (req) => {
         buyer_whatsapp: userPhone,
         buyer_cpf: buyer_cpf || '',
       },
+    }
+
+    if (isCreditCard) {
+      paymentPayload.token = card_token
+      paymentPayload.installments = 1
+      paymentPayload.payment_method_id = 'master'
+    } else {
+      paymentPayload.payment_method_id = 'pix'
     }
 
     const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
@@ -101,54 +114,67 @@ serve(async (req) => {
 
     if (mpResponse.status !== 201) {
       console.error('Erro Mercado Pago:', mpResult)
-      throw new Error(mpResult.message || 'Erro ao gerar pagamento Pix')
+      throw new Error(mpResult.message || 'Erro ao gerar pagamento')
     }
 
     // Calcular expiração
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + product.days)
 
-    // Salvar compra no banco com dados do comprador
+    const paymentData = {
+      ...paymentPayload,
+      buyer_name: userName,
+      buyer_email: buyer_email || user.email,
+      buyer_whatsapp: userPhone,
+      buyer_cpf: buyer_cpf || '',
+      payment_method: isCreditCard ? 'credit_card' : 'pix',
+    }
+
+    const insertPayload: Record<string, unknown> = {
+      user_id: user.id,
+      product_id: product.id,
+      payment_id: mpResult.id.toString(),
+      payment_status: 'pending',
+      payment_data: paymentData,
+      expires_at: expiresAt.toISOString(),
+    }
+
+    if (!isCreditCard) {
+      insertPayload.pix_qr_code = mpResult.point_of_interaction.transaction_data.qr_code
+      insertPayload.pix_qr_code_base64 = mpResult.point_of_interaction.transaction_data.qr_code_base64
+    }
+
     const { error: insertError } = await supabaseClient
       .from('customer_purchases')
-      .insert({
-        user_id: user.id,
-        product_id: product.id,
-        payment_id: mpResult.id.toString(),
-        payment_status: 'pending',
-        payment_data: {
-          ...paymentPayload,
-          buyer_name: userName,
-          buyer_email: buyer_email || user.email,
-          buyer_whatsapp: userPhone,
-          buyer_cpf: buyer_cpf || '',
-        },
-        pix_qr_code: mpResult.point_of_interaction.transaction_data.qr_code,
-        pix_qr_code_base64: mpResult.point_of_interaction.transaction_data.qr_code_base64,
-        expires_at: expiresAt.toISOString(),
-      })
+      .insert(insertPayload)
 
     if (insertError) {
       console.error('Erro ao salvar compra:', insertError)
       throw new Error('Erro ao registrar compra')
     }
 
+    const responsePayload: Record<string, unknown> = {
+      success: true,
+      payment_id: mpResult.id.toString(),
+      payment_method: isCreditCard ? 'credit_card' : 'pix',
+      product: {
+        name: product.name,
+        days: product.days,
+        devices: product.devices,
+        has_priority_support: product.has_priority_support,
+      },
+    }
+
+    if (!isCreditCard) {
+      responsePayload.pix = {
+        qr_code: mpResult.point_of_interaction.transaction_data.qr_code,
+        qr_code_base64: mpResult.point_of_interaction.transaction_data.qr_code_base64,
+        ticket_url: mpResult.point_of_interaction.transaction_data.ticket_url,
+      }
+    }
+
     return new Response(
-      JSON.stringify({
-        success: true,
-        payment_id: mpResult.id.toString(),
-        product: {
-          name: product.name,
-          days: product.days,
-          devices: product.devices,
-          has_priority_support: product.has_priority_support,
-        },
-        pix: {
-          qr_code: mpResult.point_of_interaction.transaction_data.qr_code,
-          qr_code_base64: mpResult.point_of_interaction.transaction_data.qr_code_base64,
-          ticket_url: mpResult.point_of_interaction.transaction_data.ticket_url,
-        },
-      }),
+      JSON.stringify(responsePayload),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
