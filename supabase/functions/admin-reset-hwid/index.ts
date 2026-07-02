@@ -35,12 +35,14 @@ serve(async (req) => {
 
     if (!license) throw new Error("Licença não encontrada");
 
+    let resetBy = "owner"
+
     // Verificar se é o dono da licença (usuário final)
-    if (license.user_id === user.user.id) {
-      // Usuário dono da licença — permitir
-    } else {
+    if (license.user_id !== user.user.id) {
+      resetBy = "admin"
+
       // Verificar se é revendedor
-      const { data: reseller, error: resellerError } = await adminClient
+      const { data: reseller } = await adminClient
         .from("resellers")
         .select("id, status")
         .eq("user_id", user.user.id)
@@ -50,6 +52,7 @@ serve(async (req) => {
         if (!license.reseller_id || license.reseller_id !== reseller.id) {
           throw new Error("Você só pode resetar HWID de licenças criadas por você");
         }
+        resetBy = "reseller"
       } else {
         // Verificar se é admin
         const { data: roles } = await adminClient
@@ -78,7 +81,7 @@ serve(async (req) => {
       action: "reset_hwid",
       target_table: "ts_licenses",
       license_key,
-      metadata: { reset_by: reseller ? "reseller" : "admin" }
+      metadata: { reset_by: resetBy }
     });
 
     return new Response(
