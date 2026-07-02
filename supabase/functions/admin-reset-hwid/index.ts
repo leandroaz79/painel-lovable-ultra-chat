@@ -26,35 +26,41 @@ serve(async (req) => {
     const { license_key } = await req.json();
     if (!license_key) throw new Error("license_key obrigatório");
 
-    // Verificar se é revendedor
-    const { data: reseller, error: resellerError } = await adminClient
-      .from("resellers")
-      .select("id, status")
-      .eq("user_id", user.user.id)
+    // Buscar licença
+    const { data: license } = await adminClient
+      .from("ts_licenses")
+      .select("user_id, reseller_id")
+      .eq("license_key", license_key)
       .maybeSingle();
 
-    if (reseller && reseller.status === "active") {
-      // É revendedor: validar propriedade da licença
-      const { data: license } = await adminClient
-        .from("ts_licenses")
-        .select("reseller_id")
-        .eq("license_key", license_key)
-        .maybeSingle();
+    if (!license) throw new Error("Licença não encontrada");
 
-      if (!license || license.reseller_id !== reseller.id) {
-        throw new Error("Você só pode resetar HWID de licenças criadas por você");
-      }
+    // Verificar se é o dono da licença (usuário final)
+    if (license.user_id === user.user.id) {
+      // Usuário dono da licença — permitir
     } else {
-      // Verificar se é admin
-      const { data: roles } = await adminClient
-        .from("user_roles")
-        .select("role")
+      // Verificar se é revendedor
+      const { data: reseller, error: resellerError } = await adminClient
+        .from("resellers")
+        .select("id, status")
         .eq("user_id", user.user.id)
         .maybeSingle();
 
-      // Se não tem role mas também não é reseller, pode ser admin direto
-      if (roles && roles.role !== "admin") {
-        throw new Error("Acesso negado. Requer permissão de Admin ou Reseller.");
+      if (reseller && reseller.status === "active") {
+        if (!license.reseller_id || license.reseller_id !== reseller.id) {
+          throw new Error("Você só pode resetar HWID de licenças criadas por você");
+        }
+      } else {
+        // Verificar se é admin
+        const { data: roles } = await adminClient
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.user.id)
+          .maybeSingle();
+
+        if (!roles || roles.role !== "admin") {
+          throw new Error("Acesso negado. Requer permissão de Admin, Reseller ou ser o dono da licença.");
+        }
       }
     }
 

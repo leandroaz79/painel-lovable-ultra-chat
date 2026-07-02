@@ -44,7 +44,7 @@ export default function UserDashboard() {
   const { user, signOut } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
-  const { copyLicenseKey } = useLicenseActions()
+  const { copyLicenseKey, resetHwid } = useLicenseActions()
   const [licenses, setLicenses] = useState<License[]>([])
   const [purchases, setPurchases] = useState<Purchase[]>([])
   const [endcustomerProducts, setEndcustomerProducts] = useState<EndcustomerProduct[]>([])
@@ -462,6 +462,18 @@ export default function UserDashboard() {
                             >
                               Copiar
                             </Button>
+                            {license.device_id && (
+                              <Button
+                                size="tiny"
+                                variant="outline"
+                                onClick={async (e) => {
+                                  const ok = await resetHwid(license.license_key, e.currentTarget)
+                                  if (ok) await loadLicenses()
+                                }}
+                              >
+                                Liberar PC
+                              </Button>
+                            )}
                           </div>
                         </td>
                       </tr>
