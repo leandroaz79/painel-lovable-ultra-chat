@@ -302,8 +302,10 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
       if (result.payment_method === 'pix') {
         setStep('pix')
         startPolling(result.payment_id)
+      } else if (result.license_key) {
+        showToast('Pagamento aprovado!', 'success')
+        setStep('success')
       } else {
-        showToast('Pagamento aprovado! Sua licença está sendo gerada.', 'success')
         setStep('success')
         startPolling(result.payment_id)
       }
@@ -336,7 +338,7 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
           body: JSON.stringify({ payment_id: paymentId }),
         })
         const result = await response.json()
-        if (result.success && result.status === 'approved') {
+        if (result.success && result.status === 'approved' && result.license_key) {
           clearInterval(interval)
           setStep('success')
         }
@@ -379,14 +381,18 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
   }
 
   function handleClose() {
+    const wasSuccess = step === 'success'
     resetState()
     onClose()
+    if (wasSuccess) {
+      navigate('/user', { replace: true })
+    }
   }
 
   if (!isOpen) return null
 
   return (
-    <div className="modal-overlay" onClick={handleClose} style={{ zIndex: 1000 }}>
+    <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) handleClose() }} style={{ zIndex: 1000 }}>
       <div
         className="modal-content"
         onClick={(e) => e.stopPropagation()}

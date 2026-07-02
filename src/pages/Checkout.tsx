@@ -210,8 +210,11 @@ export default function Checkout() {
       if (result.payment_method === 'pix') {
         setStep('pix')
         startPolling(result.payment_id)
+      } else if (result.license_key) {
+        showToast('Pagamento aprovado!', 'success')
+        setStep('success')
+        setTimeout(() => navigate('/user', { replace: true }), 3000)
       } else {
-        showToast('Pagamento aprovado! Sua licença está sendo gerada.', 'success')
         setStep('success')
         startPolling(result.payment_id)
       }
@@ -245,7 +248,7 @@ export default function Checkout() {
           body: JSON.stringify({ payment_id: paymentId }),
         })
         const result = await response.json()
-        if (result.success && result.status === 'approved') {
+        if (result.success && result.status === 'approved' && result.license_key) {
           clearInterval(interval)
           setStep('success')
           setTimeout(() => navigate('/user', { replace: true }), 3000)

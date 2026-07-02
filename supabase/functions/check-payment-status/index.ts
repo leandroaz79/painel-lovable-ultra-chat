@@ -1,7 +1,5 @@
-// Edge Function: check-payment-status
-// Verifica status de pagamento no Mercado Pago (usado pelo polling no frontend)
-
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,20 +20,22 @@ serve(async (req) => {
       throw new Error('payment_id é obrigatório')
     }
 
-    // Consultar status no Mercado Pago
-    const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${payment_id}`, {
-      headers: {
-        'Authorization': `Bearer ${MERCADOPAGO_ACCESS_TOKEN}`,
-      },
-    })
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
-    const payment = await mpResponse.json()
+    const { data: purchase } = await supabaseAdmin
+      .from('customer_purchases')
+      .select('payment_status, license_key')
+      .eq('payment_id', payment_id)
+      .maybeSingle()
 
     return new Response(
       JSON.stringify({
         success: true,
-        status: payment.status,
-        status_detail: payment.status_detail,
+        status: purchase?.payment_status || 'pending',
+        license_key: purchase?.license_key || null,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

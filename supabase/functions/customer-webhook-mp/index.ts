@@ -70,20 +70,17 @@ serve(async (req) => {
       const productId = payment.metadata.product_id
       const productSlug = payment.metadata.product_slug
 
-      // Buscar compra no banco
-      const { data: purchase } = await supabaseAdmin
+      // === GUARD ATÔMICO: só prossegue se o status ainda for 'pending' ===
+      const { data: purchase, error: lockError } = await supabaseAdmin
         .from('customer_purchases')
-        .select('*')
+        .update({ payment_status: 'approved' })
         .eq('payment_id', paymentId)
+        .eq('payment_status', 'pending')
+        .select('*')
         .single()
 
-      if (!purchase) {
-        console.error('Compra não encontrada:', paymentId)
-        return new Response('Purchase not found', { status: 404 })
-      }
-
-      if (purchase.payment_status === 'approved') {
-        console.log('Pagamento já processado')
+      if (lockError || !purchase) {
+        console.log('Pagamento já processado por outra requisição:', paymentId)
         return new Response('Already processed', { status: 200 })
       }
 
@@ -144,11 +141,10 @@ serve(async (req) => {
         throw licenseError
       }
 
-      // Atualizar compra com license_key e status approved
+      // Atualizar compra com license_key
       const { error: updateError } = await supabaseAdmin
         .from('customer_purchases')
         .update({
-          payment_status: 'approved',
           license_key: licenseKey,
           approved_at: new Date().toISOString(),
           payment_data: { mp_status: payment.status, mp_status_detail: payment.status_detail },

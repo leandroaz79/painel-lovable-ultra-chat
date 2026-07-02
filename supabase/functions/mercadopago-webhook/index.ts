@@ -77,31 +77,23 @@ serve(async (req) => {
       const userId = payment.metadata.user_id
       const quantity = payment.metadata.quantity
 
-      // Buscar transação no banco
-      const { data: purchase } = await supabaseAdmin
+      // Lock atômico: só prossegue se status ainda for 'pending'
+      const { data: purchase, error: lockError } = await supabaseAdmin
         .from('credit_purchases')
-        .select('*')
+        .update({ status: 'approved' })
         .eq('payment_id', paymentId)
+        .eq('status', 'pending')
+        .select('*')
         .single()
 
-      if (!purchase) {
-        console.error('Compra não encontrada:', paymentId)
-        return new Response('Purchase not found', { status: 404 })
-      }
-
-      // Se já foi processada, retornar OK
-      if (purchase.status === 'approved') {
-        console.log('Pagamento já processado')
+      if (lockError || !purchase) {
+        console.log('Pagamento já processado:', paymentId)
         return new Response('Already processed', { status: 200 })
       }
 
-      // Atualizar status da compra
       await supabaseAdmin
         .from('credit_purchases')
-        .update({
-          status: 'approved',
-          approved_at: new Date().toISOString(),
-        })
+        .update({ approved_at: new Date().toISOString() })
         .eq('payment_id', paymentId)
 
       // Buscar dados atuais do revendedor
