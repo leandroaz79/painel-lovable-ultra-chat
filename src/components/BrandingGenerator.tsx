@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { generateExtensionZip, downloadZip } from "../utils/extensionBuilder";
 import type { BrandingData } from "../utils/extensionBuilder";
 import { Button } from "./ui/button";
-import { Palette, Upload, Image, Smartphone } from "lucide-react";
+import { Palette, Upload, Image, Smartphone, Save } from "lucide-react";
 import { getStoredTemplate } from "../utils/templateStorage";
-import { saveBrandingConfig } from "../utils/brandingStorage";
+import { saveBrandingConfig, loadBrandingConfig } from "../utils/brandingStorage";
+import { useToast } from "../hooks/useToast";
 
 const TEMPLATE_URL = "/templates/lovable-ultra-chat-5.4-1R.zip";
 
@@ -18,6 +19,7 @@ const PALETA_CORES = [
 ];
 
 export default function BrandingGenerator() {
+  const { showToast } = useToast()
   const [companyName, setCompanyName] = useState("Lovable Ultra Chat");
   const [whatsapp, setWhatsapp] = useState("5511912345678");
   const [communityLink, setCommunityLink] = useState("");
@@ -33,6 +35,28 @@ export default function BrandingGenerator() {
   const iconRef = useRef<HTMLInputElement>(null);
 
   const waUrl = `https://wa.me/${whatsapp.replace(/\D/g, "")}`;
+
+  useEffect(() => {
+    const saved = loadBrandingConfig();
+    if (saved) {
+      setCompanyName(saved.companyName);
+      setWhatsapp(saved.whatsapp);
+      setCommunityLink(saved.communityLink);
+      setPrimaryColor(saved.primaryColor);
+      setSecondaryColor(saved.secondaryColor);
+    }
+  }, []);
+
+  function handleSave() {
+    saveBrandingConfig({
+      companyName: companyName.trim(),
+      whatsapp: whatsapp.replace(/\D/g, ""),
+      communityLink: communityLink.trim(),
+      primaryColor,
+      secondaryColor,
+    });
+    showToast("Configurações salvas!", "success");
+  }
 
   const handleGenerate = async () => {
     if (!companyName.trim()) {
@@ -369,6 +393,9 @@ export default function BrandingGenerator() {
       )}
 
       <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+        <Button variant="outline" onClick={handleSave}>
+          <Save size={16} /> Salvar
+        </Button>
         <Button
           variant="outline"
           onClick={() => {
