@@ -96,7 +96,6 @@ serve(async (req) => {
     if (isCreditCard) {
       paymentPayload.token = card_token
       paymentPayload.installments = 1
-      paymentPayload.payment_method_id = 'master'
     } else {
       paymentPayload.payment_method_id = 'pix'
     }
