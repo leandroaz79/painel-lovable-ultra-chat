@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-1956464108264660-110212-c09d3e0e1b63035e401c8ff9a4a28955-173764383'
+const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN') ?? ''
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -157,48 +157,60 @@ serve(async (req) => {
     const isCardApproved = isCreditCard && mpResult.status === 'approved'
     let licenseKey: string | null = null
     if (isCardApproved) {
-      const prefix = product_slug === 'try-7' ? 'TRY7' : product_slug === 'ultra-15' ? 'ULTRA15' : 'ULTRA30'
-      const randomHex = crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()
-      licenseKey = `${prefix}-${randomHex}`
+      // HIGH-003 FIX: Marcar como approved ANTES de inserir licença
+      // Isso impede que o webhook crie licença duplicada
+      const { error: lockError } = await supabaseClient
+        .from('customer_purchases')
+        .update({ payment_status: 'approved' })
+        .eq('payment_id', mpResult.id.toString())
+        .eq('payment_status', 'pending')
 
-      const licExpiresAt = product.is_lifetime ? null : (() => {
-        const d = new Date()
-        d.setDate(d.getDate() + product.days)
-        return d.toISOString()
-      })()
-
-      const { error: licError } = await supabaseClient
-        .from('ts_licenses')
-        .insert({
-          license_key: licenseKey,
-          user_id: user.id,
-          user_name: userName,
-          email: buyer_email || user.email,
-          phone: userPhone,
-          status: 'active',
-          license_type: 'paid',
-          expires_at: licExpiresAt,
-          metadata: {
-            product_id: product.id,
-            product_name: product.name,
-            devices: product.devices,
-            has_priority_support: product.has_priority_support,
-            source: 'customer_purchase',
-            payment_id: mpResult.id.toString(),
-          },
-        })
-
-      if (licError) {
-        console.error('Erro ao criar licença (cartão):', licError)
+      if (lockError) {
+        console.log('Pagamento já processado por webhook:', mpResult.id)
+        // Webhook já processou — não criar licença duplicada
       } else {
-        await supabaseClient
-          .from('customer_purchases')
-          .update({
-            payment_status: 'approved',
+        const prefix = product_slug === 'try-7' ? 'TRY7' : product_slug === 'ultra-15' ? 'ULTRA15' : 'ULTRA30'
+        const randomHex = crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()
+        licenseKey = `${prefix}-${randomHex}`
+
+        const licExpiresAt = product.is_lifetime ? null : (() => {
+          const d = new Date()
+          d.setDate(d.getDate() + product.days)
+          return d.toISOString()
+        })()
+
+        const { error: licError } = await supabaseClient
+          .from('ts_licenses')
+          .insert({
             license_key: licenseKey,
-            approved_at: new Date().toISOString(),
+            user_id: user.id,
+            user_name: userName,
+            email: buyer_email || user.email,
+            phone: userPhone,
+            status: 'active',
+            license_type: 'paid',
+            expires_at: licExpiresAt,
+            metadata: {
+              product_id: product.id,
+              product_name: product.name,
+              devices: product.devices,
+              has_priority_support: product.has_priority_support,
+              source: 'customer_purchase',
+              payment_id: mpResult.id.toString(),
+            },
           })
-          .eq('payment_id', mpResult.id.toString())
+
+        if (licError) {
+          console.error('Erro ao criar licença (cartão):', licError)
+        } else {
+          await supabaseClient
+            .from('customer_purchases')
+            .update({
+              license_key: licenseKey,
+              approved_at: new Date().toISOString(),
+            })
+            .eq('payment_id', mpResult.id.toString())
+        }
       }
     }
 

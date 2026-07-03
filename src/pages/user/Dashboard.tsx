@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useToast } from '../../hooks/useToast'
 import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
@@ -44,6 +44,7 @@ export default function UserDashboard() {
   const { user, signOut } = useAuth()
   const { showToast } = useToast()
   const navigate = useNavigate()
+  const location = useLocation()
   const { copyLicenseKey, resetHwid } = useLicenseActions()
   const [licenses, setLicenses] = useState<License[]>([])
   const [purchases, setPurchases] = useState<Purchase[]>([])
@@ -72,7 +73,7 @@ export default function UserDashboard() {
     loadPurchases()
     loadEndcustomerProducts()
     checkTrialStatus()
-  }, [user])
+  }, [user, location.pathname])
 
   async function checkTrialStatus() {
     try {

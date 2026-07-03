@@ -41,8 +41,8 @@ CREATE POLICY "users_view_active_products"
 -- Seed dos planos da landing page
 INSERT INTO public.products_endcustomer (name, slug, description, days, price_cents, devices, has_priority_support, sort_order) VALUES
   ('TRY 7', 'try-7', 'Experimente o Lovable Ultra Chat por 7 dias com todas as features liberadas.', 7, 2990, 1, FALSE, 1),
-  ('ULTRA 15', 'ultra-15', '15 dias de poder ilimitado com suporte prioritário no WhatsApp.', 15, 4990, 2, TRUE, 2),
-  ('ULTRA 30', 'ultra-30', '30 dias para criar sem barreiras. Suporte prioritário e até 2 dispositivos.', 30, 7990, 2, TRUE, 3)
+  ('ULTRA 15', 'ultra-15', '15 dias de poder ilimitado com suporte prioritário no WhatsApp.', 15, 4990, 1, TRUE, 2),
+  ('ULTRA 30', 'ultra-30', '30 dias para criar sem barreiras. Suporte prioritário e até 1 dispositivo.', 30, 7990, 1, TRUE, 3)
 ON CONFLICT (slug) DO NOTHING;
 
 -- 2. Tabela de compras do cliente final

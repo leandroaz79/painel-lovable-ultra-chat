@@ -61,9 +61,9 @@ export default function MobileMenu({ currentPage }: MobileMenuProps) {
       </button>
 
       {isOpen && (
-        <div 
+        <div
           className="mobile-menu-overlay"
-          onClick={() => setIsOpen(false)}
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setIsOpen(false) }}
         />
       )}
 

@@ -71,8 +71,8 @@ export function Pricing() {
 
   const displayPlans = plans.length > 0 ? plans : [
     { id: '1', name: 'TRY 7', slug: 'try-7', description: 'Experimente por 7 dias.', days: 7, price_cents: 2990, devices: 1, has_priority_support: false, sort_order: 1 },
-    { id: '2', name: 'ULTRA 15', slug: 'ultra-15', description: '15 dias de poder.', days: 15, price_cents: 4990, devices: 2, has_priority_support: true, is_featured: true, sort_order: 2 },
-    { id: '3', name: 'ULTRA 30', slug: 'ultra-30', description: '30 dias completo.', days: 30, price_cents: 7990, devices: 2, has_priority_support: true, sort_order: 3 },
+    { id: '2', name: 'ULTRA 15', slug: 'ultra-15', description: '15 dias de poder.', days: 15, price_cents: 4990, devices: 1, has_priority_support: true, is_featured: true, sort_order: 2 },
+    { id: '3', name: 'ULTRA 30', slug: 'ultra-30', description: '30 dias completo.', days: 30, price_cents: 7990, devices: 1, has_priority_support: true, sort_order: 3 },
   ]
 
   const featuredIndex = displayPlans.findIndex((plan) => plan.is_featured)

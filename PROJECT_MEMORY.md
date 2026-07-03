@@ -1,6 +1,6 @@
 # 📝 Memória do Projeto - Painel Ultra Chat v4.4+
 **Data:** 24/06/2026  
-**Última atualização:** Limpeza de arquivos legados — movidos para pasta DOCs/
+**Última atualização:** Fix global — modais não fecham ao arrastar mouse para fora (03/07/2026)
 
 
 ## 🚀 Contexto do Projeto
@@ -103,6 +103,29 @@ Painel administrativo para gerenciamento de licenças Ultra Chat, com:
 
 ---
 
+### 8. **Fix Global — Modal não fecha ao arrastar mouse para fora**
+**Problema:** Ao clicar dentro de um modal e arrastar o mouse para o backdrop, o modal fechava indesejadamente. Isso acontecia porque `onClick` no backdrop disparava quando o mouseup acontecia lá, mesmo que o mousedown tivesse sido dentro do modal.
+**Solução:** Trocar `onClick` por `onMouseDown` + verificação `e.target === e.currentTarget` em todos os backdrops. Isso garante que o modal só feche se o clique **começar e terminar** diretamente no backdrop.
+**Arquivos modificados (9 modais em 7 arquivos):**
+1. `src/components/ConfirmationDialog.tsx`: `onClick={onCancel}` → `onMouseDown` + target check
+2. `src/components/MobileMenu.tsx`: `onClick={() => setIsOpen(false)}` → `onMouseDown` + target check
+3. `src/components/ResellerMobileMenu.tsx`: `onClick={() => setIsOpen(false)}` → `onMouseDown` + target check
+4. `src/pages/admin/Customers.tsx`: `onClick={closeManageModal}` → `onMouseDown` + target check
+5. `src/pages/admin/EndcustomerProducts.tsx`: `onClick={closeModal}` → `onMouseDown` + target check
+6. `src/pages/admin/Resellers.tsx`: Dois modais (Gerenciar + Criar revendedor) → `onMouseDown` + target check
+7. `src/pages/reseller/Dashboard.tsx`: Dois modais (Compra + Pix) → `onMouseDown` + target check
+**Padrão aplicado:**
+```tsx
+// Antes
+onClick={closeHandler}
+
+// Depois
+onMouseDown={(e) => { if (e.target === e.currentTarget) closeHandler() }}
+```
+**Nota:** `src/components/landing/CheckoutModal.tsx` já tinha o fix (usava `onMouseDown` + `e.target === e.currentTarget`). O `stopPropagation` no `.modal-content` dos modais legados continua como camada extra de segurança.
+
+---
+
 ## 📂 Lista Completa de Arquivos Modificados/Criados
 
 ### Criados do Zero:
@@ -123,8 +146,13 @@ Painel administrativo para gerenciamento de licenças Ultra Chat, com:
 5. `src/lib/supabase.ts`: Adicionado FUNCTIONS.DELETE_LICENSE e FUNCTIONS.ADMIN_CREATE_RESELLER
 6. `src/hooks/useLicenseActions.ts`: Adicionada função `deleteLicense`
 7. `src/pages/admin/Dashboard.tsx`: Botões HWID e Excluir, lógica de ações
-8. `src/pages/reseller/Dashboard.tsx`: Botão HWID, lógica de exclusão
-9. `src/pages/admin/Resellers.tsx`: Botão e modal de criação de revendedor
+8. `src/pages/reseller/Dashboard.tsx`: Botão HWID, lógica de exclusão, fix backdrop modal (Compra + Pix)
+9. `src/pages/admin/Resellers.tsx`: Botão e modal de criação de revendedor, fix backdrop modal (Gerenciar + Criar)
+10. `src/pages/admin/Customers.tsx`: Fix backdrop modal Gerenciar Cliente
+11. `src/pages/admin/EndcustomerProducts.tsx`: Fix backdrop modal Editar/Criar Produto
+12. `src/components/ConfirmationDialog.tsx`: Fix backdrop — onMouseDown + target check
+13. `src/components/MobileMenu.tsx`: Fix overlay — onMouseDown + target check
+14. `src/components/ResellerMobileMenu.tsx`: Fix overlay — onMouseDown + target check
 
 
 ## ⚠️ O Que Falta Fazer (Estado Atual)

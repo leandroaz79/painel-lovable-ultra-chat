@@ -492,7 +492,7 @@ export default function Resellers() {
 
       {/* Modal Gerenciar Revendedor */}
       {showManageModal && selectedReseller && (
-        <div className="modal-overlay" onClick={closeManageModal}>
+        <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) closeManageModal() }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={closeManageModal}>&times;</button>
             <h2>Gerenciar Revendedor</h2>
@@ -606,7 +606,7 @@ export default function Resellers() {
                   <label style={{ flex: 1 }}>
                     <span>Nova senha</span>
                     <input
-                      type="text"
+                      type="password"
                       value={resetPasswordValue}
                       onChange={(e) => setResetPasswordValue(e.target.value)}
                       placeholder="Mínimo 6 caracteres"
@@ -679,7 +679,7 @@ export default function Resellers() {
 
       {/* Modal Criar Revendedor */}
       {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+        <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowCreateModal(false) }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowCreateModal(false)}>&times;</button>
             <h2>Criar Novo Revendedor</h2>

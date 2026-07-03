@@ -65,7 +65,7 @@ export default function ConfirmationDialog({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50"
-        onClick={onCancel}
+        onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel() }}
         role="presentation"
         aria-hidden="true"
         style={{

@@ -684,7 +684,7 @@ export default function ResellerDashboard() {
 
       {/* Modal de Compra */}
       {showBuyModal && (
-        <div className="modal-overlay" onClick={() => setShowBuyModal(false)}>
+        <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowBuyModal(false) }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowBuyModal(false)}>&times;</button>
             <h2><ShoppingCart size={22} /> Loja de Revenda</h2>
@@ -798,7 +798,7 @@ export default function ResellerDashboard() {
 
       {/* Modal Pix */}
       {showPixModal && (
-        <div className="modal-overlay" onClick={() => setShowPixModal(false)}>
+        <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowPixModal(false) }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Pagamento Pix</h2>
             <p style={{ color: 'var(--muted)', marginBottom: '24px' }}>

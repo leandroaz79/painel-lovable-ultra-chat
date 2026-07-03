@@ -332,7 +332,7 @@ export default function EndcustomerProducts() {
         </section>
 
         {showModal && (
-          <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) closeModal() }}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <button className="modal-close" onClick={closeModal}>&times;</button>
               <h2>{editing ? 'Editar' : 'Novo'} Plano</h2>

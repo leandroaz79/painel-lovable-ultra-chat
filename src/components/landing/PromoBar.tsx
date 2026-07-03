@@ -8,13 +8,7 @@ export function PromoBar() {
           <Tag className="size-3.5" />
           Oferta de lançamento: 30% OFF em todos os planos
         </span>
-        <span className="hidden sm:inline opacity-70">•</span>
-        <span className="inline-flex items-center gap-2">
-          Use o cupom:
-          <span className="rounded-md bg-white/15 px-2 py-0.5 font-bold tracking-wider backdrop-blur">
-            ULTRA30
-          </span>
-        </span>
+
       </div>
     </div>
   )

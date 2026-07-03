@@ -5,7 +5,7 @@ const faqs = [
   { q: "Precisa instalar algo além da extensão?", a: "Não. Baixe a extensão no Chrome Web Store, cole sua chave de ativação e pronto. Não requer software extra nem configurações avançadas." },
   { q: "Funciona em todos os planos do Lovable?", a: "Sim. A extensão funciona sobre qualquer plano do Lovable — inclusive o gratuito. Ela adiciona uma camada de produtividade sem substituir sua conta." },
   { q: "Como funciona o pagamento único?", a: "Você paga uma única vez via Pix e recebe a chave de acesso para o período escolhido. Não há assinatura ou cobrança recorrente." },
-  { q: "Posso usar em mais de um computador?", a: "Sim. Os planos ULTRA permitem registro em até 2 dispositivos simultaneamente. O TRY 7 permite 1 dispositivo." },
+  { q: "Posso usar em mais de um computador?", a: "Não. Todos os planos permitem registro em até 1 dispositivo." },
   { q: "O que é o modo white-label?", a: "White-label remove indicações visuais do Lovable da sua aplicação, deixando o resultado final 100% com a identidade da sua marca." },
   { q: "Como funciona o suporte?", a: "Todos os planos incluem suporte via WhatsApp. Planos ULTRA têm prioridade nas respostas." },
 ]

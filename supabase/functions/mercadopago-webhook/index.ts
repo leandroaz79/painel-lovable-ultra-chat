@@ -15,7 +15,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-1956464108264660-110212-c09d3e0e1b63035e401c8ff9a4a28955-173764383'
+const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN') ?? ''
 
 serve(async (req) => {
   // Responder OPTIONS para CORS
@@ -96,19 +96,21 @@ serve(async (req) => {
         .update({ approved_at: new Date().toISOString() })
         .eq('payment_id', paymentId)
 
-      // Buscar dados atuais do revendedor
-      const { data: reseller } = await supabaseAdmin
+      // HIGH-004 FIX: Update atômico via RPC
+      // NOTA: increment_reseller_credits decrementa total_licenses_created,
+      // mas para credit_purchases precisamos incrementar total_credits_purchased.
+      // Usamos read-then-write com validação de estado (optimistic locking).
+      const { data: reseller, error: resellerError } = await supabaseAdmin
         .from('resellers')
         .select('credits, total_credits_purchased')
         .eq('user_id', userId)
         .single()
 
-      if (!reseller) {
+      if (resellerError || !reseller) {
         console.error('Revendedor não encontrado:', userId)
         return new Response('Reseller not found', { status: 404 })
       }
 
-      // Adicionar créditos ao revendedor
       const { error: updateError } = await supabaseAdmin
         .from('resellers')
         .update({
@@ -116,6 +118,8 @@ serve(async (req) => {
           total_credits_purchased: reseller.total_credits_purchased + quantity,
         })
         .eq('user_id', userId)
+        // Optimistic lock: só atualiza se os créditos não mudaram desde a leitura
+        .eq('credits', reseller.credits)
 
       if (updateError) {
         console.error('Erro ao adicionar créditos:', updateError)

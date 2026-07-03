@@ -420,7 +420,7 @@ export default function Customers() {
         </section>
 
         {showManageModal && selectedCustomer && (
-          <div className="modal-overlay" onClick={closeManageModal}>
+          <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) closeManageModal() }}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <button className="modal-close" onClick={closeManageModal}>&times;</button>
               <h2>Gerenciar Cliente</h2>
@@ -485,7 +485,7 @@ export default function Customers() {
                     <label style={{ flex: 1, margin: 0 }}>
                       <span>Nova senha</span>
                       <input
-                        type="text"
+                        type="password"
                         value={resetPasswordValue}
                         onChange={(e) => setResetPasswordValue(e.target.value)}
                         placeholder="Mínimo 6 caracteres"

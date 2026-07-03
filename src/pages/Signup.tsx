@@ -6,6 +6,7 @@ import { useToast } from '../hooks/useToast'
 import { Button } from '../components/ui/button'
 import { Logo } from '../components/ui/Logo'
 import { formatWhatsApp } from '../utils/format'
+import { validateRedirect } from '../utils/validateRedirect'
 
 function formatCPF(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -28,7 +29,7 @@ export default function Signup() {
   const { showToast } = useToast()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const redirect = searchParams.get('redirect')
+  const redirect = validateRedirect(searchParams.get('redirect'))
 
   useEffect(() => {
     if (user && role === 'user') {
@@ -169,7 +170,7 @@ export default function Signup() {
 
           <p style={{ marginTop: '16px', textAlign: 'center', fontSize: '13px', color: 'var(--muted)' }}>
             Já tem conta?{' '}
-            <a href={redirect ? `/login?redirect=${redirect}` : '/login'} style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
+            <a href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'} style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
               Fazer login
             </a>
           </p>

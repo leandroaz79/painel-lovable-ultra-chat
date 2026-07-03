@@ -34,9 +34,9 @@ export default function ResellerMobileMenu({ currentPage }: ResellerMobileMenuPr
 
       {/* Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="mobile-menu-overlay"
-          onClick={() => setIsOpen(false)}
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setIsOpen(false) }}
         />
       )}
 

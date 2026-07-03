@@ -89,6 +89,8 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
       const script = document.createElement('script')
       script.src = 'https://sdk.mercadopago.com/js/v2'
       script.async = true
+      script.onload = () => console.log('[MP SDK] Script carregado')
+      script.onerror = () => console.error('[MP SDK] Erro ao carregar script')
       document.body.appendChild(script)
     }
   }, [])
@@ -221,9 +223,13 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
 
   async function getCardToken(): Promise<string> {
     return new Promise((resolve, reject) => {
+      if (!(window as any).MercadoPago) {
+        reject(new Error('SDK do MercadoPago não carregou. Recarregue a página e tente novamente.'))
+        return
+      }
       const mp = new (window as any).MercadoPago('APP_USR-8b185660-9eba-4246-826b-0e71a9428388')
       const expiryParts = cardExpiry.replace(/\s/g, '').split('/')
-      mp.createCardToken({
+      const cardData = {
         cardNumber: cardNumber.replace(/\s/g, ''),
         cardholderName: cardHolderName,
         cardExpirationMonth: expiryParts[0] || '',
@@ -231,8 +237,18 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
         securityCode: cardCvv,
         identificationType: 'CPF',
         identificationNumber: buyerCpf.replace(/\D/g, ''),
-      }).then((token: { id: string }) => resolve(token.id))
-        .catch((err: any) => reject(new Error(err?.message || 'Erro ao validar cartão')))
+      }
+      console.log('[MP SDK] Criando token do cartão...', { cardNumber: cardData.cardNumber.slice(0, 6) + '...' })
+      mp.createCardToken(cardData)
+        .then((token: { id: string }) => {
+          console.log('[MP SDK] Token criado com sucesso')
+          resolve(token.id)
+        })
+        .catch((err: any) => {
+          console.error('[MP SDK] Erro ao criar token:', err)
+          const msg = err?.message || err?.error?.message || 'Erro ao validar cartão. Verifique os dados.'
+          reject(new Error(msg))
+        })
     })
   }
 

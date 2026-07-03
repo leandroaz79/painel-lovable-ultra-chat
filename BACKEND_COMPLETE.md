@@ -252,8 +252,8 @@
 | Nome | Slug | Dias | Preço | Dispositivos | Suporte Prioritário |
 |------|------|------|-------|-------------|-------------------|
 | TRY 7 | try-7 | 7 | R$ 29,90 (2990 centavos) | 1 | Não |
-| ULTRA 15 | ultra-15 | 15 | R$ 49,90 (4990 centavos) | 2 | Sim |
-| ULTRA 30 | ultra-30 | 30 | R$ 79,90 (7990 centavos) | 2 | Sim |
+| ULTRA 15 | ultra-15 | 15 | R$ 49,90 (4990 centavos) | 1 | Sim |
+| ULTRA 30 | ultra-30 | 30 | R$ 79,90 (7990 centavos) | 1 | Sim |
 
 ### 3.11 `customer_purchases` — Compras de clientes finais
 

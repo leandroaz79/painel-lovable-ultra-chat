@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { useToast } from '../hooks/useToast'
 import { Button } from '../components/ui/button'
 import { Logo } from '../components/ui/Logo'
+import { validateRedirect } from '../utils/validateRedirect'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -17,7 +18,7 @@ export default function Login() {
   const { showToast } = useToast()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const redirect = searchParams.get('redirect')
+  const redirect = validateRedirect(searchParams.get('redirect'))
 
   useEffect(() => {
     if (user && role) {

@@ -9,7 +9,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-1956464108264660-110212-c09d3e0e1b63035e401c8ff9a4a28955-173764383'
+const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN') ?? ''
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -47,6 +47,31 @@ serve(async (req) => {
     }
 
     const { quantity, buyer_name, buyer_cpf, buyer_phone, buyer_email, total_amount } = await req.json()
+
+    // CRIT-005 FIX: Validar quantity e preço server-side
+    if (!Number.isInteger(quantity) || quantity <= 0 || quantity > 100) {
+      throw new Error('Quantidade inválida (1-100)')
+    }
+    if (!buyer_name?.trim() || !buyer_cpf?.trim()) {
+      throw new Error('Dados do comprador obrigatórios')
+    }
+
+    // Buscar preço da tabela product_pricing
+    const { data: pricing } = await supabaseClient
+      .from('product_pricing')
+      .select('price_per_unit')
+      .eq('product_slug', 'lifetime-key')
+      .eq('active', true)
+      .single()
+
+    if (!pricing) {
+      throw new Error('Produto não encontrado ou inativo')
+    }
+
+    const expectedTotal = quantity * pricing.price_per_unit
+    if (total_amount !== expectedTotal) {
+      throw new Error(`Preço inválido. Esperado: ${expectedTotal}`)
+    }
 
     // Criar pagamento no Mercado Pago
     const paymentPayload = {

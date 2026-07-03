@@ -14,7 +14,7 @@ export function Hero() {
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider backdrop-blur" style={{ color: 'var(--muted)' }}>
             <Zap className="size-3.5" style={{ color: 'var(--brand-green)' }} />
-            Extensão para navegadores · ~250ms
+            Extensão para navegadores
           </span>
 
           <h1 className="mt-5 text-balance text-3xl font-black leading-[1.1] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl" style={{ color: 'var(--text)' }}>

@@ -43,7 +43,7 @@ A stack obrigatória é: **React + Vite + TypeScript + Tailwind** (frontend), **
 - Se cadastram via signup
 - Podem criar 1 trial gratuito de 30 minutos
 - Compram planos via PIX
-- Planos disponíveis: TRY 7 (R$29,90/7dias/1disp), ULTRA 15 (R$49,90/15dias/2disp), ULTRA 30 (R$79,90/30dias/2disp)
+- Planos disponíveis: TRY 7 (R$29,90/7dias/1disp), ULTRA 15 (R$49,90/15dias/1disp), ULTRA 30 (R$79,90/30dias/1disp)
 
 ### 2.4 Validação de Licença (Extensão)
 - Endpoint público validate-license

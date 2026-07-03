@@ -2,7 +2,7 @@ import { Check, X } from "lucide-react"
 
 const rows = [
   { label: "Créditos ilimitados", free: false, ultra: true },
-  { label: "Multi-dispositivo (até 2)", free: false, ultra: true },
+  { label: "Uso em até 1 dispositivo", free: false, ultra: true },
   { label: "Refino automático de prompts", free: false, ultra: true },
   { label: "Raciocínio profundo", free: false, ultra: true },
   { label: "Edição visual instantânea", free: false, ultra: true },
