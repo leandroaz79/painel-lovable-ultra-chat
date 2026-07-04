@@ -275,6 +275,7 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
       })
       const result = await response.json()
       if (!response.ok || !result.success) throw new Error(result.error || 'Erro ao gerar pagamento')
+      if (result.payment_status === 'rejected') throw new Error('Pagamento recusado pelo cartão. Tente outro cartão ou Pix.')
       setPayment(result)
       if (result.payment_method === 'pix') {
         setStep('pix')

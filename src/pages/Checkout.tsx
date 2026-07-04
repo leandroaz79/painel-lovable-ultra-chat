@@ -205,6 +205,10 @@ export default function Checkout() {
         throw new Error(result.error || 'Erro ao gerar pagamento')
       }
 
+      if (result.payment_status === 'rejected') {
+        throw new Error('Pagamento recusado pelo cartão. Tente outro cartão ou Pix.')
+      }
+
       setPayment(result)
 
       if (result.payment_method === 'pix') {

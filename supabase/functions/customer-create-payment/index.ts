@@ -96,7 +96,7 @@ serve(async (req) => {
     if (isCreditCard) {
       paymentPayload.token = card_token
       paymentPayload.installments = 1
-      paymentPayload.payment_method_id = 'master'
+      // payment_method_id NÃO é enviado — MercadoPago detecta a bandeira pelo token
     } else {
       paymentPayload.payment_method_id = 'pix'
     }
@@ -115,6 +115,12 @@ serve(async (req) => {
     if (mpResponse.status !== 201) {
       console.error('Erro Mercado Pago:', mpResult)
       throw new Error(mpResult.message || 'Erro ao gerar pagamento')
+    }
+
+    // Cartão recusado pelo antifraude (MP retorna 201 mas com status rejected)
+    if (isCreditCard && mpResult.status === 'rejected') {
+      console.error('Cartão recusado:', mpResult.status_detail)
+      throw new Error('Pagamento recusado pelo cartão. Tente outro cartão ou Pix.')
     }
 
     // Calcular expiração
