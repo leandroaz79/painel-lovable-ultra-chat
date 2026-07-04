@@ -238,7 +238,7 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
         identificationType: 'CPF',
         identificationNumber: buyerCpf.replace(/\D/g, ''),
       }
-      console.log('[MP SDK] Criando token do cartão...', { cardNumber: cardData.cardNumber.slice(0, 6) + '...' })
+      console.log('[MP SDK] Criando token do cartão...')
       mp.createCardToken(cardData)
         .then((token: { id: string }) => {
           console.log('[MP SDK] Token criado com sucesso')
@@ -276,9 +276,20 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
       const result = await response.json()
       if (!response.ok || !result.success) throw new Error(result.error || 'Erro ao gerar pagamento')
       setPayment(result)
-      if (result.payment_method === 'pix') { setStep('pix'); startPolling(result.payment_id) }
-      else if (result.license_key) { showToast('Pagamento aprovado!', 'success'); setStep('success') }
-      else { setStep('success'); startPolling(result.payment_id) }
+      if (result.payment_method === 'pix') {
+        setStep('pix')
+        startPolling(result.payment_id)
+      } else if (result.license_key) {
+        showToast('Pagamento aprovado!', 'success')
+        setStep('success')
+      } else if (result.payment_status === 'approved') {
+        showToast('Pagamento aprovado!', 'success')
+        setStep('success')
+      } else {
+        // in_process, pending, etc — aguardar webhook
+        startPolling(result.payment_id)
+        setStep('success')
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erro ao gerar pagamento'
       setErrorMsg(msg); showToast(msg, 'error')

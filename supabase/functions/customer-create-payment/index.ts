@@ -14,6 +14,11 @@ serve(async (req) => {
   }
 
   try {
+    if (!MERCADOPAGO_ACCESS_TOKEN) {
+      console.error('[FATAL] MERCADOPAGO_ACCESS_TOKEN não configurado nas environment variables do Supabase')
+      throw new Error('Sistema de pagamento não configurado. Contate o administrador.')
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -38,6 +43,11 @@ serve(async (req) => {
 
     if (!buyer_name || !buyer_email || !buyer_cpf) {
       throw new Error('buyer_name, buyer_email e buyer_cpf são obrigatórios')
+    }
+
+    const cleanedCpf = buyer_cpf.replace(/\D/g, '')
+    if (cleanedCpf.length !== 11) {
+      throw new Error('CPF deve ter 11 dígitos')
     }
 
     const isCreditCard = payment_method === 'credit_card'
@@ -69,12 +79,10 @@ serve(async (req) => {
     }
 
     if (userPhone) {
-      payer.phone = { number: userPhone }
+      payer.phone = { number: userPhone.replace(/\D/g, '') }
     }
 
-    if (buyer_cpf) {
-      payer.identification = { type: 'CPF', number: buyer_cpf }
-    }
+    payer.identification = { type: 'CPF', number: cleanedCpf }
 
     // Criar pagamento no Mercado Pago
     const paymentPayload: Record<string, unknown> = {
@@ -89,16 +97,23 @@ serve(async (req) => {
         buyer_name: userName,
         buyer_email: buyer_email || user.email,
         buyer_whatsapp: userPhone,
-        buyer_cpf: buyer_cpf || '',
+        buyer_cpf: cleanedCpf,
       },
     }
 
     if (isCreditCard) {
       paymentPayload.token = card_token
       paymentPayload.installments = 1
+      // payment_method_id NÃO é enviado — MercadoPago detecta a bandeira pelo token
     } else {
       paymentPayload.payment_method_id = 'pix'
     }
+
+    console.log('[MP] Enviando pagamento:', {
+      amount: paymentPayload.transaction_amount,
+      method: isCreditCard ? 'credit_card' : 'pix',
+      has_token: !!paymentPayload.token,
+    })
 
     const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
@@ -111,36 +126,55 @@ serve(async (req) => {
 
     const mpResult = await mpResponse.json()
 
+    console.log('[MP] Resposta:', JSON.stringify({
+      http_status: mpResponse.status,
+      id: mpResult.id,
+      status: mpResult.status,
+      status_detail: mpResult.status_detail,
+    }))
+
     if (mpResponse.status !== 201) {
-      console.error('Erro Mercado Pago:', mpResult)
-      throw new Error(mpResult.message || 'Erro ao gerar pagamento')
+      console.error('Erro Mercado Pago:', JSON.stringify(mpResult))
+      const mpMessage = mpResult.message || mpResult.error || 'Erro ao gerar pagamento'
+      throw new Error(mpMessage)
     }
 
     // Calcular expiração
-    const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + product.days)
+    const expiresAt = product.is_lifetime ? null : (() => {
+      const d = new Date()
+      d.setDate(d.getDate() + product.days)
+      return d.toISOString()
+    })()
 
     const paymentData = {
-      ...paymentPayload,
+      transaction_amount: product.price_cents / 100,
+      description: `${product.name} - Lovable Ultra Chat`,
+      payer_email: payer.email,
       buyer_name: userName,
       buyer_email: buyer_email || user.email,
       buyer_whatsapp: userPhone,
-      buyer_cpf: buyer_cpf || '',
+      buyer_cpf: cleanedCpf,
       payment_method: isCreditCard ? 'credit_card' : 'pix',
+      mp_status: mpResult.status,
+      mp_status_detail: mpResult.status_detail,
     }
 
     const insertPayload: Record<string, unknown> = {
       user_id: user.id,
       product_id: product.id,
       payment_id: mpResult.id.toString(),
-      payment_status: 'pending',
+      payment_status: mpResult.status === 'approved' ? 'approved' : 'pending',
       payment_data: paymentData,
-      expires_at: expiresAt.toISOString(),
+      expires_at: expiresAt,
     }
 
+    // PIX: salvar qr_code com null check
     if (!isCreditCard) {
-      insertPayload.pix_qr_code = mpResult.point_of_interaction.transaction_data.qr_code
-      insertPayload.pix_qr_code_base64 = mpResult.point_of_interaction.transaction_data.qr_code_base64
+      const txData = mpResult.point_of_interaction?.transaction_data
+      if (txData) {
+        insertPayload.pix_qr_code = txData.qr_code
+        insertPayload.pix_qr_code_base64 = txData.qr_code_base64
+      }
     }
 
     const { error: insertError } = await supabaseClient
@@ -157,7 +191,6 @@ serve(async (req) => {
     let licenseKey: string | null = null
     if (isCardApproved) {
       // HIGH-003 FIX: Marcar como approved ANTES de inserir licença
-      // Isso impede que o webhook crie licença duplicada
       const { error: lockError } = await supabaseClient
         .from('customer_purchases')
         .update({ payment_status: 'approved' })
@@ -166,7 +199,6 @@ serve(async (req) => {
 
       if (lockError) {
         console.log('Pagamento já processado por webhook:', mpResult.id)
-        // Webhook já processou — não criar licença duplicada
       } else {
         const prefix = product_slug === 'try-7' ? 'TRY7' : product_slug === 'ultra-15' ? 'ULTRA15' : 'ULTRA30'
         const randomHex = crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()
@@ -217,6 +249,8 @@ serve(async (req) => {
       success: true,
       payment_id: mpResult.id.toString(),
       payment_method: isCreditCard ? 'credit_card' : 'pix',
+      payment_status: mpResult.status,
+      status_detail: mpResult.status_detail,
       license_key: licenseKey,
       product: {
         name: product.name,
@@ -227,10 +261,13 @@ serve(async (req) => {
     }
 
     if (!isCreditCard) {
-      responsePayload.pix = {
-        qr_code: mpResult.point_of_interaction.transaction_data.qr_code,
-        qr_code_base64: mpResult.point_of_interaction.transaction_data.qr_code_base64,
-        ticket_url: mpResult.point_of_interaction.transaction_data.ticket_url,
+      const txData = mpResult.point_of_interaction?.transaction_data
+      if (txData) {
+        responsePayload.pix = {
+          qr_code: txData.qr_code,
+          qr_code_base64: txData.qr_code_base64,
+          ticket_url: txData.ticket_url,
+        }
       }
     }
 
