@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN') ?? ''
+const MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-1956464108264660-110212-c09d3e0e1b63035e401c8ff9a4a28955-173764383'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -14,11 +14,6 @@ serve(async (req) => {
   }
 
   try {
-    if (!MERCADOPAGO_ACCESS_TOKEN) {
-      console.error('[FATAL] MERCADOPAGO_ACCESS_TOKEN não configurado nas environment variables do Supabase')
-      throw new Error('Sistema de pagamento não configurado. Contate o administrador.')
-    }
-
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -43,11 +38,6 @@ serve(async (req) => {
 
     if (!buyer_name || !buyer_email || !buyer_cpf) {
       throw new Error('buyer_name, buyer_email e buyer_cpf são obrigatórios')
-    }
-
-    const cleanedCpf = buyer_cpf.replace(/\D/g, '')
-    if (cleanedCpf.length !== 11) {
-      throw new Error('CPF deve ter 11 dígitos')
     }
 
     const isCreditCard = payment_method === 'credit_card'
@@ -79,10 +69,12 @@ serve(async (req) => {
     }
 
     if (userPhone) {
-      payer.phone = { number: userPhone.replace(/\D/g, '') }
+      payer.phone = { number: userPhone }
     }
 
-    payer.identification = { type: 'CPF', number: cleanedCpf }
+    if (buyer_cpf) {
+      payer.identification = { type: 'CPF', number: buyer_cpf }
+    }
 
     // Criar pagamento no Mercado Pago
     const paymentPayload: Record<string, unknown> = {
@@ -97,23 +89,17 @@ serve(async (req) => {
         buyer_name: userName,
         buyer_email: buyer_email || user.email,
         buyer_whatsapp: userPhone,
-        buyer_cpf: cleanedCpf,
+        buyer_cpf: buyer_cpf || '',
       },
     }
 
     if (isCreditCard) {
       paymentPayload.token = card_token
       paymentPayload.installments = 1
-      // payment_method_id NÃO é enviado — MercadoPago detecta a bandeira pelo token
+      paymentPayload.payment_method_id = 'master'
     } else {
       paymentPayload.payment_method_id = 'pix'
     }
-
-    console.log('[MP] Enviando pagamento:', {
-      amount: paymentPayload.transaction_amount,
-      method: isCreditCard ? 'credit_card' : 'pix',
-      has_token: !!paymentPayload.token,
-    })
 
     const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
@@ -126,55 +112,36 @@ serve(async (req) => {
 
     const mpResult = await mpResponse.json()
 
-    console.log('[MP] Resposta:', JSON.stringify({
-      http_status: mpResponse.status,
-      id: mpResult.id,
-      status: mpResult.status,
-      status_detail: mpResult.status_detail,
-    }))
-
     if (mpResponse.status !== 201) {
-      console.error('Erro Mercado Pago:', JSON.stringify(mpResult))
-      const mpMessage = mpResult.message || mpResult.error || 'Erro ao gerar pagamento'
-      throw new Error(mpMessage)
+      console.error('Erro Mercado Pago:', mpResult)
+      throw new Error(mpResult.message || 'Erro ao gerar pagamento')
     }
 
     // Calcular expiração
-    const expiresAt = product.is_lifetime ? null : (() => {
-      const d = new Date()
-      d.setDate(d.getDate() + product.days)
-      return d.toISOString()
-    })()
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + product.days)
 
     const paymentData = {
-      transaction_amount: product.price_cents / 100,
-      description: `${product.name} - Lovable Ultra Chat`,
-      payer_email: payer.email,
+      ...paymentPayload,
       buyer_name: userName,
       buyer_email: buyer_email || user.email,
       buyer_whatsapp: userPhone,
-      buyer_cpf: cleanedCpf,
+      buyer_cpf: buyer_cpf || '',
       payment_method: isCreditCard ? 'credit_card' : 'pix',
-      mp_status: mpResult.status,
-      mp_status_detail: mpResult.status_detail,
     }
 
     const insertPayload: Record<string, unknown> = {
       user_id: user.id,
       product_id: product.id,
       payment_id: mpResult.id.toString(),
-      payment_status: mpResult.status === 'approved' ? 'approved' : 'pending',
+      payment_status: 'pending',
       payment_data: paymentData,
-      expires_at: expiresAt,
+      expires_at: expiresAt.toISOString(),
     }
 
-    // PIX: salvar qr_code com null check
     if (!isCreditCard) {
-      const txData = mpResult.point_of_interaction?.transaction_data
-      if (txData) {
-        insertPayload.pix_qr_code = txData.qr_code
-        insertPayload.pix_qr_code_base64 = txData.qr_code_base64
-      }
+      insertPayload.pix_qr_code = mpResult.point_of_interaction.transaction_data.qr_code
+      insertPayload.pix_qr_code_base64 = mpResult.point_of_interaction.transaction_data.qr_code_base64
     }
 
     const { error: insertError } = await supabaseClient
@@ -190,58 +157,48 @@ serve(async (req) => {
     const isCardApproved = isCreditCard && mpResult.status === 'approved'
     let licenseKey: string | null = null
     if (isCardApproved) {
-      // HIGH-003 FIX: Marcar como approved ANTES de inserir licença
-      const { error: lockError } = await supabaseClient
-        .from('customer_purchases')
-        .update({ payment_status: 'approved' })
-        .eq('payment_id', mpResult.id.toString())
-        .eq('payment_status', 'pending')
+      const prefix = product_slug === 'try-7' ? 'TRY7' : product_slug === 'ultra-15' ? 'ULTRA15' : 'ULTRA30'
+      const randomHex = crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()
+      licenseKey = `${prefix}-${randomHex}`
 
-      if (lockError) {
-        console.log('Pagamento já processado por webhook:', mpResult.id)
+      const licExpiresAt = product.is_lifetime ? null : (() => {
+        const d = new Date()
+        d.setDate(d.getDate() + product.days)
+        return d.toISOString()
+      })()
+
+      const { error: licError } = await supabaseClient
+        .from('ts_licenses')
+        .insert({
+          license_key: licenseKey,
+          user_id: user.id,
+          user_name: userName,
+          email: buyer_email || user.email,
+          phone: userPhone,
+          status: 'active',
+          license_type: 'paid',
+          expires_at: licExpiresAt,
+          metadata: {
+            product_id: product.id,
+            product_name: product.name,
+            devices: product.devices,
+            has_priority_support: product.has_priority_support,
+            source: 'customer_purchase',
+            payment_id: mpResult.id.toString(),
+          },
+        })
+
+      if (licError) {
+        console.error('Erro ao criar licença (cartão):', licError)
       } else {
-        const prefix = product_slug === 'try-7' ? 'TRY7' : product_slug === 'ultra-15' ? 'ULTRA15' : 'ULTRA30'
-        const randomHex = crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()
-        licenseKey = `${prefix}-${randomHex}`
-
-        const licExpiresAt = product.is_lifetime ? null : (() => {
-          const d = new Date()
-          d.setDate(d.getDate() + product.days)
-          return d.toISOString()
-        })()
-
-        const { error: licError } = await supabaseClient
-          .from('ts_licenses')
-          .insert({
+        await supabaseClient
+          .from('customer_purchases')
+          .update({
+            payment_status: 'approved',
             license_key: licenseKey,
-            user_id: user.id,
-            user_name: userName,
-            email: buyer_email || user.email,
-            phone: userPhone,
-            status: 'active',
-            license_type: 'paid',
-            expires_at: licExpiresAt,
-            metadata: {
-              product_id: product.id,
-              product_name: product.name,
-              devices: product.devices,
-              has_priority_support: product.has_priority_support,
-              source: 'customer_purchase',
-              payment_id: mpResult.id.toString(),
-            },
+            approved_at: new Date().toISOString(),
           })
-
-        if (licError) {
-          console.error('Erro ao criar licença (cartão):', licError)
-        } else {
-          await supabaseClient
-            .from('customer_purchases')
-            .update({
-              license_key: licenseKey,
-              approved_at: new Date().toISOString(),
-            })
-            .eq('payment_id', mpResult.id.toString())
-        }
+          .eq('payment_id', mpResult.id.toString())
       }
     }
 
@@ -249,8 +206,6 @@ serve(async (req) => {
       success: true,
       payment_id: mpResult.id.toString(),
       payment_method: isCreditCard ? 'credit_card' : 'pix',
-      payment_status: mpResult.status,
-      status_detail: mpResult.status_detail,
       license_key: licenseKey,
       product: {
         name: product.name,
@@ -261,13 +216,10 @@ serve(async (req) => {
     }
 
     if (!isCreditCard) {
-      const txData = mpResult.point_of_interaction?.transaction_data
-      if (txData) {
-        responsePayload.pix = {
-          qr_code: txData.qr_code,
-          qr_code_base64: txData.qr_code_base64,
-          ticket_url: txData.ticket_url,
-        }
+      responsePayload.pix = {
+        qr_code: mpResult.point_of_interaction.transaction_data.qr_code,
+        qr_code_base64: mpResult.point_of_interaction.transaction_data.qr_code_base64,
+        ticket_url: mpResult.point_of_interaction.transaction_data.ticket_url,
       }
     }
 

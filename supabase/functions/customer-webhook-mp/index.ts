@@ -13,13 +13,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN') ?? ''
-
-const VALID_STATUSES = new Set([
-  'approved', 'rejected', 'cancelled', 'refunded',
-  'in_process', 'pending', 'authorized', 'in_mediation',
-  'charged_back',
-])
+const MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-1956464108264660-110212-c09d3e0e1b63035e401c8ff9a4a28955-173764383'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -27,16 +21,12 @@ serve(async (req) => {
   }
 
   try {
-    if (!MERCADOPAGO_ACCESS_TOKEN) {
-      console.error('[FATAL] MERCADOPAGO_ACCESS_TOKEN não configurado')
-      return new Response('OK', { headers: corsHeaders, status: 200 })
-    }
-
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Mercado Pago pode enviar via query params OU body
     const url = new URL(req.url)
     let topic = url.searchParams.get('topic')
     let id = url.searchParams.get('id')
@@ -46,46 +36,41 @@ serve(async (req) => {
         const body = await req.json()
         topic = body.action || body.type
         id = body.data?.id || body.id
-      } catch {
-        // sem body
+        console.log('Customer webhook via body:', { topic, id })
+      } catch (e) {
+        console.log('Customer webhook via query params')
       }
     }
 
-    console.log('[WEBHOOK-CUSTOMER] Recebido:', { topic, id })
+    console.log('Customer webhook recebido:', { topic, id })
 
     if (!topic || (!topic.includes('payment') && topic !== 'merchant_order')) {
+      console.log('Topic ignorado:', topic)
       return new Response('OK', { headers: corsHeaders, status: 200 })
     }
 
     const paymentId = id
     if (!paymentId) {
+      console.log('Payment ID não encontrado')
       return new Response('OK', { headers: corsHeaders, status: 200 })
     }
 
+    // Buscar informações do pagamento no Mercado Pago
     const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-      headers: { 'Authorization': `Bearer ${MERCADOPAGO_ACCESS_TOKEN}` },
+      headers: {
+        'Authorization': `Bearer ${MERCADOPAGO_ACCESS_TOKEN}`,
+      },
     })
 
     const payment = await mpResponse.json()
-
-    if (!mpResponse.ok || !payment.id) {
-      console.error('[WEBHOOK-CUSTOMER] Erro ao buscar pagamento:', mpResponse.status)
-      return new Response('OK', { headers: corsHeaders, status: 200 })
-    }
-
-    console.log('[WEBHOOK-CUSTOMER] Status:', payment.status, payment.status_detail)
+    console.log('Status do pagamento:', payment.status)
 
     if (payment.status === 'approved') {
-      const userId = payment.metadata?.user_id
-      const productId = payment.metadata?.product_id
-      const productSlug = payment.metadata?.product_slug
+      const userId = payment.metadata.user_id
+      const productId = payment.metadata.product_id
+      const productSlug = payment.metadata.product_slug
 
-      if (!userId || !productId || !productSlug) {
-        console.error('[WEBHOOK-CUSTOMER] Metadata incompleta:', payment.metadata)
-        return new Response('OK', { headers: corsHeaders, status: 200 })
-      }
-
-      // GUARD ATÔMICO
+      // === GUARD ATÔMICO: só prossegue se o status ainda for 'pending' ===
       const { data: purchase, error: lockError } = await supabaseAdmin
         .from('customer_purchases')
         .update({ payment_status: 'approved' })
@@ -95,10 +80,11 @@ serve(async (req) => {
         .single()
 
       if (lockError || !purchase) {
-        console.log('[WEBHOOK-CUSTOMER] Já processado:', paymentId)
+        console.log('Pagamento já processado por outra requisição:', paymentId)
         return new Response('Already processed', { status: 200 })
       }
 
+      // Buscar produto para saber os dias
       const { data: product } = await supabaseAdmin
         .from('products_endcustomer')
         .select('*')
@@ -106,25 +92,29 @@ serve(async (req) => {
         .single()
 
       if (!product) {
-        console.error('[WEBHOOK-CUSTOMER] Produto não encontrado:', productId)
-        return new Response('OK', { headers: corsHeaders, status: 200 })
+        console.error('Produto não encontrado:', productId)
+        return new Response('Product not found', { status: 404 })
       }
 
+      // Buscar dados do usuário
       const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userId)
       const userName = authUser?.user?.user_metadata?.name || authUser?.user?.email?.split('@')[0] || 'Cliente'
       const userEmail = authUser?.user?.email
       const userPhone = authUser?.user?.user_metadata?.whatsapp || null
 
+      // Gerar license_key única
       const prefix = productSlug === 'try-7' ? 'TRY7' : productSlug === 'ultra-15' ? 'ULTRA15' : 'ULTRA30'
       const randomHex = crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()
       const licenseKey = `${prefix}-${randomHex}`
 
+      // Calcular expiração (NULL = vitalício)
       const expiresAt = product.is_lifetime ? null : (() => {
         const d = new Date()
         d.setDate(d.getDate() + product.days)
         return d.toISOString()
       })()
 
+      // Inserir licença
       const { error: licenseError } = await supabaseAdmin
         .from('ts_licenses')
         .insert({
@@ -147,40 +137,51 @@ serve(async (req) => {
         })
 
       if (licenseError) {
-        console.error('[WEBHOOK-CUSTOMER] Erro ao criar licença:', licenseError)
-        return new Response('OK', { headers: corsHeaders, status: 200 })
+        console.error('Erro ao criar licença:', licenseError)
+        throw licenseError
       }
 
-      // FIX: Não sobrescrever payment_data inteiro — fazer merge
+      // Atualizar compra com license_key
       const { error: updateError } = await supabaseAdmin
         .from('customer_purchases')
         .update({
           license_key: licenseKey,
           approved_at: new Date().toISOString(),
-          payment_status: 'approved',
+          payment_data: { mp_status: payment.status, mp_status_detail: payment.status_detail },
         })
         .eq('payment_id', paymentId)
 
       if (updateError) {
-        console.error('[WEBHOOK-CUSTOMER] Erro ao atualizar compra:', updateError)
+        console.error('Erro ao atualizar compra:', updateError)
+        throw updateError
       }
 
-      console.log(`[WEBHOOK-CUSTOMER] ✅ Licença ${licenseKey} criada para ${userId}`)
+      console.log(`✅ Licença ${licenseKey} criada para usuário ${userId} (${product.name})`)
       return new Response('OK - License created', { headers: corsHeaders, status: 200 })
     }
 
-    // Para outros status: mapear apenas status válidos para o CHECK constraint
-    if (payment.status && VALID_STATUSES.has(payment.status)) {
+    // Para outros status, atualizar na tabela
+    if (payment.status) {
+      const statusMap: Record<string, string> = {
+        approved: 'approved',
+        rejected: 'rejected',
+        cancelled: 'cancelled',
+        refunded: 'refunded',
+      }
+      const mappedStatus = statusMap[payment.status] || payment.status
+
       await supabaseAdmin
         .from('customer_purchases')
-        .update({ payment_status: payment.status })
+        .update({ payment_status: mappedStatus })
         .eq('payment_id', paymentId)
-        .eq('payment_status', 'pending')
     }
 
     return new Response('OK', { headers: corsHeaders, status: 200 })
   } catch (error) {
-    console.error('[WEBHOOK-CUSTOMER] Erro:', error)
-    return new Response('OK', { headers: corsHeaders, status: 200 })
+    console.error('Erro no customer webhook:', error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200  // Retornar 200 para MP não retentar
+    })
   }
 })

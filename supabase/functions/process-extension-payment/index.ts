@@ -286,13 +286,15 @@ async function processPayment(
   }
   */
 
-  // CRIT-006 FIX: Pagamento desativado (simulação removida)
-  // Implementar integração real com M-Pesa/e-Mola antes de reativar
-  console.log(`[DESATIVADO] Pagamento ${method} para ${phone}: ${amount} MZN`)
+  // SIMULAÇÃO (remover em produção)
+  console.log(`[SIMULAÇÃO] Processando ${method} para ${phone}: ${amount} MZN`)
+  
+  // Simular sucesso (70% de chance)
+  const success = Math.random() > 0.3
   
   return {
-    success: false,
-    message: 'Pagamento indisponível no momento. Tente novamente mais tarde.',
-    transaction_id: undefined
+    success,
+    message: success ? 'Pagamento aprovado' : 'Pagamento rejeitado',
+    transaction_id: success ? `TXN-${crypto.randomUUID().substring(0, 8)}` : undefined
   }
 }
