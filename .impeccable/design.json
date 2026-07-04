@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-04T00:00:00Z",
+  "title": "Design System: Ultra Chat Panel",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Electric Lime",
+        "canonical": "#9dff2f",
+        "tonalRamp": ["#1a3308", "#2d5510", "#407718", "#549a20", "#68bd28", "#7ce030", "#9dff2f", "#b7ff7a"]
+      },
+      "primary-deep": {
+        "role": "primary",
+        "displayName": "Deep Lime",
+        "canonical": "#62d11f"
+      },
+      "cyan": {
+        "role": "secondary",
+        "displayName": "Cyan",
+        "canonical": "#6de8ff",
+        "tonalRamp": ["#0a3340", "#124d5e", "#1a677d", "#22819b", "#2e9bb8", "#45b5d0", "#6de8ff", "#99f0ff"]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Danger Red",
+        "canonical": "#ff3d55"
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Warning Gold",
+        "canonical": "#f5b83d"
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Void",
+        "canonical": "#050b12",
+        "tonalRamp": ["#020406", "#03070d", "#050b12", "#07111c", "#0a1828", "#0e2035", "#132a42", "#1a3654"]
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Ice White",
+        "canonical": "#f4fbff"
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Steel Blue",
+        "canonical": "#b0c8db"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero headlines on landing page. Tight tracking for impact."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings, page titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Primary reading text, descriptions, form labels."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Eyebrow badges, table headers, status tags. Always uppercase."
+      }
+    },
+    "shadows": [
+      { "name": "ambient", "value": "0 24px 70px rgba(0, 0, 0, 0.42)", "purpose": "Modals and elevated panels only." },
+      { "name": "glow-primary", "value": "0 0 20px rgba(157, 255, 47, 0.28)", "purpose": "Hover/focus state on primary buttons and active elements." },
+      { "name": "glow-card", "value": "0 0 30px rgba(157, 255, 47, 0.15)", "purpose": "Featured pricing card hover effect." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for state transitions." },
+      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Entrance animations, reveal effects." },
+      { "name": "duration-fast", "value": "150ms", "purpose": "Hover states, micro-interactions." },
+      { "name": "duration-normal", "value": "300ms", "purpose": "Modal transitions, page changes." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "767px" },
+      { "name": "tablet", "value": "1023px" },
+      { "name": "desktop", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main CTA button. Electric Lime background, dark text, glow on hover.",
+      "html": "<button class=\"ds-btn-primary\">GET STARTED</button>",
+      "css": ".ds-btn-primary { background: #9dff2f; color: #07110a; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 14px; border: none; cursor: pointer; transition: background 0.15s, box-shadow 0.15s; min-height: 44px; } .ds-btn-primary:hover { background: #62d11f; box-shadow: 0 0 20px rgba(157, 255, 47, 0.28); } .ds-btn-primary:focus-visible { outline: 2px solid #9dff2f; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action button. Transparent with muted text.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { background: transparent; color: #b0c8db; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 14px; border: 1px solid rgba(137, 180, 209, 0.18); cursor: pointer; transition: background 0.15s, color 0.15s; min-height: 44px; } .ds-btn-ghost:hover { background: rgba(255, 255, 255, 0.05); color: #f4fbff; } .ds-btn-ghost:focus-visible { outline: 2px solid #9dff2f; outline-offset: 2px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Standard content container. Glass surface with subtle border.",
+      "html": "<div class=\"ds-card\"><h3>Title</h3><p>Content goes here.</p></div>",
+      "css": ".ds-card { background: rgba(13, 27, 40, 0.78); border: 1px solid rgba(137, 180, 209, 0.18); border-radius: 14px; padding: 24px; color: #f4fbff; transition: border-color 0.15s; } .ds-card:hover { border-color: rgba(159, 255, 47, 0.42); }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Text input with dark background, accent border on focus.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Enter value...\" />",
+      "css": ".ds-input { background: rgba(255, 255, 255, 0.05); color: #f4fbff; border: 1px solid rgba(137, 180, 209, 0.18); border-radius: 6px; padding: 12px 16px; font-size: 14px; width: 100%; transition: border-color 0.15s, box-shadow 0.15s; } .ds-input::placeholder { color: #5f7688; } .ds-input:focus { outline: none; border-color: rgba(159, 255, 47, 0.42); box-shadow: 0 0 0 3px rgba(157, 255, 47, 0.12); } .ds-input-error { border-color: #ff3d55; }"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Fixed left sidebar with glass effect, collapsible.",
+      "html": "<nav class=\"ds-sidebar\"><div class=\"ds-sidebar-brand\"><span class=\"ds-brand-icon\">⚡</span><strong>Ultra<span>Chat</span></strong></div><a class=\"ds-nav-item active\">Dashboard</a><a class=\"ds-nav-item\">Customers</a></nav>",
+      "css": ".ds-sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 240px; background: linear-gradient(180deg, rgba(15, 30, 44, 0.98), rgba(7, 17, 28, 0.95)); backdrop-filter: blur(20px); border-right: 1px solid rgba(137, 180, 209, 0.18); display: flex; flex-direction: column; z-index: 1000; } .ds-sidebar-brand { padding: 20px 16px; border-bottom: 1px solid rgba(137, 180, 209, 0.18); display: flex; align-items: center; gap: 10px; } .ds-brand-icon { width: 32px; height: 32px; display: grid; place-items: center; background: #9dff2f; color: #000; border-radius: 8px; font-size: 18px; } .ds-nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; margin: 0 12px; border-radius: 10px; color: #b0c8db; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.15s, color 0.15s; } .ds-nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #f4fbff; } .ds-nav-item.active { background: rgba(157, 255, 47, 0.12); color: #9dff2f; }"
+    },
+    {
+      "name": "Pricing Card",
+      "kind": "card",
+      "refersTo": "card-pricing",
+      "description": "Featured pricing card with colored badge and glow effect on hover.",
+      "html": "<div class=\"ds-pricing-card\"><div class=\"ds-pricing-badge\">POPULAR</div><h3>Pro</h3><div class=\"ds-pricing-value\">R$ 49<span>/mês</span></div><button class=\"ds-btn-primary\">Choose Plan</button></div>",
+      "css": ".ds-pricing-card { background: rgba(13, 27, 40, 0.78); border: 1px solid rgba(137, 180, 209, 0.18); border-radius: 14px; padding: 32px 24px; text-align: center; transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s; } .ds-pricing-card:hover { border-color: rgba(157, 255, 47, 0.42); box-shadow: 0 0 30px rgba(157, 255, 47, 0.15); transform: translateY(-4px); } .ds-pricing-badge { display: inline-block; padding: 4px 12px; background: rgba(157, 255, 47, 0.12); border: 1px solid rgba(157, 255, 47, 0.25); border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #9dff2f; margin-bottom: 16px; } .ds-pricing-value { font-size: 2.5rem; font-weight: 800; color: #f4fbff; margin: 16px 0; } .ds-pricing-value span { font-size: 1rem; font-weight: 400; color: #b0c8db; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Power Grid",
+    "overview": "This is a control room aesthetic — dark surfaces that feel like active monitors, an electric green accent that pulses through every interactive element, and a visual density that communicates performance without clutter. The system rejects bland admin templates and CRM-style dashboards. Every screen should feel like it's running on hardware, not rendered in a browser. The palette is deliberately minimal: near-black backgrounds (#050b12), one dominant accent (#9dff2f) that carries brand identity, and supporting neutrals that recede. Depth comes from glass effects on navigation and sidebar, tonal layering on cards, and glow treatments on primary actions — not from heavy shadows or decorative elements.",
+    "keyCharacteristics": [
+      "Dark-first with electric green accent energy (#9dff2f)",
+      "Glass effects on structural navigation, solid surfaces on content",
+      "Glow and pulse treatments for interactive states",
+      "Mobile-first responsive with desktop-complete admin flows",
+      "System status communicated through color, not icons"
+    ],
+    "rules": [
+      { "name": "The Accent Scarcity Rule", "body": "Electric Lime appears on ≤15% of any given screen. Its power comes from concentration, not distribution.", "section": "colors" },
+      { "name": "The Glow-Only-on-Action Rule", "body": "Glow effects appear only on interactive states (hover, focus, active). Static elements never glow.", "section": "colors" },
+      { "name": "The Weight-is-Hierarchy Rule", "body": "Bold (700) is for headings and labels only. Body text is always 400. Medium (500) is avoided.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. Shadows and glow appear only as response to state.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Electric Lime (#9dff2f) as the primary accent — it IS the brand identity.",
+      "Do keep dark backgrounds near-black (#050b12, #07111c) — the void is intentional.",
+      "Do use glass effects (backdrop-filter blur) on navigation and structural overlays only.",
+      "Do implement glow treatments on hover/focus for primary interactive elements.",
+      "Do respect prefers-reduced-motion — all animations disabled globally.",
+      "Do use 44px minimum touch targets on mobile for all interactive elements.",
+      "Do use weight (700 vs 400) for hierarchy, not color variation or font size alone.",
+      "Do use 14px radius for cards, 6px for buttons/inputs — the established radius scale."
+    ],
+    "donts": [
+      "Don't use generic CRM-style dashboards — monochrome grays, flat tables, no personality.",
+      "Don't use spreadsheet-like data grids — Excel-in-a-browser aesthetic.",
+      "Don't use bland SaaS admin templates — sidebar + white cards + blue accents.",
+      "Don't apply gradient text (background-clip: text) — decorative, never meaningful.",
+      "Don't use side-stripe borders (border-left > 1px as colored accent).",
+      "Don't pair border: 1px solid X with box-shadow blur ≥ 16px on the same element.",
+      "Don't use border-radius ≥ 24px on cards — the system caps at 14px.",
+      "Don't apply glassmorphism decoratively — blur is for structural navigation, not cards.",
+      "Don't animate CSS layout properties unless truly needed.",
+      "Don't use bounce or elastic easing — ease-out with exponential curves only."
+    ]
+  }
+}

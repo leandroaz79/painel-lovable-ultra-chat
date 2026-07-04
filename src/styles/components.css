@@ -79,13 +79,14 @@
   font-weight: 600;
   text-decoration: none;
   transition: 0.2s;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
+  position: relative;
 }
 .sidebar-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
 .sidebar-item.active {
-  background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
+  background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08);
   color: var(--accent);
-  border-color: var(--accent);
+  border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2);
 }
 
 .sidebar-icon {
@@ -169,16 +170,16 @@
 }
 
 .primary-action {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-  color: #07110a;
+  background: var(--gradient-brand);
+  color: #fff;
   border: none;
   box-shadow: 0 8px 24px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
   min-height: 44px;
   padding: 0 24px;
   font-size: 14px;
 }
-.primary-action:hover { transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 12px 32px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35); }
-.primary-action:active { transform: translateY(0); filter: brightness(0.98); }
+.primary-action:hover { transform: translateY(-1px); filter: brightness(1.1); box-shadow: 0 12px 32px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35); }
+.primary-action:active { transform: translateY(0); filter: brightness(0.95); }
 
 .ghost-action {
   background: rgba(255, 255, 255, 0.04);
@@ -210,7 +211,7 @@
   padding: 0 14px;
   font-size: 12px;
   font-weight: 700;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 .tiny-action:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(137, 180, 209, 0.3); transform: translateY(-1px); }
 .tiny-action.danger-action { background: rgba(255, 61, 85, 0.08); color: #ff8a98; border-color: rgba(255, 61, 85, 0.3); }

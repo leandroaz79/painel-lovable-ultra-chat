@@ -10,8 +10,8 @@ export function FinalCTA() {
         <div
           className="relative overflow-hidden rounded-3xl border p-8 text-center md:p-16"
           style={{
-            borderColor: 'rgba(168, 85, 247, 0.15)',
-            background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(45, 212, 191, 0.04), rgba(59, 130, 246, 0.06))',
+            borderColor: 'rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12)',
+            background: 'linear-gradient(135deg, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08), rgba(109, 232, 255, 0.04), rgba(109, 232, 255, 0.06))',
           }}
         >
           <div className="absolute -left-20 -top-20 size-60 rounded-full bg-gradient-brand opacity-15 blur-3xl" />
@@ -26,25 +26,25 @@ export function FinalCTA() {
           <div className="relative mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <a href="/signup" onClick={(e) => { e.preventDefault(); navigate('/signup') }}
               className="inline-flex items-center justify-center h-14 rounded-full bg-gradient-brand px-8 text-base font-bold text-white shadow-xl hover:opacity-95 transition-all"
-              style={{ boxShadow: '0 10px 50px rgba(168, 85, 247, 0.35)' }}>
+              style={{ boxShadow: '0 10px 50px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.22)' }}>
               Liberar poder ilimitado
             </a>
             <a href="/signup" onClick={(e) => { e.preventDefault(); navigate('/signup') }}
               className="inline-flex items-center justify-center h-14 rounded-full border border-white/15 bg-white/5 px-8 text-base font-semibold backdrop-blur hover:bg-white/10 transition-all"
               style={{ color: 'var(--text)' }}>
-              Testar grátis →
+              Teste grátis por 30 min →
             </a>
           </div>
 
           <div className="relative mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm" style={{ color: 'var(--muted)' }}>
             <span className="inline-flex items-center gap-2">
-              <Zap className="size-4" style={{ color: 'var(--brand-green)' }} /> Ativação imediata
+              <Zap className="size-4" style={{ color: 'var(--accent)' }} /> Ativação imediata
             </span>
             <span className="inline-flex items-center gap-2">
-              <ShieldCheck className="size-4" style={{ color: 'var(--brand-green)' }} /> Pagamento seguro via Pix
+              <ShieldCheck className="size-4" style={{ color: 'var(--accent)' }} /> Pagamento seguro via Pix
             </span>
             <span className="inline-flex items-center gap-2">
-              <Headphones className="size-4" style={{ color: 'var(--brand-green)' }} /> Suporte dedicado
+              <Headphones className="size-4" style={{ color: 'var(--accent)' }} /> Suporte dedicado
             </span>
           </div>
         </div>

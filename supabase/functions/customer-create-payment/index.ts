@@ -1,19 +1,34 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+const ALLOWED_ORIGINS = [
+  'https://ultrachat.lovablestore.digital',
+  'https://websites-painel-lovable-ultra-chat.wfus3r.easypanel.host',
+]
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 }
 
-const MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-1956464108264660-110212-c09d3e0e1b63035e401c8ff9a4a28955-173764383'
+const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN') ?? ''
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'))
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    if (!MERCADOPAGO_ACCESS_TOKEN) {
+      console.error('[FATAL] MERCADOPAGO_ACCESS_TOKEN não configurado')
+      throw new Error('Sistema de pagamento não configurado')
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',

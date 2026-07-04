@@ -222,7 +222,7 @@ export default function MobileMenu({ currentPage }: MobileMenuProps) {
         .mobile-menu-links a:hover,
         .mobile-menu-links a.active {
           color: var(--accent);
-          background: rgba(157, 255, 47, 0.08);
+          background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08);
           border-left-color: var(--accent);
         }
 

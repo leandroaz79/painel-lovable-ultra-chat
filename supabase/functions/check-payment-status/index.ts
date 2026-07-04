@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-1956464108264660-110212-c09d3e0e1b63035e401c8ff9a4a28955-173764383'
+const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN') ?? ''
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {

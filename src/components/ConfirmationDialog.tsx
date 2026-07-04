@@ -79,7 +79,7 @@ export default function ConfirmationDialog({
 
       {/* Modal Container */}
       <div
-        className="relative z-10 bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-w-sm w-full"
+        className="relative z-10"
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
@@ -87,31 +87,30 @@ export default function ConfirmationDialog({
         style={{
           position: 'relative',
           zIndex: 10,
-          backgroundColor: '#0f172a',
-          borderColor: '#334155',
+          backgroundColor: 'var(--card-strong)',
+          borderColor: 'var(--line)',
           borderWidth: '1px',
-          borderRadius: '0.5rem',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+          borderRadius: '12px',
+          boxShadow: 'var(--shadow)',
           maxWidth: '32rem',
           width: '100%',
         }}
       >
         {/* Header */}
         <div 
-          className="p-6 border-b border-slate-700"
           style={{
             padding: '1.5rem',
-            borderBottomColor: '#334155',
+            borderBottomColor: 'var(--line)',
             borderBottomWidth: '1px',
           }}
         >
           <h2
             id="dialog-title"
-            className="text-lg font-semibold text-white"
             style={{
               fontSize: '1.125rem',
               fontWeight: '600',
-              color: '#ffffff',
+              color: 'var(--text)',
+              margin: 0,
             }}
           >
             {title}
@@ -120,18 +119,17 @@ export default function ConfirmationDialog({
 
         {/* Content */}
         <div 
-          className="p-6"
           style={{
             padding: '1.5rem',
           }}
         >
           <p
             id="dialog-message"
-            className="text-sm text-slate-300 leading-relaxed"
             style={{
               fontSize: '0.875rem',
-              color: '#cbd5e1',
+              color: 'var(--muted)',
               lineHeight: '1.5',
+              margin: 0,
             }}
           >
             {message}
@@ -141,10 +139,9 @@ export default function ConfirmationDialog({
 
         {/* Actions */}
         <div 
-          className="p-6 border-t border-slate-700 flex gap-3 justify-end"
           style={{
             padding: '1.5rem',
-            borderTopColor: '#334155',
+            borderTopColor: 'var(--line)',
             borderTopWidth: '1px',
             display: 'flex',
             gap: '0.75rem',

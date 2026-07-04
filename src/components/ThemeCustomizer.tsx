@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { loadTheme, saveTheme, applyTheme, resetTheme, DEFAULT_THEME } from '../utils/themeStorage';
+import { loadTheme, applyTheme, resetTheme, DEFAULT_THEME } from '../utils/themeStorage';
 import type { ThemeColors } from '../utils/themeStorage';
+import { supabase } from '../lib/supabase';
 import { Button } from './ui/button';
 import { Palette, RotateCcw } from 'lucide-react';
 
@@ -8,7 +9,7 @@ type ThemeKey = keyof ThemeColors;
 
 const LABELS: Record<ThemeKey, string> = {
   accent: 'Cor de destaque',
-  accent2: 'Destaque secundário',
+  accent2: 'Cor secundária',
   bg: 'Fundo',
   bgSoft: 'Fundo suave',
   card: 'Cartão',
@@ -19,7 +20,7 @@ const LABELS: Record<ThemeKey, string> = {
   muted2: 'Texto apagado',
   danger: 'Perigo',
   warning: 'Aviso',
-  cyan: 'Ciano',
+  cyan: 'Accent 2',
 };
 
 const GROUPS: Array<{ label: string; keys: ThemeKey[] }> = [
@@ -33,26 +34,81 @@ const GROUPS: Array<{ label: string; keys: ThemeKey[] }> = [
 export default function ThemeCustomizer() {
   const [colors, setColors] = useState<ThemeColors>(loadTheme);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     applyTheme(colors);
   }, [colors]);
 
+  // Load theme from Supabase on mount
+  useEffect(() => {
+    async function loadRemote() {
+      try {
+        const { data } = await supabase.functions.invoke('get-site-settings', {
+          method: 'GET',
+        });
+        if (data?.theme_colors) {
+          const remote = { ...DEFAULT_THEME, ...data.theme_colors };
+          setColors(remote);
+          applyTheme(remote);
+        }
+      } catch {}
+      setLoading(false);
+    }
+    loadRemote();
+  }, []);
+
   const update = (key: ThemeKey, value: string) => {
     setColors(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = () => {
-    saveTheme(colors);
-    applyTheme(colors);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Save to Supabase (global)
+      const { error } = await supabase.functions.invoke('update-site-settings', {
+        method: 'POST',
+        body: { key: 'theme_colors', value: colors },
+      });
+
+      if (error) throw error;
+
+      // Also cache locally
+      try {
+        localStorage.setItem('ultra-theme-colors', JSON.stringify(colors));
+      } catch {}
+
+      applyTheme(colors);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error('Erro ao salvar tema:', err);
+      alert('Erro ao salvar. Tente novamente.');
+    }
+    setSaving(false);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     resetTheme();
     setColors({ ...DEFAULT_THEME });
+
+    // Save default to Supabase
+    try {
+      await supabase.functions.invoke('update-site-settings', {
+        method: 'POST',
+        body: { key: 'theme_colors', value: DEFAULT_THEME },
+      });
+    } catch {}
   };
+
+  if (loading) {
+    return (
+      <div className="glass-card" style={{ padding: '28px', textAlign: 'center' }}>
+        <p style={{ color: 'var(--muted-2)' }}>Carregando tema...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="glass-card" style={{ padding: '28px' }}>
@@ -62,7 +118,7 @@ export default function ThemeCustomizer() {
       </div>
 
       <p style={{ color: 'var(--muted-2)', fontSize: '13px', marginBottom: '20px' }}>
-        Personaliza as cores do painel administrativo e da landing page. As alterações são aplicadas em tempo real e salvas no navegador.
+        Personaliza as cores de todo o sistema. As alterações são aplicadas em tempo real em todos os dispositivos e usuários.
       </p>
 
       <div className="stack-form">
@@ -103,10 +159,10 @@ export default function ThemeCustomizer() {
       </div>
 
       <div style={{ display: 'flex', gap: '12px', marginTop: '24px', alignItems: 'center' }}>
-        <Button onClick={handleSave}>
-          {saved ? '✓ Salvo' : 'Salvar cores'}
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? 'Salvando...' : saved ? '✓ Salvo!' : 'Salvar cores'}
         </Button>
-        <Button variant="outline" onClick={handleReset}>
+        <Button variant="outline" onClick={handleReset} disabled={saving}>
           <RotateCcw size={16} /> Restaurar padrão
         </Button>
       </div>

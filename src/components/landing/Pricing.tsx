@@ -163,14 +163,9 @@ export function Pricing() {
 
                   <button
                     onClick={() => handleSelectPlan(plan.slug)}
-                    className={`pricing-btn inline-flex w-full items-center justify-center rounded-full px-6 py-4 text-sm font-extrabold uppercase tracking-[0.16em] transition-all cursor-pointer ${
+                    className={`primary-action pricing-btn inline-flex w-full items-center justify-center rounded-full px-6 py-4 text-sm font-extrabold uppercase tracking-[0.16em] transition-all cursor-pointer ${
                       isPopular ? 'text-white' : 'text-white'
                     }`}
-                    style={{
-                      background: 'rgba(14, 19, 32, 0.9)',
-                      border: `1px solid ${accentColor}66`,
-                      boxShadow: `inset 0 0 0 1px rgba(255,255,255,0.03), 0 8px 28px ${accentColor}1f`,
-                    }}
                   >
                     Comprar agora <span style={{ marginLeft: '10px', color: accentColor }}>→</span>
                   </button>

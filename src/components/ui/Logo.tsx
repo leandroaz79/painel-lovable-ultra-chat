@@ -10,22 +10,22 @@ const variantConfig: Record<LogoVariant, { icon: React.ReactNode; text: React.Re
   },
   admin: {
     icon: <MessageCircleHeart className="size-5 text-white" />,
-    text: <>Ultra<span style={{ color: 'var(--brand-green)' }}>Admin</span></>,
+    text: <>Ultra<span style={{ color: 'var(--accent)' }}>Admin</span></>,
     label: "Ultra Admin",
   },
   reseller: {
     icon: <MessageCircleHeart className="size-5 text-white" />,
-    text: <>Ultra<span style={{ color: 'var(--brand-green)' }}>Revenda</span></>,
+    text: <>Ultra<span style={{ color: 'var(--accent)' }}>Revenda</span></>,
     label: "Ultra Revenda",
   },
   user: {
     icon: <MessageCircleHeart className="size-5 text-white" />,
-    text: <>Ultra<span style={{ color: 'var(--brand-green)' }}>Chat</span></>,
+    text: <>Ultra<span style={{ color: 'var(--accent)' }}>Chat</span></>,
     label: "Ultra Chat",
   },
   login: {
     icon: <MessageCircleHeart className="size-5 text-white" />,
-    text: <>Ultra<span style={{ color: 'var(--brand-green)' }}>Admin</span></>,
+    text: <>Ultra<span style={{ color: 'var(--accent)' }}>Admin</span></>,
     label: "Ultra Admin",
   },
 }

@@ -419,6 +419,21 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
             <form className="stack-form" onSubmit={handleLogin}>
               <label><span>Email</span><input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="email@exemplo.com" required /></label>
               <label><span>Senha</span><input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="••••••••" required /></label>
+              <div style={{ marginTop: '-8px', marginBottom: '8px' }}>
+                <button type="button" onClick={async () => {
+                  if (!loginEmail) { setLoginError('Informe o email para redefinir a senha.'); return }
+                  try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, { redirectTo: window.location.origin })
+                    if (error) throw error
+                    setLoginError('')
+                    alert('Email de redefinição de senha enviado! Verifique sua caixa de entrada.')
+                  } catch (err: any) {
+                    setLoginError(err.message || 'Erro ao enviar email de redefinição.')
+                  }
+                }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: '12px', textDecoration: 'underline', padding: 0 }}>
+                  Esqueceu a senha?
+                </button>
+              </div>
               <Button type="submit" disabled={loginLoading} isLoading={loginLoading}>{loginLoading ? 'Entrando...' : 'Entrar'}</Button>
             </form>
             {loginError && <p className="form-message error" role="status">{loginError}</p>}
@@ -436,29 +451,29 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
             <h2 id="chk-dialog-title">{product.name}</h2>
             <p style={{ color: 'var(--muted)', fontSize: '14px' }}>{product.description}</p>
 
-            <div className="mt-6 rounded-xl p-4" style={{ background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.15)' }}>
+            <div className="mt-6 rounded-xl p-4" style={{ background: 'rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08)', border: '1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15)' }}>
               <div className="text-3xl font-black">{formatPrice(product.price_cents)}</div>
               <div className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>Pagamento único</div>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-4 text-sm" style={{ color: 'var(--muted)' }}>
-              <span className="inline-flex items-center gap-1.5"><Clock className="size-3.5" style={{ color: 'var(--brand-green)' }} /> {product.is_lifetime ? 'Acesso vitalício' : `${product.days} dias`}</span>
-              <span className="inline-flex items-center gap-1.5"><Smartphone className="size-3.5" style={{ color: 'var(--brand-green)' }} /> {product.devices} dispositivo{product.devices > 1 ? 's' : ''}</span>
-              {product.has_priority_support && <span className="inline-flex items-center gap-1.5"><Headphones className="size-3.5" style={{ color: 'var(--brand-green)' }} /> Suporte prioritário</span>}
+              <span className="inline-flex items-center gap-1.5"><Clock className="size-3.5" style={{ color: 'var(--accent)' }} /> {product.is_lifetime ? 'Acesso vitalício' : `${product.days} dias`}</span>
+              <span className="inline-flex items-center gap-1.5"><Smartphone className="size-3.5" style={{ color: 'var(--accent)' }} /> {product.devices} dispositivo{product.devices > 1 ? 's' : ''}</span>
+              {product.has_priority_support && <span className="inline-flex items-center gap-1.5"><Headphones className="size-3.5" style={{ color: 'var(--accent)' }} /> Suporte prioritário</span>}
             </div>
 
             <div className="mt-4 flex gap-3" role="radiogroup" aria-label="Forma de pagamento">
               <button type="button" role="radio" aria-checked={paymentMethod === 'pix'} onClick={() => setPaymentMethod('pix')}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'pix' ? 'border-[var(--brand-green)] bg-[rgba(45,212,191,0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
-                style={{ color: paymentMethod === 'pix' ? 'var(--brand-green)' : 'var(--muted)' }}><Banknote className="size-5" /> Pix</button>
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'pix' ? 'border-[var(--accent)] bg-[rgba(var(--accent-r),var(--accent-g),var(--accent-b),0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
+                style={{ color: paymentMethod === 'pix' ? 'var(--accent)' : 'var(--muted)' }}><Banknote className="size-5" /> Pix</button>
               <button type="button" role="radio" aria-checked={paymentMethod === 'credit_card'} onClick={() => setPaymentMethod('credit_card')}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'credit_card' ? 'border-[var(--brand-green)] bg-[rgba(45,212,191,0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
-                style={{ color: paymentMethod === 'credit_card' ? 'var(--brand-green)' : 'var(--muted)' }}><CreditCard className="size-5" /> Cartão</button>
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'credit_card' ? 'border-[var(--accent)] bg-[rgba(var(--accent-r),var(--accent-g),var(--accent-b),0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
+                style={{ color: paymentMethod === 'credit_card' ? 'var(--accent)' : 'var(--muted)' }}><CreditCard className="size-5" /> Cartão</button>
             </div>
 
             {user && (
               <>
-                <div className="mt-4 rounded-xl border p-4" style={{ borderColor: 'rgba(168, 85, 247, 0.15)', background: 'rgba(168, 85, 247, 0.03)' }}>
+                <div className="mt-4 rounded-xl border p-4" style={{ borderColor: 'rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15)', background: 'rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.03)' }}>
                   <h3 className="flex items-center gap-2 text-sm font-semibold mb-4"><User className="size-4" /> Dados do comprador</h3>
                   <div className="stack-form" style={{ gap: '12px' }}>
                     <label><span><User className="size-3" /> Nome completo</span><input type="text" value={buyerName} onChange={(e) => setBuyerName(e.target.value)} placeholder="João Silva" required /></label>
@@ -471,7 +486,7 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
                 </div>
 
                 {paymentMethod === 'credit_card' && (
-                  <div className="mt-4 rounded-xl border p-4" style={{ borderColor: 'rgba(168, 85, 247, 0.15)', background: 'rgba(168, 85, 247, 0.03)' }}>
+                  <div className="mt-4 rounded-xl border p-4" style={{ borderColor: 'rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15)', background: 'rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.03)' }}>
                     <h3 className="flex items-center gap-2 text-sm font-semibold mb-4"><CreditCard className="size-4" /> Dados do cartão</h3>
                     <div className="stack-form" style={{ gap: '12px' }}>
                       <label><span>Número do cartão</span><input type="text" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} placeholder="0000 0000 0000 0000" inputMode="numeric" /></label>
@@ -481,7 +496,7 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
                         <label><span>CVV</span><input type="text" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="123" inputMode="numeric" /></label>
                       </div>
                     </div>
-                    <div className="inline-flex items-center gap-2 mt-3 rounded-lg px-3 py-2 text-xs font-medium" style={{ background: 'rgba(45, 212, 191, 0.08)', border: '1px solid rgba(45, 212, 191, 0.15)', color: 'var(--brand-green)' }}>
+                    <div className="inline-flex items-center gap-2 mt-3 rounded-lg px-3 py-2 text-xs font-medium" style={{ background: 'rgba(109, 232, 255, 0.08)', border: '1px solid rgba(109, 232, 255, 0.15)', color: 'var(--accent)' }}>
                       <ShieldCheck className="size-3.5" /> Pagamento processado com segurança pelo Mercado Pago
                     </div>
                   </div>
@@ -495,7 +510,7 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
               </>
             )}
             {!user && (
-              <div className="mt-8 rounded-xl border p-4 text-center" style={{ borderColor: 'rgba(168, 85, 247, 0.2)', background: 'rgba(168, 85, 247, 0.05)' }}>
+              <div className="mt-8 rounded-xl border p-4 text-center" style={{ borderColor: 'rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2)', background: 'rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.05)' }}>
                 <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>Faça login para continuar</p>
                 <p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>Crie sua conta ou entre para gerar o pagamento.</p>
                 <div className="mt-4 flex gap-3 justify-center">
@@ -526,7 +541,7 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
                 </div>
               )}
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm animate-pulse" style={{ background: 'rgba(45, 212, 191, 0.1)', color: 'var(--brand-green)' }}>
+            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm animate-pulse" style={{ background: 'rgba(var(--accent-r),var(--accent-g),var(--accent-b),0.1)', color: 'var(--accent)' }}>
               <Clock className="size-4" /> Aguardando confirmação...
             </div>
           </div>
@@ -535,7 +550,7 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
         {/* SUCCESS */}
         {step === 'success' && (
           <div className="text-center py-4">
-            <CheckCircle className="mx-auto size-14" style={{ color: 'var(--brand-green)' }} />
+            <CheckCircle className="mx-auto size-14" style={{ color: 'var(--accent)' }} />
             <h2 className="mt-4">Pagamento confirmado!</h2>
             <p className="mt-2" style={{ color: 'var(--muted)' }}>Sua licença foi gerada. Acesse seu painel para usar.</p>
             <Button className="mt-6" onClick={() => { handleClose(); navigate('/user', { replace: true }) }}>Ir para meu painel</Button>

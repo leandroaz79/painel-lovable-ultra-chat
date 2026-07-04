@@ -16,7 +16,7 @@ export function FAQ() {
   const toggle = (i: number) => setOpenIdx(openIdx === i ? null : i)
 
   return (
-    <section className="relative py-20">
+    <section id="faq" className="relative py-20">
       <div className="mx-auto max-w-3xl px-4 md:px-6">
         <h2 className="text-center text-3xl font-extrabold tracking-tight sm:text-4xl" style={{ color: 'var(--text)' }}>
           Perguntas <span className="text-gradient-brand">Frequentes</span>
@@ -30,17 +30,20 @@ export function FAQ() {
             >
               <button
                 onClick={() => toggle(i)}
+                aria-expanded={openIdx === i}
+                aria-controls={`faq-answer-${i}`}
                 className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-sm font-semibold transition hover:bg-white/[0.03]"
                 style={{ color: 'var(--text)' }}
               >
                 {faq.q}
                 <ChevronDown
+                  id={`faq-q-${i}`}
                   className={`size-4 shrink-0 transition-transform ${openIdx === i ? "rotate-180" : ""}`}
                   style={{ color: 'var(--muted)' }}
                 />
               </button>
               {openIdx === i && (
-                <div className="border-t px-5 pb-4 pt-3 text-sm leading-relaxed" style={{ borderColor: 'rgba(255,255,255,0.06)', color: 'var(--muted)' }}>
+                <div id={`faq-answer-${i}`} role="region" aria-labelledby={`faq-q-${i}`} className="border-t px-5 pb-4 pt-3 text-sm leading-relaxed" style={{ borderColor: 'rgba(255,255,255,0.06)', color: 'var(--muted)' }}>
                   {faq.a}
                 </div>
               )}

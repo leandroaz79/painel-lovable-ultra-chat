@@ -7,16 +7,17 @@ export function WhatsAppFAB() {
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-2 text-white transition hover:scale-[1.03]"
-      style={{ filter: 'drop-shadow(0 0 26px rgba(168, 85, 247, 0.32))' }}
+      style={{ filter: 'drop-shadow(0 0 26px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25))' }}
       aria-label="Fale conosco no WhatsApp"
     >
       <span
         className="grid size-14 place-items-center rounded-full bg-gradient-brand shadow-2xl"
-        style={{ boxShadow: '0 0 40px rgba(168, 85, 247, 0.4)' }}
+        style={{ boxShadow: '0 0 40px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25)' }}
       >
         <MessageCircle className="size-7" />
       </span>
       <span
+        className="hidden sm:inline"
         style={{
           fontSize: '11px',
           lineHeight: 1.2,

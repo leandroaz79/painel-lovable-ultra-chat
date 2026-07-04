@@ -15,7 +15,7 @@ export function Steps() {
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
           {steps.map((s) => (
             <div key={s.n} className="glass-card rounded-2xl p-6 transition hover:-translate-y-1">
-              <div className="grid size-12 place-items-center rounded-xl bg-gradient-brand text-lg font-black text-white shadow-lg" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}>
+              <div className="grid size-12 place-items-center rounded-xl bg-gradient-brand text-lg font-black text-white shadow-lg" style={{ boxShadow: '0 0 30px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2)' }}>
                 {s.n}
               </div>
               <h3 className="mt-5 text-lg font-bold" style={{ color: 'var(--text)' }}>{s.title}</h3>

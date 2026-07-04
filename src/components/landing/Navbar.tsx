@@ -25,7 +25,7 @@ export function Navbar() {
     <header className="sticky top-0 z-40 w-full border-b border-white/5" style={{ background: 'rgba(5, 11, 18, 0.82)', backdropFilter: 'blur(22px)' }}>
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-6">
         <a href="#top" className="flex min-w-0 items-center gap-2">
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-brand shadow-lg" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}>
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-brand shadow-lg" style={{ boxShadow: '0 0 30px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2)' }}>
             <MessageCircleHeart className="size-5 text-white" />
           </span>
           <span className="truncate text-base font-extrabold tracking-tight sm:text-lg" style={{ color: 'var(--text)' }}>
@@ -52,8 +52,8 @@ export function Navbar() {
           {isLoggedIn ? (
             <button
               onClick={() => navigate(dashboardPath(role))}
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white shadow-lg hover:opacity-95 transition-all"
-              style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white shadow-lg hover:opacity-95 transition-all min-h-[44px]"
+              style={{ boxShadow: '0 0 30px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2)' }}
             >
               <LayoutDashboard className="size-4" />
               Painel
@@ -61,13 +61,13 @@ export function Navbar() {
           ) : (
             <>
               <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login') }}
-                className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
+                className="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition hover:bg-white/10 min-h-[44px]"
                 style={{ color: 'var(--muted)' }}>
                 Entrar
               </a>
               <a href="/signup" onClick={(e) => { e.preventDefault(); navigate('/signup') }}
-                className="inline-flex items-center justify-center rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white shadow-lg hover:opacity-95 transition-all"
-                style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}>
+                className="inline-flex items-center justify-center rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white shadow-lg hover:opacity-95 transition-all min-h-[44px]"
+                style={{ boxShadow: '0 0 30px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2)' }}>
                 Começar grátis
               </a>
             </>
@@ -77,7 +77,7 @@ export function Navbar() {
         <button
           aria-label="Abrir menu"
           onClick={() => setOpen((v) => !v)}
-          className="grid size-10 place-items-center rounded-lg border border-white/10 bg-white/5 md:hidden"
+          className="grid size-11 place-items-center rounded-lg border border-white/10 bg-white/5 md:hidden"
           style={{ color: 'var(--text)' }}
         >
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -103,16 +103,16 @@ export function Navbar() {
             {isLoggedIn ? (
               <button
                 onClick={() => { setOpen(false); navigate(dashboardPath(role)) }}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white mt-2 transition-all"
-                style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white mt-2 transition-all min-h-[44px]"
+                style={{ boxShadow: '0 0 30px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2)' }}
               >
                 <LayoutDashboard className="size-4" />
                 Painel
               </button>
             ) : (
               <a href="/signup" onClick={(e) => { e.preventDefault(); setOpen(false); navigate('/signup') }}
-                className="inline-flex items-center justify-center rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white mt-2 transition-all"
-                style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}>
+                className="inline-flex items-center justify-center rounded-full bg-gradient-brand px-5 py-2 text-sm font-bold text-white mt-2 transition-all min-h-[44px]"
+                style={{ boxShadow: '0 0 30px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2)' }}>
                 Começar grátis
               </a>
             )}

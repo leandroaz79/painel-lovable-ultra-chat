@@ -27,37 +27,41 @@ export function ComparisonTable() {
           Compare os recursos e veja o que você ganha ao escolher a extensão.
         </p>
 
-        <div className="mt-10 overflow-hidden rounded-2xl border" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
-          <div className="grid grid-cols-12 gap-0 text-sm">
-            <div className="col-span-6 border-r px-4 py-3 text-xs font-bold uppercase tracking-wider md:col-span-7" style={{ borderColor: 'rgba(255,255,255,0.08)', color: 'var(--muted)' }}>
-              Funcionalidades
-            </div>
-            <div className="col-span-3 px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
-              Grátis
-            </div>
-            <div className="col-span-3 px-4 py-3 text-center text-xs font-bold uppercase tracking-wider md:col-span-2" style={{ color: 'var(--brand-green)' }}>
-              Ultra Chat
-            </div>
+        <div className="mt-10 overflow-x-auto rounded-2xl border" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table className="min-w-[480px] w-full text-sm" style={{ borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th className="border-r px-4 py-3 text-left text-xs font-bold uppercase tracking-wider md:w-[58%]" style={{ borderColor: 'rgba(255,255,255,0.08)', color: 'var(--muted)' }}>
+                  Funcionalidades
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+                  Grátis
+                </th>
+                <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--accent)' }}>
+                  Ultra Chat
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.label} className="border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                  <td className="border-r px-4 py-3.5" style={{ borderColor: 'rgba(255,255,255,0.06)', color: 'var(--text)' }}>
+                    {r.label}
+                  </td>
+                  <td className="px-4 py-3.5 text-center">
+                    {r.free ? <Check className="size-4 inline" style={{ color: 'var(--accent)' }} aria-label="Sim" /> : <X className="size-4 inline" style={{ color: 'rgba(255,255,255,0.15)' }} aria-label="Não" />}
+                  </td>
+                  <td className="px-4 py-3.5 text-center">
+                    <div className="inline-flex items-center justify-center rounded-md bg-gradient-brand px-2 py-0.5 text-xs font-bold text-white" aria-label="Sim">
+                      ✓
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
           </div>
-
-          {rows.map((r) => (
-            <div
-              key={r.label}
-              className="grid grid-cols-12 gap-0 border-t text-sm" style={{ borderColor: 'rgba(255,255,255,0.06)' }}
-            >
-              <div className="col-span-6 border-r px-4 py-3.5 md:col-span-7" style={{ borderColor: 'rgba(255,255,255,0.06)', color: 'var(--text)' }}>
-                {r.label}
-              </div>
-              <div className="col-span-3 flex items-center justify-center px-4 py-3.5">
-                {r.free ? <Check className="size-4" style={{ color: 'var(--brand-green)' }} /> : <X className="size-4" style={{ color: 'rgba(255,255,255,0.15)' }} />}
-              </div>
-              <div className="col-span-3 flex items-center justify-center px-4 py-3.5 md:col-span-2">
-                <div className="inline-flex items-center justify-center rounded-md bg-gradient-brand px-2 py-0.5 text-xs font-bold text-white">
-                  ✓
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </section>

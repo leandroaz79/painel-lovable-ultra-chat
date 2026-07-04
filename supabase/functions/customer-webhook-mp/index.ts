@@ -13,7 +13,42 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-1956464108264660-110212-c09d3e0e1b63035e401c8ff9a4a28955-173764383'
+const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN') ?? ''
+const MERCADOPAGO_WEBHOOK_SECRET = Deno.env.get('MERCADOPAGO_WEBHOOK_SECRET') ?? ''
+
+async function verifyWebhookSignature(
+  xSignature: string | null,
+  xRequestId: string | null,
+  dataId: string | null,
+  secret: string
+): Promise<boolean> {
+  if (!xSignature || !xRequestId || !dataId || !secret) return false
+
+  try {
+    const parts = xSignature.split(',')
+    let ts = ''
+    let v1 = ''
+    for (const part of parts) {
+      if (part.startsWith('ts=')) ts = part.slice(3)
+      if (part.startsWith('v1=')) v1 = part.slice(3)
+    }
+    if (!ts || !v1) return false
+
+    const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    )
+    const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(manifest))
+    const computed = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('')
+    return computed === v1
+  } catch {
+    return false
+  }
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -21,6 +56,20 @@ serve(async (req) => {
   }
 
   try {
+    // Verificar assinatura do webhook (se secret configurado)
+    if (MERCADOPAGO_WEBHOOK_SECRET) {
+      const dataId = new URL(req.url).searchParams.get('data.id')
+      const xSignature = req.headers.get('x-signature')
+      const xRequestId = req.headers.get('x-request-id')
+      const isValid = await verifyWebhookSignature(xSignature, xRequestId, dataId, MERCADOPAGO_WEBHOOK_SECRET)
+      if (!isValid) {
+        console.error('[WEBHOOK-CUSTOMER] Assinatura inválida')
+        return new Response('Unauthorized', { status: 401 })
+      }
+    } else {
+      console.warn('[WEBHOOK-CUSTOMER] MERCADOPAGO_WEBHOOK_SECRET não configurado — assinatura não verificada')
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''

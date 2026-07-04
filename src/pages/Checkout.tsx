@@ -335,14 +335,14 @@ export default function Checkout() {
 
             <div className="mt-6 grid grid-cols-2 gap-4 text-sm" style={{ color: 'var(--muted)' }}>
               <div className="inline-flex items-center gap-2">
-                <Clock className="size-4" style={{ color: 'var(--brand-green)' }} /> {product.is_lifetime ? 'Acesso vitalício' : `${product.days} dias de acesso`}
+                <Clock className="size-4" style={{ color: 'var(--accent)' }} /> {product.is_lifetime ? 'Acesso vitalício' : `${product.days} dias de acesso`}
               </div>
               <div className="inline-flex items-center gap-2">
-                <Smartphone className="size-4" style={{ color: 'var(--brand-green)' }} /> Até {product.devices} dispositivo{product.devices > 1 ? 's' : ''}
+                <Smartphone className="size-4" style={{ color: 'var(--accent)' }} /> Até {product.devices} dispositivo{product.devices > 1 ? 's' : ''}
               </div>
               {product.has_priority_support && (
                 <div className="inline-flex items-center gap-2">
-                  <Headphones className="size-4" style={{ color: 'var(--brand-green)' }} /> Suporte prioritário
+                  <Headphones className="size-4" style={{ color: 'var(--accent)' }} /> Suporte prioritário
                 </div>
               )}
             </div>
@@ -351,16 +351,16 @@ export default function Checkout() {
               <button
                 type="button"
                 onClick={() => setPaymentMethod('pix')}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'pix' ? 'border-[var(--brand-green)] bg-[rgba(45,212,191,0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
-                style={{ color: paymentMethod === 'pix' ? 'var(--brand-green)' : 'var(--muted)' }}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'pix' ? 'border-[var(--accent)] bg-[rgba(var(--accent-r),var(--accent-g),var(--accent-b),0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
+                style={{ color: paymentMethod === 'pix' ? 'var(--accent)' : 'var(--muted)' }}
               >
                 <Banknote className="size-5" /> Pix
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentMethod('credit_card')}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'credit_card' ? 'border-[var(--brand-green)] bg-[rgba(45,212,191,0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
-                style={{ color: paymentMethod === 'credit_card' ? 'var(--brand-green)' : 'var(--muted)' }}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'credit_card' ? 'border-[var(--accent)] bg-[rgba(var(--accent-r),var(--accent-g),var(--accent-b),0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
+                style={{ color: paymentMethod === 'credit_card' ? 'var(--accent)' : 'var(--muted)' }}
               >
                 <CreditCard className="size-5" /> Cartão de crédito
               </button>
@@ -485,7 +485,7 @@ export default function Checkout() {
               )}
             </div>
 
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm animate-pulse" style={{ background: 'rgba(45, 212, 191, 0.1)', color: 'var(--brand-green)' }}>
+            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm animate-pulse" style={{ background: 'rgba(var(--accent-r),var(--accent-g),var(--accent-b),0.1)', color: 'var(--accent)' }}>
               <Clock className="size-4" />
               Aguardando confirmação do pagamento...
             </div>
@@ -494,7 +494,7 @@ export default function Checkout() {
 
         {step === 'success' && (
           <div className="rounded-2xl border p-8 text-center" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
-            <CheckCircle className="mx-auto size-16" style={{ color: 'var(--brand-green)' }} />
+            <CheckCircle className="mx-auto size-16" style={{ color: 'var(--accent)' }} />
             <h1 className="mt-4 text-2xl font-extrabold tracking-tight">Pagamento confirmado!</h1>
             <p className="mt-2" style={{ color: 'var(--muted)' }}>
               Sua licença foi gerada e você será redirecionado para o painel.

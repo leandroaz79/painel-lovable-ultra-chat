@@ -49,9 +49,9 @@ export function Testimonials() {
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((t) => (
             <div key={t.name} className="glass-card rounded-2xl p-6 transition hover:-translate-y-1">
-              <div className="flex gap-1">
+              <div className="flex gap-1" aria-label="5 de 5 estrelas">
                 {stars.map((_, i) => (
-                  <span key={i} className="text-base">★</span>
+                  <span key={i} className="text-base" aria-hidden="true">★</span>
                 ))}
               </div>
               <p className="mt-4 text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>

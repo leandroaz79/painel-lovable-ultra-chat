@@ -36,7 +36,7 @@ export function Features() {
           {features.map(({ icon: Icon, title, desc }) => (
             <div key={title} className="group glass-card relative overflow-hidden rounded-2xl p-6 transition hover:-translate-y-1">
               <div className="absolute -right-10 -top-10 size-32 rounded-full bg-gradient-brand opacity-0 blur-3xl transition group-hover:opacity-30" />
-              <div className="grid size-11 place-items-center rounded-xl bg-gradient-brand text-white shadow-lg" style={{ boxShadow: '0 0 30px rgba(168, 85, 247, 0.3)' }}>
+              <div className="grid size-11 place-items-center rounded-xl bg-gradient-brand text-white shadow-lg" style={{ boxShadow: '0 0 30px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2)' }}>
                 <Icon className="size-5" />
               </div>
               <h3 className="mt-5 text-lg font-bold" style={{ color: 'var(--text)' }}>{title}</h3>

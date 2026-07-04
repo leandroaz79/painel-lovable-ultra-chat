@@ -1,0 +1,6 @@
+{
+  "files": ["index.html"],
+  "insertBefore": "<!-- head:impeccable -->",
+  "commentSyntax": "<!-- {INSERT} -->",
+  "cspChecked": false
+}

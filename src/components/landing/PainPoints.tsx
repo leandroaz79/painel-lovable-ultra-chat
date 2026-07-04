@@ -23,7 +23,7 @@ export function PainPoints() {
           {items.map(({ icon: Icon, title, desc }) => (
             <div key={title} className="glass-card rounded-2xl p-6 transition hover:-translate-y-1">
               <div className="grid size-11 place-items-center rounded-xl bg-white/5">
-                <Icon className="size-5" style={{ color: 'var(--brand-green)' }} />
+                <Icon className="size-5" style={{ color: 'var(--accent)' }} />
               </div>
               <h3 className="mt-4 text-lg font-bold" style={{ color: 'var(--text)' }}>{title}</h3>
               <p className="mt-2 text-sm" style={{ color: 'var(--muted)' }}>{desc}</p>
