@@ -8,6 +8,8 @@ import { Button } from '../ui/button'
 import { formatWhatsApp, cleanDigits } from '../../utils/format'
 import { CheckCircle, Clock, Smartphone, Headphones, User, Mail, Phone, CreditCard, Banknote, X, ShieldCheck } from 'lucide-react'
 
+const CREDIT_CARD_ENABLED = false // Altere para true para reativar cartão de crédito
+
 interface Product {
   id: string
   name: string
@@ -466,9 +468,11 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
               <button type="button" role="radio" aria-checked={paymentMethod === 'pix'} onClick={() => setPaymentMethod('pix')}
                 className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'pix' ? 'border-[var(--accent)] bg-[rgba(var(--accent-r),var(--accent-g),var(--accent-b),0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
                 style={{ color: paymentMethod === 'pix' ? 'var(--accent)' : 'var(--muted)' }}><Banknote className="size-5" /> Pix</button>
-              <button type="button" role="radio" aria-checked={paymentMethod === 'credit_card'} onClick={() => setPaymentMethod('credit_card')}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'credit_card' ? 'border-[var(--accent)] bg-[rgba(var(--accent-r),var(--accent-g),var(--accent-b),0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
-                style={{ color: paymentMethod === 'credit_card' ? 'var(--accent)' : 'var(--muted)' }}><CreditCard className="size-5" /> Cartão</button>
+              {CREDIT_CARD_ENABLED && (
+                <button type="button" role="radio" aria-checked={paymentMethod === 'credit_card'} onClick={() => setPaymentMethod('credit_card')}
+                  className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'credit_card' ? 'border-[var(--accent)] bg-[rgba(var(--accent-r),var(--accent-g),var(--accent-b),0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
+                  style={{ color: paymentMethod === 'credit_card' ? 'var(--accent)' : 'var(--muted)' }}><CreditCard className="size-5" /> Cartão</button>
+              )}
             </div>
 
             {user && (

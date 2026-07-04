@@ -9,6 +9,8 @@ import { Footer } from '../components/landing/Footer'
 import { ArrowLeft, CheckCircle, Clock, Smartphone, Headphones, User, Mail, Phone, CreditCard, Banknote } from 'lucide-react'
 import { formatWhatsApp, cleanDigits } from '../utils/format'
 
+const CREDIT_CARD_ENABLED = false // Altere para true para reativar cartão de crédito
+
 interface Product {
   id: string
   name: string
@@ -356,14 +358,16 @@ export default function Checkout() {
               >
                 <Banknote className="size-5" /> Pix
               </button>
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('credit_card')}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'credit_card' ? 'border-[var(--accent)] bg-[rgba(var(--accent-r),var(--accent-g),var(--accent-b),0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
-                style={{ color: paymentMethod === 'credit_card' ? 'var(--accent)' : 'var(--muted)' }}
-              >
-                <CreditCard className="size-5" /> Cartão de crédito
-              </button>
+              {CREDIT_CARD_ENABLED && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('credit_card')}
+                  className={`flex-1 flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-semibold transition-all ${paymentMethod === 'credit_card' ? 'border-[var(--accent)] bg-[rgba(var(--accent-r),var(--accent-g),var(--accent-b),0.1)]' : 'border-white/10 bg-transparent hover:border-white/20'}`}
+                  style={{ color: paymentMethod === 'credit_card' ? 'var(--accent)' : 'var(--muted)' }}
+                >
+                  <CreditCard className="size-5" /> Cartão de crédito
+                </button>
+              )}
             </div>
 
             {user ? (
