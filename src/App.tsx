@@ -7,6 +7,7 @@ import Signup from './pages/Signup'
 import Landing from './pages/Landing'
 import Checkout from './pages/Checkout'
 import Profile from './pages/Profile'
+import ResetLicense from './pages/ResetLicense'
 
 const UserDashboard = lazy(() => import('./pages/user/Dashboard'))
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
@@ -72,6 +73,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/checkout/:slug" element={<Checkout />} />
+        <Route path="/resetar-licenca" element={<ResetLicense />} />
         
         <Route
           path="/profile"

@@ -1,12 +1,13 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Menu, X, MessageCircleHeart, LayoutDashboard } from "lucide-react"
+import { Menu, X, MessageCircleHeart, LayoutDashboard, RefreshCw } from "lucide-react"
 import { useAuth } from "../../hooks/useAuth"
 
 const links = [
   { href: "#funcionalidades", label: "Funcionalidades" },
   { href: "#tutorial", label: "Tutorial" },
   { href: "#planos", label: "Planos" },
+  { href: "/resetar-licenca", label: "Resetar Licença", isPage: true },
 ]
 
 function dashboardPath(role: string | null) {
@@ -35,16 +36,31 @@ export function Navbar() {
 
         <nav className="hidden items-center gap-1 lg:flex">
           {links.map((l) => (
-            <a
-              key={l.label}
-              href={l.href}
-              className="rounded-full px-4 py-2 text-sm transition hover:bg-white/5"
-              style={{ color: 'var(--muted)' }}
-              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text)'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--muted)'}
-            >
-              {l.label}
-            </a>
+            l.isPage ? (
+              <a
+                key={l.label}
+                href={l.href}
+                onClick={(e) => { e.preventDefault(); navigate(l.href) }}
+                className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm transition hover:bg-white/5"
+                style={{ color: 'var(--muted)' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--muted)'}
+              >
+                <RefreshCw className="size-3.5" />
+                {l.label}
+              </a>
+            ) : (
+              <a
+                key={l.label}
+                href={l.href}
+                className="rounded-full px-4 py-2 text-sm transition hover:bg-white/5"
+                style={{ color: 'var(--muted)' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--muted)'}
+              >
+                {l.label}
+              </a>
+            )
           ))}
         </nav>
 
@@ -88,17 +104,32 @@ export function Navbar() {
         <div className="border-t border-white/5 md:hidden" style={{ background: 'rgba(5, 11, 18, 0.95)' }}>
           <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3">
             {links.map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2 text-sm transition hover:bg-white/5"
-                style={{ color: 'var(--muted)' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text)'}
-                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--muted)'}
-              >
-                {l.label}
-              </a>
+              l.isPage ? (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  onClick={(e) => { e.preventDefault(); setOpen(false); navigate(l.href) }}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm transition hover:bg-white/5"
+                  style={{ color: 'var(--muted)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--muted)'}
+                >
+                  <RefreshCw className="size-3.5" />
+                  {l.label}
+                </a>
+              ) : (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm transition hover:bg-white/5"
+                  style={{ color: 'var(--muted)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--muted)'}
+                >
+                  {l.label}
+                </a>
+              )
             ))}
             {isLoggedIn ? (
               <button
