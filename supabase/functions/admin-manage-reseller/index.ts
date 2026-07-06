@@ -263,6 +263,11 @@ serve(async (req) => {
 
       if (deleteResellerError) throw deleteResellerError;
 
+      const { error: deleteAuthError } = await adminClient.auth.admin.deleteUser(reseller.user_id);
+      if (deleteAuthError) {
+        console.error('Erro ao deletar usuário de auth:', deleteAuthError)
+      }
+
       result = { deleted: true, user_id: reseller.user_id, reseller_id: reseller.id };
 
       await adminClient.from("admin_audit_logs").insert({

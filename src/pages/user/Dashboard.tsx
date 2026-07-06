@@ -6,10 +6,8 @@ import { useToast } from '../../hooks/useToast'
 import { useLicenseActions } from '../../hooks/useLicenseActions'
 import { Button } from '../../components/ui/button'
 import { Logo } from '../../components/ui/Logo'
+import { X } from 'lucide-react'
 import CheckoutModal from '../../components/landing/CheckoutModal'
-import { generateExtensionZip, downloadZip } from '../../utils/extensionBuilder'
-import { getStoredTemplate } from '../../utils/templateStorage'
-import { loadBrandingConfig } from '../../utils/brandingStorage'
 import { Video, Download, Clock, Key, ShoppingBag, Package } from 'lucide-react'
 
 interface License {
@@ -58,6 +56,9 @@ export default function UserDashboard() {
   const [activeTab, setActiveTab] = useState<'licenses' | 'purchases'>('licenses')
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [videoModalOpen, setVideoModalOpen] = useState(false)
+  const [selectedVideo, setSelectedVideo] = useState('')
+  const [trialSuccess, setTrialSuccess] = useState<{ show: boolean; licenseKey: string }>({ show: false, licenseKey: '' })
 
   const activeLicenses = licenses.filter(l => l.status === 'active')
   const nearestExpiry = activeLicenses.length > 0
@@ -174,8 +175,8 @@ export default function UserDashboard() {
         throw new Error(result.error)
       }
 
-      showToast(result.message || 'Teste criado com sucesso!', 'success')
       setHasTrial(true)
+      setTrialSuccess({ show: true, licenseKey: result.license?.license_key || '' })
       await loadLicenses()
     } catch (err: unknown) {
       showToast(
@@ -243,10 +244,12 @@ export default function UserDashboard() {
 
       <nav className="user-anchors">
         <a href="#planos">Planos</a>
+        <a href="#trial">Teste Grátis</a>
         <a href="#content-tabs">Licenças</a>
         <a href="#content-tabs" onClick={(e) => { e.preventDefault(); setActiveTab('purchases'); document.getElementById('content-tabs')?.scrollIntoView({ behavior: 'smooth' }) }}>Minhas Compras</a>
-        <a href="#download">Comece a usar</a>
-        {activeLicenses.length > 0 && <a href="#download">Baixar Extensão</a>}
+        <a href="#download">Como instalar a extensão</a>
+        <a href="#dicas">Dicas</a>
+        <a href="#download-ext" className="anchor-highlight">Download da Extensão</a>
       </nav>
 
       <section className="landing-section" style={{ paddingTop: '40px' }}>
@@ -308,6 +311,29 @@ export default function UserDashboard() {
               </>
             )}
           </div>
+        </div>
+      </section>
+
+      <section id="trial" className="landing-section" style={{ paddingTop: '0' }}>
+        <div className={`trial-hero-banner stagger-enter ${hasTrial ? 'used' : ''}`} style={{ animationDelay: '240ms' }}>
+          <div className="trial-hero-content">
+            <div className="trial-hero-icon">
+              {hasTrial ? '✓' : <Clock size={28} />}
+            </div>
+            <div className="trial-hero-text">
+              <strong>{hasTrial ? 'Teste gratuito já realizado' : 'Teste grátis de 30 minutos'}</strong>
+              <p>
+                {hasTrial
+                  ? 'Você já utilizou seu teste gratuito. Adquira um plano para continuar usando o Ultra Chat.'
+                  : 'Experimente a extensão completa por 30 minutos sem compromisso. Limite de 1 teste por usuário.'}
+              </p>
+            </div>
+          </div>
+          {!hasTrial && (
+            <Button onClick={handleGenerateTrial} disabled={generatingTrial} className="trial-hero-btn">
+              {generatingTrial ? 'Gerando...' : 'Quero testar grátis'}
+            </Button>
+          )}
         </div>
       </section>
 
@@ -399,30 +425,44 @@ export default function UserDashboard() {
         )}
       </section>
 
-      {!hasTrial && !loading && (
-        <section className="landing-section" style={{ paddingTop: '0' }}>
-          <div className="trial-banner stagger-enter" style={{ animationDelay: '240ms' }}>
-            <div className="trial-banner-info">
-              <span className="icon-pill" aria-hidden="true"><Clock size={18} /></span>
-              <div className="trial-banner-text">
-                <strong>Teste grátis de 30 minutos</strong>
-                <p>Experimente a extensão antes de comprar. Limite de 1 teste por usuário.</p>
+      <section className="landing-section" style={{ paddingTop: '0' }}>
+        <div className="reseller-cta-card stagger-enter">
+          <div className="reseller-cta-glow" />
+          <div className="reseller-cta-grid">
+            <div className="reseller-cta-content">
+              <span className="reseller-cta-badge">Plano Revendedor</span>
+              <h2 className="reseller-cta-title">Vire revendedor oficial do Ultra Chat</h2>
+              <p className="reseller-cta-desc">
+                Ative seu painel de revenda, compre licenças no atacado e venda com margem alta.
+                Fluxo simples, pagamento único e operação sem mensalidade recorrente.
+              </p>
+              <div className="reseller-cta-benefits">
+                {['Painel exclusivo de revenda', 'Compra no atacado para revender', 'Sem mensalidade recorrente', 'Suporte direto para operação'].map((b) => (
+                  <div key={b} className="reseller-cta-benefit">
+                    <span className="reseller-cta-check">✓</span>
+                    <span>{b}</span>
+                  </div>
+                ))}
               </div>
             </div>
-            <Button onClick={handleGenerateTrial} disabled={generatingTrial} style={{ flexShrink: 0 }}>
-              {generatingTrial ? 'Gerando...' : 'Gerar teste grátis'}
-            </Button>
+            <div className="reseller-cta-side">
+              <p className="reseller-cta-side-label">Condição de entrada</p>
+              <strong className="reseller-cta-side-price">Pagamento único</strong>
+              <p className="reseller-cta-side-desc">
+                Fale com nosso time para receber valores, regras de ativação e processo para começar sua operação.
+              </p>
+              <a
+                href="https://wa.me/556781880921?text=Ol%C3%A1!%20Vim%20pelo%20site%20do%20Lovable%20Ultra%20Chat%20e%20quero%20saber%20como%20posso%20me%20tornar%20revendedor%20oficial."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="primary-action reseller-cta-btn"
+              >
+                Quero Ser Revendedor
+              </a>
+            </div>
           </div>
-        </section>
-      )}
-      {hasTrial && !loading && (
-        <section className="landing-section" style={{ paddingTop: '0' }}>
-          <div className="trial-banner-used stagger-enter" style={{ animationDelay: '240ms' }}>
-            <Clock size={18} color="var(--accent)" />
-            <span>✓ Você já utilizou seu teste gratuito</span>
-          </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       <section id="content-tabs" className="landing-section" style={{ paddingTop: '0' }}>
         <div className="section-header">
@@ -592,91 +632,166 @@ export default function UserDashboard() {
         )}
       </section>
 
+      <section id="download-ext" className="landing-section" style={{ paddingTop: '0' }}>
+        <div className="glass-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <div>
+            <div className="card-heading" style={{ marginBottom: '8px' }}>
+              <h2 style={{ fontSize: '18px' }}>Download da Extensão</h2>
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: 0 }}>
+              Baixe a extensão Ultra Chat para começar a usar. Compatível com os principais navegadores.
+            </p>
+          </div>
+          <Button
+            isLoading={downloadLoading}
+            onClick={async () => {
+              setDownloadLoading(true)
+              try {
+                const resp = await fetch('/templates/lovable-ultra-chat-full.zip')
+                if (!resp.ok) throw new Error('Falha ao baixar extensão')
+                const blob = await resp.blob()
+                const a = document.createElement('a')
+                a.href = URL.createObjectURL(blob)
+                a.download = 'lovable-ultra-chat-full.zip'
+                document.body.appendChild(a)
+                a.click()
+                document.body.removeChild(a)
+                URL.revokeObjectURL(a.href)
+              } catch (err: unknown) {
+                showToast(err instanceof Error ? err.message : 'Erro ao baixar extensão', 'error')
+              } finally {
+                setDownloadLoading(false)
+              }
+            }}
+          >
+            Baixar Ultra Chat (.zip)
+          </Button>
+        </div>
+      </section>
+
       <section id="download" className="landing-section" style={{ paddingTop: '0' }}>
         <div className="section-header">
           <p className="eyebrow">Recursos</p>
           <h2>Comece a usar</h2>
         </div>
         <div className="work-grid">
-          <article className="glass-card">
+          <article className="glass-card" style={{ gridColumn: '1 / -1' }}>
             <div className="card-heading">
               <span className="icon-pill" aria-hidden="true"><Video size={20} /></span>
               <h2>Como instalar a extensão</h2>
             </div>
-            <div
-              style={{
-                position: 'relative',
-                paddingBottom: '56.25%',
-                height: 0,
-                overflow: 'hidden',
-                borderRadius: '14px',
-              }}
-            >
+            <div className="install-layout">
+              <div className="install-video">
+                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '14px' }}>
+                  <iframe
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                    title="Tutorial Ultra Chat"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+              <div className="install-text">
+                <h3>💻 Instalação (Chrome / Edge / Brave / Opera)</h3>
+                <ol>
+                  <li><strong>Baixe</strong> o arquivo .zip logo abaixo.</li>
+                  <li>Clique com o botão direito no .zip e escolha <strong>Extrair tudo</strong> (guarde a pasta em algum lugar fácil, ex: Documentos).</li>
+                  <li>No navegador, abra: <code>chrome://extensions</code></li>
+                  <li>Ative o <strong>Modo do desenvolvedor</strong> (canto superior direito).</li>
+                  <li>Clique em <strong>Carregar sem compactação</strong> e selecione a pasta extraída (a que tem o <code>manifest.json</code>).</li>
+                  <li>A extensão Ultra Chat aparece na lista. <strong>Fixe ela na barra</strong> (ícone de quebra-cabeça → alfinete).</li>
+                  <li>Clique no ícone da extensão, <strong>cole sua key</strong> e clique em <strong>Ativar</strong>.</li>
+                  <li>Pronto! Abra o Lovable e use à vontade.</li>
+                </ol>
+                <p className="install-warn">⚠️ Não apague a pasta extraída — a extensão roda a partir dela.</p>
+                <h4>❓ Problemas comuns</h4>
+                <ul className="install-faq">
+                  <li><strong>"Key inválida"</strong> → confira se copiou sem espaços.</li>
+                  <li><strong>"Limite de dispositivos atingido"</strong> → entre em <em>/minha-key</em> no site e libere um dispositivo antigo.</li>
+                  <li><strong>Extensão sumiu</strong> → não apague a pasta extraída. Se apagou, baixe o .zip de novo.</li>
+                  <li>Qualquer dúvida chama no WhatsApp pelo botão flutuante do site. 💚</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="dicas" className="landing-section" style={{ paddingTop: '0' }}>
+        <div className="section-header">
+          <p className="eyebrow">Aprenda mais</p>
+          <h2>Dicas de uso e funcionalidades</h2>
+        </div>
+        <div className="video-grid">
+          {[
+            { id: 'dQw4w9WgXcQ', title: 'Primeiros passos no Ultra Chat', desc: 'Aprenda a instalar e configurar sua extensão.' },
+            { id: 'dQw4w9WgXcQ', title: 'Como otimizar seus prompts', desc: 'Dicas para extrair o melhor resultado da IA.' },
+            { id: 'dQw4w9WgXcQ', title: 'Recursos avançados', desc: 'Funcionalidades que vão turbinar seu design.' },
+            { id: 'dQw4w9WgXcQ', title: 'Integração com outras ferramentas', desc: 'Conecte o Ultra Chat ao seu workflow.' },
+          ].map(v => (
+            <div key={v.id + v.title} className="video-card" onClick={() => { setSelectedVideo(v.id); setVideoModalOpen(true) }}>
+              <div className="video-thumb">
+                <img src={`https://img.youtube.com/vi/${v.id}/hqdefault.jpg`} alt={v.title} loading="lazy" />
+                <div className="video-play-icon">▶</div>
+              </div>
+              <div className="video-info">
+                <strong>{v.title}</strong>
+                <p>{v.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {trialSuccess.show && (
+        <div className="trial-success-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setTrialSuccess({ show: false, licenseKey: '' }) }}>
+          <div className="trial-success-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="trial-success-burst" />
+            <div className="trial-success-particles">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <span key={i} className="trial-particle" style={{
+                  '--x': `${Math.random() * 100}%`,
+                  '--y': `${Math.random() * 100}%`,
+                  '--d': `${Math.random() * 0.6 + 0.2}s`,
+                  '--s': `${Math.random() * 6 + 4}px`,
+                  '--c': ['var(--accent)', '#6de8ff', '#ff5ea8', '#7c5aff', '#14e6b8'][i % 5],
+                  animationDelay: `${Math.random() * 0.3}s`,
+                } as React.CSSProperties} />
+              ))}
+            </div>
+            <div className="trial-success-glow" />
+            <div className="trial-success-check">✓</div>
+            <h2 className="trial-success-title">Teste grátis ativado!</h2>
+            <p className="trial-success-desc">Sua licença de 30 minutos foi gerada. Use a chave abaixo para ativar a extensão.</p>
+            <div className="trial-success-key">
+              <code>{trialSuccess.licenseKey}</code>
+              <button onClick={() => { navigator.clipboard.writeText(trialSuccess.licenseKey); showToast('Chave copiada!', 'success') }}>
+                Copiar
+              </button>
+            </div>
+            <button className="trial-success-ok" onClick={() => setTrialSuccess({ show: false, licenseKey: '' })}>
+              Começar a usar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {videoModalOpen && (
+        <div className="video-modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setVideoModalOpen(false) }}>
+          <div className="video-modal-dialog" onClick={(e) => e.stopPropagation()}>
+            <button className="video-modal-close" onClick={() => setVideoModalOpen(false)}><X size={20} /></button>
+            <div className="video-modal-player">
               <iframe
-                src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                title="Tutorial Ultra Chat"
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  border: 0,
-                }}
+                src={`https://www.youtube.com/embed/${selectedVideo}?autoplay=1&rel=0`}
+                title="Vídeo Ultra Chat"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
             </div>
-          </article>
-
-          <article className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div className="card-heading">
-              <span className="icon-pill" aria-hidden="true"><Download size={20} /></span>
-              <h2>Download da Extensão</h2>
-            </div>
-            <p style={{ marginBottom: '24px' }}>
-              Baixe a extensão Ultra Chat para começar a usar. Compatível com os principais navegadores.
-            </p>
-            <Button
-              style={{ alignSelf: 'flex-start' }}
-              isLoading={downloadLoading}
-              onClick={async () => {
-                setDownloadLoading(true)
-                try {
-                  const config = loadBrandingConfig()
-                  if (!config) {
-                    showToast('Nenhuma configuração de branding encontrada. O admin precisa gerar a extensão primeiro em Branding.', 'error')
-                    return
-                  }
-                  const stored = await getStoredTemplate()
-                  let templateBuffer: ArrayBuffer
-                  if (stored) {
-                    templateBuffer = stored
-                  } else {
-                    const resp = await fetch('/templates/lovable-ultra-chat-5.4-1R.zip')
-                    if (!resp.ok) throw new Error('Falha ao baixar template')
-                    templateBuffer = await resp.arrayBuffer()
-                  }
-                  const blob = await generateExtensionZip(templateBuffer, {
-                    companyName: config.companyName,
-                    whatsapp: config.whatsapp,
-                    communityLink: config.communityLink,
-                    primaryColor: config.primaryColor,
-                    secondaryColor: config.secondaryColor,
-                  })
-                  await downloadZip(blob, config.companyName)
-                } catch (err: unknown) {
-                  showToast(err instanceof Error ? err.message : 'Erro ao gerar extensão', 'error')
-                } finally {
-                  setDownloadLoading(false)
-                }
-              }}
-            >
-              Baixar Ultra Chat (.zip)
-            </Button>
-          </article>
+          </div>
         </div>
-      </section>
+      )}
 
       <footer className="landing-footer">
         <div className="footer-inner">

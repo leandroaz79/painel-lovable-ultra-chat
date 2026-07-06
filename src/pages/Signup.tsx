@@ -79,7 +79,12 @@ export default function Signup() {
           },
         },
       })
-      if (signupError) throw signupError
+      if (signupError) {
+        if (signupError.message?.toLowerCase().includes('already')) {
+          throw new Error('Este email já está cadastrado. Faça login ou use outro email.')
+        }
+        throw signupError
+      }
       if (data.user) {
         showToast('Conta criada com sucesso!', 'success')
         const destination = redirect || '/user'

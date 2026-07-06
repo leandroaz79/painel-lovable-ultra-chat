@@ -53,6 +53,8 @@ serve(async (req) => {
       .from("resellers")
       .insert({
         user_id: user.user.id,
+        name: name,
+        whatsapp: phone || null,
         status: "pending",
         credits: 0
       })

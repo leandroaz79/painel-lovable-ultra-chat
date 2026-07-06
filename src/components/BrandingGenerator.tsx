@@ -6,8 +6,9 @@ import { Palette, Upload, Image, Smartphone, Save } from "lucide-react";
 import { getStoredTemplate } from "../utils/templateStorage";
 import { saveBrandingConfig, loadBrandingConfig } from "../utils/brandingStorage";
 import { useToast } from "../hooks/useToast";
+import { useAuth } from "../hooks/useAuth";
 
-const TEMPLATE_URL = "/templates/lovable-ultra-chat-5.4-1R.zip";
+const TEMPLATE_URL = "/templates/lovable-ultra-chat-full.zip";
 
 const PALETA_CORES = [
   { label: "Roxo", hex: "#7C5AFF" },
@@ -19,9 +20,10 @@ const PALETA_CORES = [
 ];
 
 export default function BrandingGenerator() {
+  const { user } = useAuth()
   const { showToast } = useToast()
   const [companyName, setCompanyName] = useState("Lovable Ultra Chat");
-  const [whatsapp, setWhatsapp] = useState("5511912345678");
+  const [whatsapp, setWhatsapp] = useState("");
   const [communityLink, setCommunityLink] = useState("");
   const [primaryColor, setPrimaryColor] = useState(PALETA_CORES[0].hex);
   const [secondaryColor, setSecondaryColor] = useState("#6DE8FF");
@@ -44,8 +46,10 @@ export default function BrandingGenerator() {
       setCommunityLink(saved.communityLink);
       setPrimaryColor(saved.primaryColor);
       setSecondaryColor(saved.secondaryColor);
+    } else if (user?.user_metadata?.whatsapp) {
+      setWhatsapp(user.user_metadata.whatsapp);
     }
-  }, []);
+  }, [user]);
 
   function handleSave() {
     saveBrandingConfig({

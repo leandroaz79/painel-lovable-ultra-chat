@@ -1,4 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
@@ -27,6 +28,7 @@ interface License {
 export default function ResellerDashboard() {
   const { user, signOut } = useAuth()
   const { showToast } = useToast()
+  const navigate = useNavigate()
   const { copyLicenseKey, renewLicense, resetHwid, revokeLicense, deleteLicense, submitMutation } = useLicenseActions()
   const [licenses, setLicenses] = useState<License[]>([])
   const [credits, setCredits] = useState(0)
@@ -698,6 +700,42 @@ export default function ResellerDashboard() {
               </select>
             </div>
           )}
+        </section>
+
+        <section className="glass-card" style={{ padding: '24px', marginTop: '28px', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <div>
+            <p className="eyebrow" style={{ marginBottom: '4px' }}>Extensão</p>
+            <h2 style={{ fontSize: '18px', margin: '0 0 6px' }}>Download da Extensão</h2>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: 0 }}>
+              Baixe a extensão base para seus clientes que ainda não personalizaram a marca.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <Button
+              onClick={async () => {
+                try {
+                  const resp = await fetch('/templates/lovable-ultra-chat-full.zip')
+                  if (!resp.ok) throw new Error('Falha ao baixar')
+                  const blob = await resp.blob()
+                  const a = document.createElement('a')
+                  a.href = URL.createObjectURL(blob)
+                  a.download = 'lovable-ultra-chat-full.zip'
+                  document.body.appendChild(a)
+                  a.click()
+                  document.body.removeChild(a)
+                  URL.revokeObjectURL(a.href)
+                  showToast('Download iniciado!', 'success')
+                } catch {
+                  showToast('Erro ao baixar extensão', 'error')
+                }
+              }}
+            >
+              Baixar extensão padrão
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/reseller/branding')}>
+              Personalizar
+            </Button>
+          </div>
         </section>
 
       </main>

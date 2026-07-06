@@ -60,6 +60,9 @@ serve(async (req) => {
     const currentName = typeof currentUser.user_metadata?.name === "string"
       ? currentUser.user_metadata.name
       : "";
+    const currentWhatsapp = typeof currentUser.user_metadata?.whatsapp === "string"
+      ? currentUser.user_metadata.whatsapp
+      : "";
 
     let result: Record<string, unknown>;
 
@@ -192,6 +195,7 @@ serve(async (req) => {
         .insert({
           user_id,
           name: currentName || currentUser.email || "Revendedor",
+          whatsapp: currentWhatsapp || null,
           status: "active",
           credits: initial_credits,
           activation_fee_paid: true,
@@ -219,6 +223,7 @@ serve(async (req) => {
           user_id,
           name: currentName,
           email: currentEmail,
+          whatsapp: currentWhatsapp,
           initial_credits,
         },
       });
