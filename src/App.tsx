@@ -19,6 +19,7 @@ const ResellerDashboard = lazy(() => import('./pages/reseller/Dashboard'))
 const AdminBranding = lazy(() => import('./pages/admin/Branding'))
 const AdminTheme = lazy(() => import('./pages/admin/Theme'))
 const ResellerBranding = lazy(() => import('./pages/reseller/Branding'))
+const ResellerPurchases = lazy(() => import('./pages/reseller/Purchases'))
 const EndcustomerProducts = lazy(() => import('./pages/admin/EndcustomerProducts'))
 const CustomerPurchases = lazy(() => import('./pages/admin/CustomerPurchases'))
 
@@ -207,7 +208,18 @@ function App() {
           }
         />
         
-        <Route
+          <Route
+            path="/reseller/purchases"
+            element={
+              <ProtectedRoute requiredRole="reseller">
+                <Suspense fallback={<LoadingScreen />}>
+                  <ResellerPurchases />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
           path="/reseller/branding"
           element={
             <ProtectedRoute requiredRole="reseller">

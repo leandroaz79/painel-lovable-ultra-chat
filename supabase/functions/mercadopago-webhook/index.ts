@@ -120,10 +120,10 @@ serve(async (req) => {
 
     // Verificar se pagamento foi aprovado
     if (payment.status === 'approved') {
+      // ... existing approved handling ...
       const userId = payment.metadata.user_id
       const quantity = payment.metadata.quantity
 
-      // Lock atômico: só prossegue se status ainda for 'pending'
       const { data: purchase, error: lockError } = await supabaseAdmin
         .from('credit_purchases')
         .update({ status: 'approved' })
@@ -142,7 +142,6 @@ serve(async (req) => {
         .update({ approved_at: new Date().toISOString() })
         .eq('payment_id', paymentId)
 
-      // Buscar dados atuais do revendedor
       const { data: reseller } = await supabaseAdmin
         .from('resellers')
         .select('credits, total_credits_purchased')
@@ -154,7 +153,6 @@ serve(async (req) => {
         return new Response('Reseller not found', { status: 404 })
       }
 
-      // Adicionar créditos ao revendedor
       const { error: updateError } = await supabaseAdmin
         .from('resellers')
         .update({
@@ -170,18 +168,76 @@ serve(async (req) => {
 
       console.log(`✅ ${quantity} créditos adicionados ao revendedor ${userId}`)
 
-      // Opcional: Enviar email de confirmação
-      // await sendConfirmationEmail(userId, quantity)
-
       return new Response('OK - Credits added', { headers: corsHeaders, status: 200 })
     }
 
-    // Para outros status (pending, rejected, etc), apenas atualizar status
+    // Para outros status, atualizar na tabela com mapeamento
     if (payment.status) {
+      const statusMap: Record<string, string> = {
+        approved: 'approved',
+        rejected: 'rejected',
+        cancelled: 'cancelled',
+        refunded: 'refunded',
+        in_process: 'pending',
+        authorized: 'pending',
+        in_mediation: 'pending',
+        charged_back: 'rejected',
+      }
+      const mappedStatus = statusMap[payment.status]
+
+      if (!mappedStatus) {
+        console.log('Status desconhecido ignorado:', payment.status)
+        return new Response('Unknown status ignored', { headers: corsHeaders, status: 200 })
+      }
+
+      // Buscar compra antes de atualizar
+      const { data: existingPurchase } = await supabaseAdmin
+        .from('credit_purchases')
+        .select('status, quantity')
+        .eq('payment_id', paymentId)
+        .maybeSingle()
+
+      if (!existingPurchase) {
+        console.log('Compra de créditos não encontrada:', paymentId)
+        return new Response('Purchase not found', { headers: corsHeaders, status: 200 })
+      }
+
+      // Se já está no mesmo status, ignorar
+      if (existingPurchase.status === mappedStatus) {
+        console.log('Status já atualizado:', mappedStatus)
+        return new Response('Already updated', { headers: corsHeaders, status: 200 })
+      }
+
       await supabaseAdmin
         .from('credit_purchases')
-        .update({ status: payment.status })
+        .update({ status: mappedStatus })
         .eq('payment_id', paymentId)
+
+      // Se reembolsou/rejeitou/cancelou, subtrair créditos do revendedor
+      const revokeStatuses = ['refunded', 'rejected', 'cancelled']
+      if (revokeStatuses.includes(mappedStatus) && existingPurchase.status === 'approved') {
+        const userId = payment.metadata?.user_id
+        if (userId) {
+          const { data: reseller } = await supabaseAdmin
+            .from('resellers')
+            .select('credits, total_credits_purchased')
+            .eq('user_id', userId)
+            .single()
+
+          if (reseller) {
+            const qty = existingPurchase.quantity
+            await supabaseAdmin
+              .from('resellers')
+              .update({
+                credits: Math.max(0, reseller.credits - qty),
+                total_credits_purchased: Math.max(0, reseller.total_credits_purchased - qty),
+              })
+              .eq('user_id', userId)
+
+            console.log(`🔒 ${qty} créditos removidos do revendedor ${userId} por ${mappedStatus}`)
+          }
+        }
+      }
     }
 
     return new Response('OK', { headers: corsHeaders, status: 200 })

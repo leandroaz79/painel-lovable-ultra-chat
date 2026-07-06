@@ -52,8 +52,13 @@ export default function ResellerDashboard() {
   const [pixQRCode, setPixQRCode] = useState('')
   const [pixCode, setPixCode] = useState('')
   const [showPixModal, setShowPixModal] = useState(false)
-  const [, setPaymentId] = useState('')
+  const [paymentId, setPaymentId] = useState('')
   const [pricingTiers, setPricingTiers] = useState<Array<{min_quantity: number, max_quantity: number | null, unit_price: number}>>([])
+  const [purchaseConfirm, setPurchaseConfirm] = useState<{
+    show: boolean
+    status: string
+    quantity: number
+  }>({ show: false, status: '', quantity: 0 })
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean
     title: string
@@ -395,40 +400,54 @@ export default function ResellerDashboard() {
     }
   }
 
+  async function checkPurchaseStatus(payment_id: string): Promise<{ status: string; quantity?: number } | null> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return null
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/check-payment-status`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_id })
+      })
+      return await response.json()
+    } catch {
+      return null
+    }
+  }
+
+  async function showPurchaseResult(payment_id: string, qty: number) {
+    const result = await checkPurchaseStatus(payment_id)
+    const status = result?.status === 'approved' ? 'approved' : 'pending'
+    setPurchaseConfirm({ show: true, status, quantity: qty })
+    if (status === 'approved') await loadDashboard()
+  }
+
   function startPaymentPolling(payment_id: string) {
     const interval = setInterval(async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return
         const response = await fetch(`${SUPABASE_URL}/functions/v1/check-payment-status`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ payment_id })
         })
-        
         const result = await response.json()
-        
         if (result.status === 'approved') {
           clearInterval(interval)
           setShowPixModal(false)
-          showToast(`Pagamento aprovado! ${quantity} créditos adicionados.`)
-          await loadDashboard()
-          
-          // Resetar formulário
           setQuantity(10)
           setBuyerName('')
           setBuyerCPF('')
           setBuyerPhone('')
           setBuyerEmail('')
+          setPurchaseConfirm({ show: true, status: 'approved', quantity: result.quantity || quantity })
+          await loadDashboard()
         }
       } catch (error) {
         console.error('Erro ao verificar pagamento:', error)
       }
-    }, 5000) // Verifica a cada 5 segundos
-    
-    // Parar após 10 minutos
+    }, 5000)
     setTimeout(() => clearInterval(interval), 600000)
   }
 
@@ -476,6 +495,7 @@ export default function ResellerDashboard() {
           <a href="/reseller#create-license">Gerar licença</a>
           <a href="/reseller#create-trial">Gerar trial</a>
           <a href="/reseller#licenses">Licenças</a>
+          <a href="/reseller/purchases">Minhas Compras</a>
         </nav>
         <div className="session-box">
           <span id="reseller-email">{user?.email || 'Carregando...'}</span>
@@ -830,10 +850,49 @@ export default function ResellerDashboard() {
                 ⏳ Aguardando pagamento... A página atualizará automaticamente quando confirmado.
               </p>
 
-              <Button variant="outline" onClick={() => setShowPixModal(false)}>
+              <Button variant="outline" onClick={async () => {
+                setShowPixModal(false)
+                if (paymentId) {
+                  await showPurchaseResult(paymentId, quantity)
+                }
+              }}>
                 Fechar
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmação de Compra */}
+      {purchaseConfirm.show && (
+        <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setPurchaseConfirm(prev => ({ ...prev, show: false })) }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center' }}>
+            {purchaseConfirm.status === 'approved' ? (
+              <>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
+                <h2>Pagamento confirmado!</h2>
+                <p style={{ color: 'var(--muted)', marginBottom: '8px' }}>
+                  {purchaseConfirm.quantity} {purchaseConfirm.quantity === 1 ? 'chave foi' : 'chaves foram'} adicionada{purchaseConfirm.quantity > 1 ? 's' : ''} ao seu painel.
+                </p>
+                <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '24px' }}>
+                  Você já pode gerar licenças para seus clientes.
+                </p>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
+                <h2>Pagamento pendente</h2>
+                <p style={{ color: 'var(--muted)', marginBottom: '8px' }}>
+                  O pagamento ainda não foi confirmado pelo Mercado Pago.
+                </p>
+                <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '24px' }}>
+                  Assim que for aprovado, as chaves aparecerão automaticamente no seu painel.
+                </p>
+              </>
+            )}
+            <Button onClick={() => setPurchaseConfirm(prev => ({ ...prev, show: false }))}>
+              {purchaseConfirm.status === 'approved' ? 'Ir para o painel' : 'Entendi'}
+            </Button>
           </div>
         </div>
       )}

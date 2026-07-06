@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -234,28 +234,41 @@ export default function Checkout() {
     }
   }
 
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current)
+      }
+    }
+  }, [])
+
   function startPolling(paymentId: string) {
     let attempts = 0
-    const maxAttempts = 120
-    const interval = setInterval(async () => {
+    pollingRef.current = setInterval(async () => {
       attempts++
-      if (attempts > maxAttempts) {
-        clearInterval(interval)
+      if (attempts > 120) {
+        if (pollingRef.current) clearInterval(pollingRef.current)
+        pollingRef.current = null
         return
       }
       try {
         const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return
         const response = await fetch(`${SUPABASE_URL}${FUNCTIONS.CUSTOMER_CHECK_PAYMENT}`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ payment_id: paymentId }),
         })
         const result = await response.json()
-        if (result.success && result.status === 'approved' && result.license_key) {
-          clearInterval(interval)
+        if (!result.success) return
+        if (result.status === 'approved') {
+          clearInterval(pollingRef.current!)
+          pollingRef.current = null
           setStep('success')
           setTimeout(() => navigate('/user', { replace: true }), 3000)
         }

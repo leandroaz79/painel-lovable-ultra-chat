@@ -18,6 +18,12 @@
 .landing-footer { border-top: 1px solid var(--line); padding: 32px 28px; margin-top: 48px; }
 .footer-inner { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
 
+/* Anchors de navegação no dashboard do usuário */
+.user-anchors { display: flex; gap: 8px; padding: 12px 28px; max-width: 1180px; margin: 0 auto; flex-wrap: wrap; }
+.user-anchors a { font-size: 13px; font-weight: 600; color: var(--muted); padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line); transition: 0.2s; text-decoration: none; }
+.user-anchors a:hover { color: var(--accent); border-color: var(--accent); background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08); }
+@media (max-width: 767px) { .user-anchors { padding: 12px 20px; gap: 6px; } .user-anchors a { font-size: 12px; padding: 5px 10px; } }
+
 /* ============================================
    Landing Page Nova
    ============================================ */
@@ -126,6 +132,18 @@
 .pricing-features-new li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); font-weight: 800; font-size: 0.875rem; }
 .pricing-btn { width: 100%; margin-top: 0.5rem; }
 .pricing-footnote { text-align: center; font-size: clamp(0.6875rem, 2vw, 0.75rem); color: var(--muted-2); line-height: 1.5; margin-top: 0.75rem; }
+
+/* Cards compactos para a área do cliente */
+.pricing-grid-compact { gap: clamp(1rem, 3vw, 1.5rem); }
+.pricing-card-compact { padding: clamp(1.25rem, 4vw, 1.75rem) clamp(1rem, 3vw, 1.5rem) clamp(1rem, 3vw, 1.5rem); gap: clamp(0.5rem, 1.5vw, 0.75rem); }
+.pricing-card-compact .pricing-name { font-size: clamp(1rem, 3vw, 1.125rem); }
+.pricing-card-compact .pricing-price-row strong { font-size: clamp(1.5rem, 6vw, 2rem); }
+.pricing-card-compact .pricing-per-day { font-size: clamp(0.6875rem, 1.8vw, 0.75rem); }
+.pricing-card-compact .pricing-features-new { gap: clamp(0.375rem, 1vw, 0.5rem); margin: 0.5rem 0; }
+.pricing-card-compact .pricing-features-new li { font-size: clamp(0.75rem, 2vw, 0.8125rem); padding-left: 1.25rem; }
+.pricing-card-compact .pricing-btn { min-height: 40px; padding: 0 20px; font-size: 0.75rem; }
+.pricing-card-compact .pricing-footnote { font-size: clamp(0.625rem, 1.5vw, 0.6875rem); margin-top: 0.5rem; }
+.pricing-card-compact .pricing-tag { font-size: clamp(0.5625rem, 1.5vw, 0.625rem); }
 
 @media (max-width: 767px) {
   .pricing-card-new { padding-top: 2.5rem; }

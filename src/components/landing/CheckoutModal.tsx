@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent } from 'react'
+import { useState, useEffect, useRef, useCallback, type FormEvent, type KeyboardEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
@@ -53,6 +53,8 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
   const navigate = useNavigate()
   const dialogRef = useRef<HTMLDivElement>(null)
   const prevFocusRef = useRef<HTMLElement | null>(null)
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pollingActiveRef = useRef(false)
 
   const [product, setProduct] = useState<Product | null>(null)
   const [productLoading, setProductLoading] = useState(false)
@@ -105,6 +107,11 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
     loadProduct(productSlug)
     return () => {
       document.body.style.overflow = ''
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current)
+        pollingRef.current = null
+      }
+      pollingActiveRef.current = false
     }
   }, [isOpen, productSlug])
 
@@ -300,22 +307,44 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
   }
 
   function startPolling(paymentId: string) {
+    pollingActiveRef.current = true
     let attempts = 0
-    const interval = setInterval(async () => {
+    pollingRef.current = setInterval(async () => {
+      if (!pollingActiveRef.current) return
       attempts++
-      if (attempts > 120) { clearInterval(interval); return }
+      if (attempts > 120) {
+        if (pollingRef.current) clearInterval(pollingRef.current)
+        pollingRef.current = null
+        return
+      }
       try {
         const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return
         const response = await fetch(`${SUPABASE_URL}${FUNCTIONS.CUSTOMER_CHECK_PAYMENT}`, {
           method: 'POST',
-          headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
+          headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ payment_id: paymentId }),
         })
         const result = await response.json()
-        if (result.success && result.status === 'approved' && result.license_key) {
-          clearInterval(interval); setStep('success')
+        if (!result.success) {
+          if (attempts % 6 === 0) {
+            console.log('Polling: aguardando confirmação...')
+          }
+          return
         }
-      } catch { /* ignore polling errors */ }
+        if (result.status === 'approved') {
+          clearInterval(pollingRef.current!)
+          pollingRef.current = null
+          setStep('success')
+          if (!result.license_key) {
+            console.warn('Pagamento aprovado mas license_key ausente — redirecionando mesmo assim')
+          }
+        }
+      } catch {
+        if (attempts % 6 === 0) {
+          console.log('Polling: erro de conexão, tentando novamente...')
+        }
+      }
     }, 5000)
   }
 
@@ -340,6 +369,11 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
 
   function handleClose() {
     const wasSuccess = step === 'success'
+    pollingActiveRef.current = false
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current)
+      pollingRef.current = null
+    }
     resetState()
     document.body.style.overflow = ''
     onClose()

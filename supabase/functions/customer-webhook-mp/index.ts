@@ -216,13 +216,57 @@ serve(async (req) => {
         rejected: 'rejected',
         cancelled: 'cancelled',
         refunded: 'refunded',
+        in_process: 'pending',
+        authorized: 'pending',
+        in_mediation: 'pending',
+        charged_back: 'rejected',
       }
-      const mappedStatus = statusMap[payment.status] || payment.status
+      const mappedStatus = statusMap[payment.status]
 
+      if (!mappedStatus) {
+        console.log('Status desconhecido ignorado:', payment.status)
+        return new Response('Unknown status ignored', { headers: corsHeaders, status: 200 })
+      }
+
+      // Buscar compra antes de atualizar (precisamos do license_key)
+      const { data: existingPurchase } = await supabaseAdmin
+        .from('customer_purchases')
+        .select('license_key, payment_status')
+        .eq('payment_id', paymentId)
+        .maybeSingle()
+
+      if (!existingPurchase) {
+        console.log('Compra não encontrada:', paymentId)
+        return new Response('Purchase not found', { headers: corsHeaders, status: 200 })
+      }
+
+      // Se já foi processado com o mesmo status, ignorar
+      if (existingPurchase.payment_status === mappedStatus) {
+        console.log('Status já atualizado:', mappedStatus)
+        return new Response('Already updated', { headers: corsHeaders, status: 200 })
+      }
+
+      // Atualizar status da compra
       await supabaseAdmin
         .from('customer_purchases')
         .update({ payment_status: mappedStatus })
         .eq('payment_id', paymentId)
+
+      // Se reembolsou/rejeitou/cancelou e existe licença vinculada, suspender
+      const revokeStatuses = ['refunded', 'rejected', 'cancelled']
+      if (revokeStatuses.includes(mappedStatus) && existingPurchase.license_key) {
+        const { error: revokeError } = await supabaseAdmin
+          .from('ts_licenses')
+          .update({ status: 'suspended' })
+          .eq('license_key', existingPurchase.license_key)
+          .eq('status', 'active')
+
+        if (revokeError) {
+          console.error('Erro ao suspender licença:', revokeError)
+        } else {
+          console.log(`🔒 Licença ${existingPurchase.license_key} suspensa por ${mappedStatus}`)
+        }
+      }
     }
 
     return new Response('OK', { headers: corsHeaders, status: 200 })

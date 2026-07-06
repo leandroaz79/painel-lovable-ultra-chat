@@ -241,10 +241,20 @@ export default function UserDashboard() {
         </div>
       </header>
 
+      <nav className="user-anchors">
+        <a href="#planos">Planos</a>
+        <a href="#content-tabs">Licenças</a>
+        <a href="#content-tabs" onClick={(e) => { e.preventDefault(); setActiveTab('purchases'); document.getElementById('content-tabs')?.scrollIntoView({ behavior: 'smooth' }) }}>Minhas Compras</a>
+        <a href="#download">Comece a usar</a>
+        {activeLicenses.length > 0 && <a href="#download">Baixar Extensão</a>}
+      </nav>
+
       <section className="landing-section" style={{ paddingTop: '40px' }}>
         <div className="hero-panel" style={{ alignItems: 'flex-start' }}>
           <div style={{ flex: 1 }}>
-            <p className="eyebrow">Painel do Usuário</p>
+            <p className="eyebrow">
+              👋 Bem-vindo, {user?.user_metadata?.name || user?.email?.split('@')[0] || 'Visitante'}
+            </p>
             {loading ? (
               <>
                 <div className="skeleton skeleton-line skeleton-line-lg" style={{ marginBottom: '12px' }} />
@@ -307,43 +317,78 @@ export default function UserDashboard() {
           <h2>Escolha o plano ideal para você</h2>
         </div>
         {loadingProducts ? (
-          <div className="user-pricing-grid">
+          <div className="pricing-grid-new">
             {[1, 2, 3].map(i => (
               <div key={i} className="skeleton skeleton-card" />
             ))}
           </div>
         ) : endcustomerProducts.length > 0 ? (
-          <div className="user-pricing-grid">
-            {endcustomerProducts.map((p, idx) => (
-              <div
-                key={p.id}
-                className={`user-pricing-card ${idx === 1 ? 'featured' : ''} stagger-enter`}
-                style={{ animationDelay: `${idx * 80}ms` }}
-              >
-                {idx === 1 && <span className="pricing-popular-badge">★ Popular</span>}
-                <div>
-                  <h3 className="user-pricing-name">{p.name}</h3>
-                  {p.description && <p className="user-pricing-desc">{p.description}</p>}
+          <div className="pricing-grid-new pricing-grid-compact">
+            {endcustomerProducts.map((p, idx) => {
+              const popularIndex = Math.floor(endcustomerProducts.length / 2)
+              const isPopular = idx === popularIndex
+              const tones = ['#12b5ff', '#14e6b8', '#ff5ea8', '#7c5aff', '#6de8ff']
+              const accentColor = tones[idx % tones.length]
+              const planTag = isPopular ? 'Mais vendido' : p.days <= 7 ? 'Ideal para testar' : p.days <= 15 ? 'Equilíbrio perfeito' : 'Melhor custo-benefício'
+
+              return (
+                <div
+                  key={p.id}
+                  className={`pricing-card-new pricing-card-compact ${isPopular ? 'featured' : ''} stagger-enter`}
+                  style={{
+                    animationDelay: `${idx * 80}ms`,
+                    borderColor: isPopular ? `${accentColor}66` : undefined,
+                    boxShadow: isPopular ? `0 0 60px ${accentColor}22` : undefined,
+                  }}
+                >
+                  {isPopular && (
+                    <span className="pricing-popular-badge" style={{ background: accentColor, color: '#07110a', boxShadow: `0 10px 28px ${accentColor}44` }}>
+                      {planTag}
+                    </span>
+                  )}
+
+                  <div>
+                    {!isPopular && (
+                      <div className="pricing-tag" style={{ color: accentColor }}>{planTag}</div>
+                    )}
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <div className="pricing-name" style={{ color: isPopular ? accentColor : 'var(--text)' }}>{p.name}</div>
+                        <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                          {p.days ? `${p.days} dias` : 'Vitalício'}
+                        </p>
+                      </div>
+                      <div className="pricing-price-row" style={{ margin: 0, justifyContent: 'flex-end' }}>
+                        <strong style={{ color: 'var(--text)' }}>
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.price_cents / 100)}
+                        </strong>
+                      </div>
+                    </div>
+                    <div className="pricing-per-day">
+                      {p.days ? `${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.price_cents / 100 / p.days)} / dia` : 'Acesso sem expiração'}
+                    </div>
+                    <p className="mt-3 text-sm" style={{ color: 'var(--muted)' }}>{p.description}</p>
+                  </div>
+
+                  <ul className="pricing-features-new">
+                    <li>Todas as features liberadas</li>
+                    <li>{p.days ? `${p.days} dias de acesso` : 'Acesso vitalício'}</li>
+                    <li>Até {p.devices} dispositivo{p.devices > 1 ? 's' : ''}</li>
+                    {p.has_priority_support && <li>Suporte prioritário no WhatsApp</li>}
+                    <li>Liberação imediata após aprovação</li>
+                    <li>Pagamento único sem renovação automática</li>
+                  </ul>
+
+                  <button
+                    onClick={() => { setSelectedSlug(p.slug); setCheckoutOpen(true) }}
+                    className="primary-action pricing-btn inline-flex w-full items-center justify-center rounded-full px-6 py-4 text-sm font-extrabold uppercase tracking-[0.16em] transition-all cursor-pointer text-white"
+                  >
+                    Comprar agora <span style={{ marginLeft: '10px', color: accentColor }}>→</span>
+                  </button>
+                  <p className="pricing-footnote">Pagamento via Pix • Liberação imediata</p>
                 </div>
-                <div className="user-pricing-price">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.price_cents / 100)}
-                  <small> / único</small>
-                </div>
-                <div className="user-pricing-perday">
-                  ~{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(p.price_cents / 100 / p.days)}/dia
-                </div>
-                <ul className="user-pricing-features">
-                  <li>{p.devices} dispositivo{p.devices > 1 ? 's' : ''}</li>
-                  <li>{p.days} dias de acesso</li>
-                  {p.has_priority_support && <li>Suporte prioritário via WhatsApp</li>}
-                </ul>
-                <div className="user-pricing-cta">
-                  <Button onClick={() => { setSelectedSlug(p.slug); setCheckoutOpen(true) }}>
-                    Comprar agora
-                  </Button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <div className="empty-state">
@@ -547,7 +592,7 @@ export default function UserDashboard() {
         )}
       </section>
 
-      <section className="landing-section" style={{ paddingTop: '0' }}>
+      <section id="download" className="landing-section" style={{ paddingTop: '0' }}>
         <div className="section-header">
           <p className="eyebrow">Recursos</p>
           <h2>Comece a usar</h2>
@@ -643,7 +688,11 @@ export default function UserDashboard() {
       {checkoutOpen && selectedSlug && (
         <CheckoutModal
           isOpen={checkoutOpen}
-          onClose={() => setCheckoutOpen(false)}
+          onClose={() => {
+            setCheckoutOpen(false)
+            loadLicenses()
+            loadPurchases()
+          }}
           productSlug={selectedSlug}
         />
       )}

@@ -32,6 +32,7 @@ export const FUNCTIONS = {
   RESELLER_LIST_LICENSES: '/functions/v1/reseller-list-licenses',
   RESELLER_BUY_CREDITS: '/functions/v1/reseller-buy-credits',
   RESELLER_DELETE_LICENSE: '/functions/v1/reseller-delete-license',
+  RESELLER_LIST_PURCHASES: '/functions/v1/reseller-list-purchases',
   
   // Usuário final
   USER_CREATE_TRIAL: '/functions/v1/user-create-trial',

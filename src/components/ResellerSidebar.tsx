@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { BarChart3, Key, PlusCircle, Clock, ClipboardList, Palette, Settings, LogOut } from 'lucide-react'
+import { BarChart3, Key, PlusCircle, Clock, ClipboardList, ShoppingCart, Palette, Settings, LogOut } from 'lucide-react'
 import { Logo } from './ui/Logo'
 
 interface ResellerSidebarProps {
@@ -13,6 +13,7 @@ const iconMap: Record<string, React.ReactNode> = {
   createLicense: <PlusCircle size={20} />,
   createTrial: <Clock size={20} />,
   licenses: <ClipboardList size={20} />,
+  purchases: <ShoppingCart size={20} />,
   branding: <Palette size={20} />,
   profile: <Settings size={20} />,
 }
@@ -27,6 +28,7 @@ export default function ResellerSidebar({ currentPage }: ResellerSidebarProps) {
     { href: '/reseller#create-license', icon: 'createLicense', label: 'Gerar licença', key: '/reseller#create-license' },
     { href: '/reseller#create-trial', icon: 'createTrial', label: 'Gerar trial', key: '/reseller#create-trial' },
     { href: '/reseller#licenses', icon: 'licenses', label: 'Licenças', key: '/reseller#licenses' },
+    { href: '/reseller/purchases', icon: 'purchases', label: 'Minhas Compras', key: '/reseller/purchases' },
     { href: '/reseller/branding', icon: 'branding', label: 'Branding', key: '/reseller/branding' },
     { href: '/profile', icon: 'profile', label: 'Perfil', key: '/profile' },
   ]
