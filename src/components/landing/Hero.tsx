@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { Zap, ShieldCheck, MessageCircle, RefreshCcw } from "lucide-react"
+import { BGPattern } from "../ui/bg-pattern"
 
 const avatars = [11, 12, 13, 14, 15].map(
   (n) => `https://i.pravatar.cc/120?u=ultra-${n}`,
@@ -10,7 +11,13 @@ export function Hero() {
 
   return (
     <section id="top" className="relative overflow-hidden bg-hero-radial">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pt-10 pb-16 md:gap-12 md:px-6 md:pt-24 md:pb-24 lg:grid-cols-2">
+      <BGPattern variant="grid" mask="fade-y" size={32} fill="rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.07)" className="!z-0" />
+      {/* Fade out bottom */}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 z-[1]"
+        style={{ background: 'linear-gradient(to bottom, transparent, var(--bg))' }}
+      />
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-8 px-4 pt-10 pb-16 md:gap-12 md:px-6 md:pt-24 md:pb-24 lg:grid-cols-2">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider backdrop-blur sm:text-left" style={{ color: 'var(--muted)' }}>
             <Zap className="size-3.5" style={{ color: 'var(--accent)' }} />
@@ -80,11 +87,11 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative flex items-center justify-center hidden lg:flex">
+        <div className="relative flex items-center justify-center mt-10 lg:mt-0">
           <img
             src="/hero-preview.png"
             alt="Lovable Ultra Chat preview"
-            className="w-4/5 sm:w-3/5 max-w-xs rounded-2xl shadow-2xl"
+            className="w-4/5 max-w-[280px] rounded-2xl shadow-2xl sm:w-3/5 sm:max-w-xs md:max-w-sm lg:w-3/5 lg:max-w-sm"
             style={{ boxShadow: '0 0 50px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.18)' }}
             loading="eager"
           />
