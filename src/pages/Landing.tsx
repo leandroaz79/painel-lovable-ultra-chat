@@ -7,6 +7,7 @@ import { Steps } from '../components/landing/Steps'
 import { PainPoints } from '../components/landing/PainPoints'
 import { Features } from '../components/landing/Features'
 import { Pricing } from '../components/landing/Pricing'
+import { ResellerCTA } from '../components/landing/ResellerCTA'
 import { Testimonials } from '../components/landing/Testimonials'
 import { ComparisonTable } from '../components/landing/ComparisonTable'
 import { FAQ } from '../components/landing/FAQ'
@@ -34,6 +35,7 @@ export default function Landing() {
         <Reveal variant="fade-up"><PainPoints /></Reveal>
         <Reveal variant="zoom"><Features /></Reveal>
         <Reveal variant="fade-up"><Pricing /></Reveal>
+        <Reveal variant="fade-up"><ResellerCTA /></Reveal>
         <Reveal variant="slide-left"><Testimonials /></Reveal>
         <Reveal variant="fade-up"><ComparisonTable /></Reveal>
         <Reveal variant="fade-up"><FAQ /></Reveal>
