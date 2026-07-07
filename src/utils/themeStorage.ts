@@ -76,7 +76,7 @@ export function saveTheme(colors: ThemeColors): void {
   } catch {}
 }
 
-const DERIVED_VARS = ['--accent-rgb', '--accent-r', '--accent-g', '--accent-b', '--accent-light', '--accent-bg', '--accent-glow'] as const;
+const DERIVED_VARS = ['--accent-rgb', '--accent-r', '--accent-g', '--accent-b', '--accent-light', '--accent-bg', '--accent-glow', '--line-hot'] as const;
 
 export function applyTheme(colors: ThemeColors): void {
   const root = document.documentElement;
@@ -91,6 +91,7 @@ export function applyTheme(colors: ThemeColors): void {
   root.style.setProperty('--accent-light', adjustHex(colors.accent, 24));
   root.style.setProperty('--accent-bg', `rgba(${r}, ${g}, ${b}, 0.12)`);
   root.style.setProperty('--accent-glow', `rgba(${r}, ${g}, ${b}, 0.28)`);
+  root.style.setProperty('--line-hot', `rgba(${r}, ${g}, ${b}, 0.42)`);
 }
 
 function hexToRgb2(hex: string): { r: number; g: number; b: number } {

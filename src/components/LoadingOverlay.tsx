@@ -13,14 +13,14 @@ export default function LoadingOverlay({
 
   return (
     <div
-      className={`
-        flex items-center justify-center gap-3
-        ${
-          fullScreen
-            ? 'fixed inset-0 bg-black/60 z-50'
-            : 'absolute inset-0 bg-black/40 rounded-lg z-10'
-        }
-      `}
+      className="flex items-center justify-center gap-3"
+      style={{
+        position: fullScreen ? 'fixed' : 'absolute',
+        inset: 0,
+        background: fullScreen ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)',
+        borderRadius: fullScreen ? undefined : '12px',
+        zIndex: fullScreen ? 50 : 10,
+      }}
       role="status"
       aria-label={message}
       aria-live="polite"
@@ -29,13 +29,15 @@ export default function LoadingOverlay({
         {/* Spinner */}
         <div className="relative w-8 h-8">
           <div
-            className="absolute inset-0 border-2 border-slate-600 rounded-full"
+            className="absolute inset-0 border-2 rounded-full"
+            style={{ borderColor: 'var(--line)' }}
             aria-hidden="true"
           />
           <div
-            className="absolute inset-0 border-2 border-transparent border-t-blue-500 rounded-full animate-spin"
+            className="absolute inset-0 border-2 border-transparent rounded-full animate-spin"
             aria-hidden="true"
             style={{
+              borderTopColor: 'var(--accent)',
               animation: 'spin 1s linear infinite',
             }}
           />
@@ -43,7 +45,7 @@ export default function LoadingOverlay({
 
         {/* Message */}
         {message && (
-          <p className="text-sm text-slate-200 font-medium">
+          <p style={{ fontSize: '14px', color: 'var(--muted)', fontWeight: 500 }}>
             {message}
           </p>
         )}

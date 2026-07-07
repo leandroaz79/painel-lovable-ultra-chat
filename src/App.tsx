@@ -44,8 +44,8 @@ function ProtectedRoute({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950">
-        <div className="text-green-400 text-xl">Carregando...</div>
+      <div className="flex items-center justify-center" style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+        <div style={{ color: 'var(--accent)', fontSize: '20px' }}>Carregando...</div>
       </div>
     )
   }
