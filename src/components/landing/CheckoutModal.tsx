@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, type FormEvent, type KeyboardEvent } from 'react'
+import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'

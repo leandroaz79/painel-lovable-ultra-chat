@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
-import { ShoppingCart, CheckCircle, Clock, XCircle, Ban, AlertCircle } from 'lucide-react'
+import { CheckCircle, Clock, XCircle, Ban, AlertCircle } from 'lucide-react'
 import ResellerLayout from '../../components/ResellerLayout'
 import ResellerMobileMenu from '../../components/ResellerMobileMenu'
 import { Logo } from '../../components/ui/Logo'

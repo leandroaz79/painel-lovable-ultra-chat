@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/button'
 import { Logo } from '../../components/ui/Logo'
 import { X } from 'lucide-react'
 import CheckoutModal from '../../components/landing/CheckoutModal'
-import { Video, Download, Clock, Key, ShoppingBag, Package } from 'lucide-react'
+import { Video, Clock, Key, ShoppingBag, Package } from 'lucide-react'
 
 interface License {
   license_key: string
