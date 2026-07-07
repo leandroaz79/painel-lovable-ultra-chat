@@ -209,20 +209,44 @@ export default function BrandingGenerator() {
                     title={cor.label}
                   />
                 ))}
-                <input
-                  type="color"
-                  value={primaryColor}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
+                <label
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    padding: '2px',
-                    borderRadius: '50%',
-                    border: '2px solid var(--line)',
-                    background: 'transparent',
-                    cursor: 'pointer',
+                    width: '36px', height: '36px', borderRadius: '50%',
+                    border: '2px solid var(--line)', background: primaryColor,
+                    cursor: 'pointer', display: 'block', position: 'relative',
+                    overflow: 'hidden',
                   }}
-                  title="Cor personalizada"
+                  title="Escolher cor personalizada"
+                >
+                  <input
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    style={{
+                      position: 'absolute', inset: '-4px', width: 'calc(100% + 8px)',
+                      height: 'calc(100% + 8px)', padding: 0, border: 'none',
+                      cursor: 'pointer', opacity: 0,
+                    }}
+                  />
+                </label>
+              </div>
+              <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: 600 }}>#</span>
+                <input
+                  type="text"
+                  value={primaryColor.replace('#', '')}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 6)
+                    setPrimaryColor(v ? '#' + v : '#')
+                  }}
+                  onBlur={() => { if (primaryColor === '#' || primaryColor.length < 4) setPrimaryColor('#7C5AFF') }}
+                  style={{
+                    flex: 1, minWidth: '80px', padding: '6px 8px', fontSize: '13px',
+                    fontFamily: 'monospace', letterSpacing: '0.05em', textTransform: 'uppercase',
+                    borderRadius: '8px', border: '1px solid var(--line)',
+                    background: 'rgba(255,255,255,0.03)', color: 'var(--text)',
+                  }}
+                  placeholder="7C5AFF"
                 />
               </div>
             </div>
@@ -230,72 +254,84 @@ export default function BrandingGenerator() {
             <div style={{ flex: 1, minWidth: '200px' }}>
               <p style={{ color: 'var(--muted)', fontSize: '12px', marginBottom: '8px' }}>Cor secundária</p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <input
-                  type="color"
-                  value={secondaryColor}
-                  onChange={(e) => setSecondaryColor(e.target.value)}
+                <label
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    padding: '2px',
-                    borderRadius: '50%',
-                    border: '2px solid var(--line)',
-                    background: 'transparent',
-                    cursor: 'pointer',
+                    width: '36px', height: '36px', borderRadius: '50%',
+                    border: '2px solid var(--line)', background: secondaryColor,
+                    cursor: 'pointer', display: 'block', position: 'relative',
+                    overflow: 'hidden',
                   }}
-                  title="Cor secundária"
-                />
+                  title="Escolher cor personalizada"
+                >
+                  <input
+                    type="color"
+                    value={secondaryColor}
+                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    style={{
+                      position: 'absolute', inset: '-4px', width: 'calc(100% + 8px)',
+                      height: 'calc(100% + 8px)', padding: 0, border: 'none',
+                      cursor: 'pointer', opacity: 0,
+                    }}
+                  />
+                </label>
                 <button
                   onClick={() => setSecondaryColor("#6DE8FF")}
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
+                    width: '36px', height: '36px', borderRadius: '50%',
                     backgroundColor: '#6DE8FF',
                     border: secondaryColor === '#6DE8FF' ? '3px solid var(--accent)' : '3px solid transparent',
-                    cursor: 'pointer',
-                    outline: 'none',
+                    cursor: 'pointer', outline: 'none',
                   }}
                   title="Ciano"
                 />
                 <button
                   onClick={() => setSecondaryColor("#9DFF2F")}
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
+                    width: '36px', height: '36px', borderRadius: '50%',
                     backgroundColor: '#9DFF2F',
                     border: secondaryColor === '#9DFF2F' ? '3px solid var(--accent)' : '3px solid transparent',
-                    cursor: 'pointer',
-                    outline: 'none',
+                    cursor: 'pointer', outline: 'none',
                   }}
                   title="Verde lima"
                 />
                 <button
                   onClick={() => setSecondaryColor("#FF6B9D")}
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
+                    width: '36px', height: '36px', borderRadius: '50%',
                     backgroundColor: '#FF6B9D',
                     border: secondaryColor === '#FF6B9D' ? '3px solid var(--accent)' : '3px solid transparent',
-                    cursor: 'pointer',
-                    outline: 'none',
+                    cursor: 'pointer', outline: 'none',
                   }}
                   title="Rosa"
                 />
                 <button
                   onClick={() => setSecondaryColor("#FFA500")}
                   style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
+                    width: '36px', height: '36px', borderRadius: '50%',
                     backgroundColor: '#FFA500',
                     border: secondaryColor === '#FFA500' ? '3px solid var(--accent)' : '3px solid transparent',
-                    cursor: 'pointer',
-                    outline: 'none',
+                    cursor: 'pointer', outline: 'none',
                   }}
                   title="Laranja"
+                />
+              </div>
+              <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '13px', color: 'var(--muted)', fontWeight: 600 }}>#</span>
+                <input
+                  type="text"
+                  value={secondaryColor.replace('#', '')}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 6)
+                    setSecondaryColor(v ? '#' + v : '#')
+                  }}
+                  onBlur={() => { if (secondaryColor === '#' || secondaryColor.length < 4) setSecondaryColor('#6DE8FF') }}
+                  style={{
+                    flex: 1, minWidth: '80px', padding: '6px 8px', fontSize: '13px',
+                    fontFamily: 'monospace', letterSpacing: '0.05em', textTransform: 'uppercase',
+                    borderRadius: '8px', border: '1px solid var(--line)',
+                    background: 'rgba(255,255,255,0.03)', color: 'var(--text)',
+                  }}
+                  placeholder="6DE8FF"
                 />
               </div>
             </div>
@@ -308,7 +344,6 @@ export default function BrandingGenerator() {
               borderRadius: '12px',
               background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
               border: '1px solid var(--line)',
-              transition: 'background 0.3s',
             }}
           />
         </div>
