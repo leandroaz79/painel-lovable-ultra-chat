@@ -32,7 +32,8 @@ let settingsPromise: Promise<MetaSettings | null> | null = null
 
 declare global {
   interface Window {
-    fbq?: ((...args: unknown[]) => void) & { loaded?: boolean; version?: string; callMethod?: (...args: unknown[]) => void; q?: unknown[] }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    fbq?: any
     _fbq?: unknown
   }
 }
@@ -98,7 +99,7 @@ export function loadPixelScript(pixelId: string): void {
     const queue: unknown[][] = []
     window.fbq = function (...args: unknown[]) {
       queue.push(args)
-    } as typeof window.fbq
+    }
     window.fbq.loaded = false
     window.fbq.version = '2.0'
     window.fbq.q = queue
@@ -111,8 +112,6 @@ export function loadPixelScript(pixelId: string): void {
 
   document.head.appendChild(script)
 
-  // fbevents.js will redefine window.fbq on load,
-  // but queue calls are preserved via _fbq.q
   window.fbq('init', pixelId)
   window.fbq('track', 'PageView')
 }
