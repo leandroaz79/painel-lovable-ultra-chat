@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { Zap, ShieldCheck, Headphones } from "lucide-react"
+import { trackEvent } from "../../utils/metaPixel"
 
 export function FinalCTA() {
   const navigate = useNavigate()
@@ -24,12 +25,12 @@ export function FinalCTA() {
           </p>
 
           <div className="relative mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <a href="/signup" onClick={(e) => { e.preventDefault(); navigate('/signup') }}
+            <a href="/signup" onClick={(e) => { e.preventDefault(); trackEvent('Lead', { content_name: 'FinalCTA Principal' }); navigate('/signup') }}
               className="inline-flex items-center justify-center h-14 rounded-full bg-gradient-brand px-8 text-base font-bold text-white shadow-xl hover:opacity-95 transition-all"
               style={{ boxShadow: '0 10px 50px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.22)' }}>
               Liberar poder ilimitado
             </a>
-            <a href="/signup" onClick={(e) => { e.preventDefault(); navigate('/signup') }}
+            <a href="/signup" onClick={(e) => { e.preventDefault(); trackEvent('Lead', { content_name: 'FinalCTA Trial' }); navigate('/signup') }}
               className="inline-flex items-center justify-center h-14 rounded-full border border-white/15 bg-white/5 px-8 text-base font-semibold backdrop-blur hover:bg-white/10 transition-all"
               style={{ color: 'var(--text)' }}>
               Teste grátis por 30 min →

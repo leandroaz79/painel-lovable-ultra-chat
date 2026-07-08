@@ -41,4 +41,9 @@ export const FUNCTIONS = {
   USER_DELETE_ACCOUNT: '/functions/v1/user-delete-account',
   ADMIN_MANAGE_CUSTOMER_PURCHASE: '/functions/v1/admin-manage-customer-purchase',
   ADMIN_MANAGE_CREDIT_PURCHASE: '/functions/v1/admin-manage-credit-purchase',
+  
+  // Meta Integration
+  GET_META_SETTINGS: '/functions/v1/get-meta-settings',
+  UPDATE_META_SETTINGS: '/functions/v1/update-meta-settings',
+  META_CAPI_EVENT: '/functions/v1/meta-capi-event',
 }

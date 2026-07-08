@@ -8,6 +8,7 @@ import { Navbar } from '../components/landing/Navbar'
 import { Footer } from '../components/landing/Footer'
 import { ArrowLeft, CheckCircle, Clock, Smartphone, Headphones, User, Mail, Phone, CreditCard, Banknote } from 'lucide-react'
 import { formatWhatsApp, cleanDigits } from '../utils/format'
+import { initMetaPixel, trackEvent } from '../utils/metaPixel'
 
 const CREDIT_CARD_ENABLED = false // Altere para true para reativar cartão de crédito
 
@@ -82,6 +83,7 @@ export default function Checkout() {
       script.async = true
       document.body.appendChild(script)
     }
+    initMetaPixel()
   }, [])
 
   useEffect(() => {
@@ -116,6 +118,14 @@ export default function Checkout() {
 
       setProduct(data)
       setStep('form')
+
+      trackEvent('ViewContent', {
+        content_name: data.name,
+        content_ids: [data.id],
+        content_type: 'product',
+        value: data.price_cents / 100,
+        currency: 'BRL',
+      })
     } catch {
       setErrorMsg('Erro ao carregar produto')
       setStep('error')
@@ -177,6 +187,17 @@ export default function Checkout() {
 
     setGenerating(true)
     setStep('loading')
+
+    trackEvent('InitiateCheckout', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price_cents / 100,
+      currency: 'BRL',
+      num_items: 1,
+      payment_method: paymentMethod,
+    })
+
     try {
       let card_token: string | undefined
       if (paymentMethod === 'credit_card') {
@@ -217,6 +238,15 @@ export default function Checkout() {
         setStep('pix')
         startPolling(result.payment_id)
       } else if (result.license_key) {
+        trackEvent('Purchase', {
+          content_name: product?.name,
+          content_ids: [product?.id],
+          content_type: 'product',
+          value: product?.price_cents ? product.price_cents / 100 : 0,
+          currency: 'BRL',
+          order_id: result.payment_id,
+          payment_method: 'credit_card',
+        })
         showToast('Pagamento aprovado!', 'success')
         setStep('success')
         setTimeout(() => navigate('/user', { replace: true }), 3000)
@@ -269,6 +299,15 @@ export default function Checkout() {
         if (result.status === 'approved') {
           clearInterval(pollingRef.current!)
           pollingRef.current = null
+          trackEvent('Purchase', {
+            content_name: product?.name,
+            content_ids: [product?.id],
+            content_type: 'product',
+            value: product?.price_cents ? product.price_cents / 100 : 0,
+            currency: 'BRL',
+            order_id: paymentId,
+            payment_method: 'pix',
+          })
           setStep('success')
           setTimeout(() => navigate('/user', { replace: true }), 3000)
         }

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useTheme } from './hooks/useTheme'
+import { useMetaPixel } from './hooks/useMetaPixel'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Landing from './pages/Landing'
@@ -22,6 +23,7 @@ const ResellerBranding = lazy(() => import('./pages/reseller/Branding'))
 const ResellerPurchases = lazy(() => import('./pages/reseller/Purchases'))
 const EndcustomerProducts = lazy(() => import('./pages/admin/EndcustomerProducts'))
 const CustomerPurchases = lazy(() => import('./pages/admin/CustomerPurchases'))
+const AdminMetaIntegration = lazy(() => import('./pages/admin/MetaIntegration'))
 
 function LoadingScreen() {
   return (
@@ -67,6 +69,7 @@ function ProtectedRoute({
 
 function App() {
   useTheme()
+  useMetaPixel()
   return (
     <BrowserRouter>
       <Routes>
@@ -192,6 +195,17 @@ function App() {
             <ProtectedRoute requiredRole="admin">
               <Suspense fallback={<LoadingScreen />}>
                 <CustomerPurchases />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/meta"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Suspense fallback={<LoadingScreen />}>
+                <AdminMetaIntegration />
               </Suspense>
             </ProtectedRoute>
           }

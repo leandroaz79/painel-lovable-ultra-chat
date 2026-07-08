@@ -38,3 +38,6 @@ Thumbs.db
 # Trae skills local artifacts
 .agents/
 skills-lock.json
+
+# Kilo config (may contain secrets)
+.kilo/

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { PromoBar } from '../components/landing/PromoBar'
@@ -15,10 +16,15 @@ import { FinalCTA } from '../components/landing/FinalCTA'
 import { Footer } from '../components/landing/Footer'
 import { WhatsAppFAB } from '../components/landing/WhatsAppFAB'
 import { Reveal } from '../components/landing/Reveal'
+import { initMetaPixel } from '../utils/metaPixel'
 
 export default function Landing() {
   const { user, role } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    initMetaPixel()
+  }, [])
 
   if (user && role === 'user') {
     navigate('/user', { replace: true })

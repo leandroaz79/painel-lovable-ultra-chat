@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
 import { Button } from '../ui/button'
 import { formatWhatsApp, cleanDigits } from '../../utils/format'
+import { trackEvent } from '../../utils/metaPixel'
 import { CheckCircle, Clock, Smartphone, Headphones, User, Mail, Phone, CreditCard, Banknote, X, ShieldCheck } from 'lucide-react'
 
 const CREDIT_CARD_ENABLED = false // Altere para true para reativar cartão de crédito
@@ -171,6 +172,14 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
         return
       }
       setProduct(data)
+
+      trackEvent('ViewContent', {
+        content_name: data.name,
+        content_ids: [data.id],
+        content_type: 'product',
+        value: data.price_cents / 100,
+        currency: 'BRL',
+      })
     } catch {
       setErrorMsg('Erro ao carregar produto')
     } finally {
@@ -273,6 +282,17 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
       if (cardNumber.replace(/\s/g, '').length < 13) { showToast('Número do cartão inválido', 'error'); return }
     }
     setGenerating(true)
+
+    trackEvent('InitiateCheckout', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price_cents / 100,
+      currency: 'BRL',
+      num_items: 1,
+      payment_method: paymentMethod,
+    })
+
     try {
       let card_token: string | undefined
       if (paymentMethod === 'credit_card') card_token = await getCardToken()
@@ -290,9 +310,27 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
         setStep('pix')
         startPolling(result.payment_id)
       } else if (result.license_key) {
+        trackEvent('Purchase', {
+          content_name: product?.name,
+          content_ids: [product?.id],
+          content_type: 'product',
+          value: product?.price_cents ? product.price_cents / 100 : 0,
+          currency: 'BRL',
+          order_id: result.payment_id,
+          payment_method: 'credit_card',
+        })
         showToast('Pagamento aprovado!', 'success')
         setStep('success')
       } else if (result.payment_status === 'approved') {
+        trackEvent('Purchase', {
+          content_name: product?.name,
+          content_ids: [product?.id],
+          content_type: 'product',
+          value: product?.price_cents ? product.price_cents / 100 : 0,
+          currency: 'BRL',
+          order_id: result.payment_id,
+          payment_method: paymentMethod,
+        })
         showToast('Pagamento aprovado!', 'success')
         setStep('success')
       } else {
@@ -335,6 +373,15 @@ export default function CheckoutModal({ isOpen, onClose, productSlug }: Checkout
         if (result.status === 'approved') {
           clearInterval(pollingRef.current!)
           pollingRef.current = null
+          trackEvent('Purchase', {
+            content_name: product?.name,
+            content_ids: [product?.id],
+            content_type: 'product',
+            value: product?.price_cents ? product.price_cents / 100 : 0,
+            currency: 'BRL',
+            order_id: paymentId,
+            payment_method: 'pix',
+          })
           setStep('success')
           if (!result.license_key) {
             console.warn('Pagamento aprovado mas license_key ausente — redirecionando mesmo assim')

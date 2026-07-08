@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import CheckoutModal from './CheckoutModal'
+import { trackEvent } from '../../utils/metaPixel'
 
 interface Plan {
   id: string
@@ -45,6 +46,18 @@ export function Pricing() {
   function handleSelectPlan(slug: string) {
     setSelectedSlug(slug)
     setModalOpen(true)
+
+    const plan = plans.find(p => p.slug === slug) || displayPlans.find(p => p.slug === slug)
+    if (plan) {
+      trackEvent('InitiateCheckout', {
+        content_name: plan.name,
+        content_ids: [plan.id],
+        content_type: 'product',
+        value: plan.price_cents / 100,
+        currency: 'BRL',
+        num_items: 1,
+      })
+    }
   }
 
   function handleCloseModal() {

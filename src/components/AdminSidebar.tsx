@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import { BarChart3, Key, Users, Store, DollarSign, Tag, Palette, Paintbrush, Gem, ShoppingCart, Settings, LogOut } from 'lucide-react'
+import { BarChart3, Key, Users, Store, DollarSign, Tag, Palette, Paintbrush, Gem, ShoppingCart, Settings, LogOut, Link2 } from 'lucide-react'
 import { Logo } from './ui/Logo'
 
 interface AdminSidebarProps {
@@ -39,6 +39,12 @@ const sections = [
     ],
   },
   {
+    label: 'Integrações',
+    items: [
+      { href: '/admin/meta', icon: 'meta', label: 'Meta Pixel', key: '/admin/meta' },
+    ],
+  },
+  {
     label: 'Conta',
     items: [
       { href: '/profile', icon: 'profile', label: 'Perfil', key: '/profile' },
@@ -57,6 +63,7 @@ const iconMap: Record<string, React.ReactNode> = {
   purchases: <ShoppingCart size={20} />,
   branding: <Palette size={20} />,
   theme: <Paintbrush size={20} />,
+  meta: <Link2 size={20} />,
   profile: <Settings size={20} />,
 }
 
