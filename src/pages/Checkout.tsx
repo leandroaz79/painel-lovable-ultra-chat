@@ -8,7 +8,7 @@ import { Navbar } from '../components/landing/Navbar'
 import { Footer } from '../components/landing/Footer'
 import { ArrowLeft, CheckCircle, Clock, Smartphone, Headphones, User, Mail, Phone, CreditCard, Banknote } from 'lucide-react'
 import { formatWhatsApp, cleanDigits } from '../utils/format'
-import { initMetaPixel, trackEvent } from '../utils/metaPixel'
+import { trackEvent } from '../utils/metaPixel'
 
 const CREDIT_CARD_ENABLED = false // Altere para true para reativar cartão de crédito
 
@@ -83,7 +83,6 @@ export default function Checkout() {
       script.async = true
       document.body.appendChild(script)
     }
-    initMetaPixel()
   }, [])
 
   useEffect(() => {

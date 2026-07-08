@@ -66,12 +66,9 @@ export async function fetchMetaSettings(): Promise<MetaSettings | null> {
 
   settingsPromise = (async () => {
     try {
-      const { createClient } = await import('@supabase/supabase-js')
-      const url = import.meta.env.VITE_SUPABASE_URL as string
-      const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string
-      const client = createClient(url, key)
+      const { supabase } = await import('../lib/supabase')
 
-      const { data, error } = await client.functions.invoke('get-meta-settings', {
+      const { data, error } = await supabase.functions.invoke('get-meta-settings', {
         method: 'GET',
       })
 
