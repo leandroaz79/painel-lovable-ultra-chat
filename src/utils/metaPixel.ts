@@ -88,29 +88,14 @@ export async function fetchMetaSettings(): Promise<MetaSettings | null> {
 
 export function loadPixelScript(pixelId: string): void {
   if (!pixelId || typeof document === 'undefined') return
-  if (document.querySelector(`script[data-meta-pixel="${pixelId}"]`)) return
-
-  // Set up fbq stub before loading the external script
-  // so any early calls get queued
-  if (typeof window.fbq !== 'function') {
-    const queue: unknown[][] = []
-    window.fbq = function (...args: unknown[]) {
-      queue.push(args)
-    }
-    window.fbq.loaded = false
-    window.fbq.version = '2.0'
-    window.fbq.q = queue
-  }
+  if (window.fbq?.loaded) return
 
   const script = document.createElement('script')
   script.dataset.metaPixel = pixelId
-  script.async = true
-  script.src = 'https://connect.facebook.net/en_US/fbevents.js'
+  script.innerHTML = `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${pixelId}');fbq('track','PageView');`
 
-  document.head.appendChild(script)
-
-  window.fbq('init', pixelId)
-  window.fbq('track', 'PageView')
+  const firstScript = document.getElementsByTagName('script')[0]
+  firstScript.parentNode?.insertBefore(script, firstScript)
 }
 
 export function trackPixelEvent(
