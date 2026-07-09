@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, SUPABASE_URL, FUNCTIONS } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
@@ -16,12 +16,20 @@ export default function Profile() {
   const { showToast } = useToast()
   const navigate = useNavigate()
 
-  const [name, setName] = useState(user?.user_metadata?.name || '')
-  const [phone, setPhone] = useState(user?.user_metadata?.whatsapp || '')
-  const [email, setEmail] = useState(user?.email || '')
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      setName(user.user_metadata?.name ?? '')
+      setPhone(user.user_metadata?.whatsapp ?? '')
+      setEmail(user.email ?? '')
+    }
+  }, [user?.id, user?.email, user?.user_metadata?.name, user?.user_metadata?.whatsapp])
 
   async function handleUpdateProfile(e: FormEvent) {
     e.preventDefault()
