@@ -39,21 +39,23 @@ serve(async (req) => {
       throw new Error(`Revendedor com status: ${reseller.status}. Apenas revendedores ativos podem acessar o dashboard.`);
     }
 
-    // Buscar estatísticas de licenças criadas pelo revendedor
+    // Buscar estatísticas de licenças criadas pelo revendedor (excluir pessoais)
     const { data: licenses, error: licensesError } = await adminClient
       .from("ts_licenses")
-      .select("status, license_type, created_at")
+      .select("status, license_type, created_at, user_id")
       .eq("reseller_id", reseller.id);
 
     if (licensesError) throw licensesError;
 
+    const clientLicenses = licenses?.filter(l => l.user_id !== user.user.id) || [];
+
     const stats = {
-      active: licenses?.filter(l => l.status === "active").length || 0,
-      suspended: licenses?.filter(l => l.status === "suspended").length || 0,
-      trials: licenses?.filter(l => l.license_type === "trial").length || 0,
-      paid: licenses?.filter(l => l.license_type === "paid").length || 0,
-      lifetime: licenses?.filter(l => l.license_type === "lifetime").length || 0,
-      total: licenses?.length || 0
+      active: clientLicenses.filter(l => l.status === "active").length || 0,
+      suspended: clientLicenses.filter(l => l.status === "suspended").length || 0,
+      trials: clientLicenses.filter(l => l.license_type === "trial").length || 0,
+      paid: clientLicenses.filter(l => l.license_type === "paid").length || 0,
+      lifetime: clientLicenses.filter(l => l.license_type === "lifetime").length || 0,
+      total: clientLicenses.length || 0
     };
 
     // Buscar últimas transações de créditos

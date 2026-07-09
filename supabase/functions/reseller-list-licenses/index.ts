@@ -37,35 +37,44 @@ serve(async (req) => {
       throw new Error(`Conta com status: ${reseller.status}`);
     }
 
-    const { data: clientLicenses, error: clientError } = await adminClient
+    const { data: licenses, error: licensesError } = await adminClient
       .from("ts_licenses")
       .select("*")
       .eq("reseller_id", reseller.id)
       .order("created_at", { ascending: false });
 
-    if (clientError) throw clientError;
+    if (licensesError) throw licensesError;
 
-    const { data: personalLicenses, error: personalError } = await adminClient
+    const { data: orphanPersonal, error: orphanError } = await adminClient
       .from("ts_licenses")
       .select("*")
       .eq("user_id", user.user.id)
       .is("reseller_id", null)
       .order("created_at", { ascending: false });
 
-    if (personalError) throw personalError;
+    if (orphanError) throw orphanError;
 
-    const allLicenses = [
-      ...(clientLicenses || []).map((l: Record<string, unknown>) => ({ ...l, is_personal: false })),
-      ...(personalLicenses || []).map((l: Record<string, unknown>) => ({ ...l, is_personal: true })),
+    const clientLicenses = (licenses || []).map((l: Record<string, unknown>) => ({
+      ...l,
+      is_personal: l.user_id === user.user.id,
+    }));
+
+    const personalOnly = (orphanPersonal || []).map((l: Record<string, unknown>) => ({
+      ...l,
+      is_personal: true,
+    }));
+
+    const personalKeys = new Set(personalOnly.map((l: Record<string, unknown>) => l.license_key));
+    const merged = [
+      ...clientLicenses.filter((l: Record<string, unknown>) => !personalKeys.has(l.license_key)),
+      ...personalOnly,
     ];
 
     return new Response(
       JSON.stringify({
         success: true,
-        licenses: allLicenses,
-        total: allLicenses.length,
-        personal_count: personalLicenses?.length || 0,
-        client_count: clientLicenses?.length || 0,
+        licenses: merged,
+        total: merged.length,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
