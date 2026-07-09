@@ -23,6 +23,7 @@ interface License {
   device_id?: string
   lifetime: boolean
   created_at: string
+  is_personal?: boolean
 }
 
 export default function ResellerDashboard() {
@@ -31,6 +32,7 @@ export default function ResellerDashboard() {
   const navigate = useNavigate()
   const { copyLicenseKey, renewLicense, resetHwid, revokeLicense, deleteLicense, submitMutation } = useLicenseActions()
   const [licenses, setLicenses] = useState<License[]>([])
+  const [personalLicenses, setPersonalLicenses] = useState<License[]>([])
   const [credits, setCredits] = useState(0)
   const [creditsUsed, setCreditsUsed] = useState(0)
   const [creditsPurchased, setCreditsPurchased] = useState(0)
@@ -171,7 +173,9 @@ export default function ResellerDashboard() {
 
       const result = await response.json()
       if (result.success) {
-        setLicenses(result.licenses || [])
+        const all = result.licenses || []
+        setLicenses(all.filter((l: License) => !l.is_personal))
+        setPersonalLicenses(all.filter((l: License) => l.is_personal))
       }
     } catch (error) {
       console.error('Erro ao carregar licenças:', error)
@@ -585,6 +589,46 @@ export default function ResellerDashboard() {
             </form>
           </article>
         </section>
+
+        {personalLicenses.length > 0 && (
+          <section className="table-card reveal" style={{ marginBottom: '28px' }}>
+            <div className="table-head">
+              <div>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Key size={20} style={{ color: 'var(--cyan)' }} />
+                  Minhas Licenças (Uso Pessoal)
+                </h2>
+                <p>{personalLicenses.length} licença(s) comprada(s) antes da migração para revendedor</p>
+              </div>
+            </div>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Chave</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Expira</th>
+                    <th scope="col">HWID</th>
+                    <th scope="col">Criada em</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {personalLicenses.map((license) => (
+                    <tr key={license.license_key}>
+                      <td data-label="Chave"><span className="license-key">{license.license_key}</span></td>
+                      <td data-label="Status"><span className={`badge ${license.status}`}>{labelStatus(license.status)}</span></td>
+                      <td data-label="Tipo">{license.lifetime ? 'Vitalícia' : license.license_type || 'paid'}</td>
+                      <td data-label="Expira">{formatDate(license.expires_at)}</td>
+                      <td data-label="HWID">{license.device_id ? 'vinculado' : 'livre'}</td>
+                      <td data-label="Criada em">{formatDate(license.created_at)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
         <section className="table-card reveal">
           <div className="table-head">

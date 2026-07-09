@@ -16,7 +16,6 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Validar usuário autenticado
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("Missing authorization header");
 
@@ -24,7 +23,6 @@ serve(async (req) => {
     const { data: user, error: userError } = await adminClient.auth.getUser(token);
     if (userError || !user) throw new Error("Unauthorized");
 
-    // Verificar se é revendedor ativo
     const { data: reseller, error: resellerError } = await adminClient
       .from("resellers")
       .select("*")
@@ -39,20 +37,35 @@ serve(async (req) => {
       throw new Error(`Conta com status: ${reseller.status}`);
     }
 
-    // Listar apenas licenças criadas pelo revendedor
-    const { data: licenses, error: licensesError } = await adminClient
+    const { data: clientLicenses, error: clientError } = await adminClient
       .from("ts_licenses")
       .select("*")
       .eq("reseller_id", reseller.id)
       .order("created_at", { ascending: false });
 
-    if (licensesError) throw licensesError;
+    if (clientError) throw clientError;
+
+    const { data: personalLicenses, error: personalError } = await adminClient
+      .from("ts_licenses")
+      .select("*")
+      .eq("user_id", user.user.id)
+      .is("reseller_id", null)
+      .order("created_at", { ascending: false });
+
+    if (personalError) throw personalError;
+
+    const allLicenses = [
+      ...(clientLicenses || []).map((l: Record<string, unknown>) => ({ ...l, is_personal: false })),
+      ...(personalLicenses || []).map((l: Record<string, unknown>) => ({ ...l, is_personal: true })),
+    ];
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
-        licenses: licenses || [],
-        total: licenses?.length || 0
+        licenses: allLicenses,
+        total: allLicenses.length,
+        personal_count: personalLicenses?.length || 0,
+        client_count: clientLicenses?.length || 0,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

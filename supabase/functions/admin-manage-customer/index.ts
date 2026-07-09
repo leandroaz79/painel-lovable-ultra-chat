@@ -214,6 +214,15 @@ serve(async (req) => {
 
       if (roleError) throw roleError;
 
+      const { data: migratedLicenses, error: migrateError } = await adminClient
+        .from("ts_licenses")
+        .update({ reseller_id: reseller.id })
+        .eq("user_id", user_id)
+        .is("reseller_id", null)
+        .select("id, license_key");
+
+      if (migrateError) console.error("Erro ao migrar licenças:", migrateError.message);
+
       await adminClient.from("admin_audit_logs").insert({
         admin_user_id: user.id,
         action: "promote_to_reseller",
@@ -225,10 +234,16 @@ serve(async (req) => {
           email: currentEmail,
           whatsapp: currentWhatsapp,
           initial_credits,
+          migrated_licenses: migratedLicenses?.length || 0,
         },
       });
 
-      result = { user_id, reseller_id: reseller.id, credits: initial_credits };
+      result = {
+        user_id,
+        reseller_id: reseller.id,
+        credits: initial_credits,
+        migrated_licenses: migratedLicenses?.length || 0,
+      };
     }
 
     return new Response(
