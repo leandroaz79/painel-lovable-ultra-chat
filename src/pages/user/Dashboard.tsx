@@ -430,14 +430,14 @@ export default function UserDashboard() {
           <div className="reseller-cta-glow" />
           <div className="reseller-cta-grid">
             <div className="reseller-cta-content">
-              <span className="reseller-cta-badge">Plano Revendedor</span>
-              <h2 className="reseller-cta-title">Vire revendedor oficial do Ultra Chat</h2>
+              <span className="reseller-cta-badge">Programa de Revendedores</span>
+              <h2 className="reseller-cta-title">Torne-se um Revendedor Oficial</h2>
               <p className="reseller-cta-desc">
-                Ative seu painel de revenda, compre licenças no atacado e venda com margem alta.
-                Fluxo simples, pagamento único e operação sem mensalidade recorrente.
+                Crie uma nova fonte de renda revendendo licenças do Ultra Chat.
+                Painel exclusivo, preços com desconto, sem mensalidade recorrente.
               </p>
               <div className="reseller-cta-benefits">
-                {['Painel exclusivo de revenda', 'Compra no atacado para revender', 'Sem mensalidade recorrente', 'Suporte direto para operação'].map((b) => (
+                {['Painel exclusivo de revenda', 'Licenças vitalícias com desconto', 'Sem mensalidade recorrente', 'Suporte direto para operação', '1 Licença Vitalícia de brinde'].map((b) => (
                   <div key={b} className="reseller-cta-benefit">
                     <span className="reseller-cta-check">✓</span>
                     <span>{b}</span>
@@ -446,19 +446,17 @@ export default function UserDashboard() {
               </div>
             </div>
             <div className="reseller-cta-side">
-              <p className="reseller-cta-side-label">Condição de entrada</p>
-              <strong className="reseller-cta-side-price">Pagamento único</strong>
+              <p className="reseller-cta-side-label">Investimento único</p>
+              <strong className="reseller-cta-side-price">R$ 89,90</strong>
               <p className="reseller-cta-side-desc">
-                Fale com nosso time para receber valores, regras de ativação e processo para começar sua operação.
+                Acesse a página completa do programa com tabela de preços, calculadora de lucro e todas as informações.
               </p>
-              <a
-                href="https://wa.me/556781880921?text=Ol%C3%A1!%20Vim%20pelo%20site%20do%20Lovable%20Ultra%20Chat%20e%20quero%20saber%20como%20posso%20me%20tornar%20revendedor%20oficial."
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => navigate('/reseller-program')}
                 className="primary-action reseller-cta-btn"
               >
-                Quero Ser Revendedor
-              </a>
+                Saiba mais →
+              </button>
             </div>
           </div>
         </div>

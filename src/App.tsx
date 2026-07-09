@@ -24,6 +24,7 @@ const ResellerPurchases = lazy(() => import('./pages/reseller/Purchases'))
 const EndcustomerProducts = lazy(() => import('./pages/admin/EndcustomerProducts'))
 const CustomerPurchases = lazy(() => import('./pages/admin/CustomerPurchases'))
 const AdminMetaIntegration = lazy(() => import('./pages/admin/MetaIntegration'))
+const ResellerProgram = lazy(() => import('./pages/ResellerProgram'))
 
 function LoadingScreen() {
   return (
@@ -96,6 +97,17 @@ function App() {
             <ProtectedRoute requiredRole="user">
               <Suspense fallback={<LoadingScreen />}>
                 <UserDashboard />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/reseller-program"
+          element={
+            <ProtectedRoute anyRole>
+              <Suspense fallback={<LoadingScreen />}>
+                <ResellerProgram />
               </Suspense>
             </ProtectedRoute>
           }
