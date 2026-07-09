@@ -590,46 +590,6 @@ export default function ResellerDashboard() {
           </article>
         </section>
 
-        {personalLicenses.length > 0 && (
-          <section className="table-card reveal" style={{ marginBottom: '28px' }}>
-            <div className="table-head">
-              <div>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Key size={20} style={{ color: 'var(--cyan)' }} />
-                  Minhas Licenças (Uso Pessoal)
-                </h2>
-                <p>{personalLicenses.length} licença(s) comprada(s) antes da migração para revendedor</p>
-              </div>
-            </div>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th scope="col">Chave</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Tipo</th>
-                    <th scope="col">Expira</th>
-                    <th scope="col">HWID</th>
-                    <th scope="col">Criada em</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {personalLicenses.map((license) => (
-                    <tr key={license.license_key}>
-                      <td data-label="Chave"><span className="license-key">{license.license_key}</span></td>
-                      <td data-label="Status"><span className={`badge ${license.status}`}>{labelStatus(license.status)}</span></td>
-                      <td data-label="Tipo">{license.lifetime ? 'Vitalícia' : license.license_type || 'paid'}</td>
-                      <td data-label="Expira">{formatDate(license.expires_at)}</td>
-                      <td data-label="HWID">{license.device_id ? 'vinculado' : 'livre'}</td>
-                      <td data-label="Criada em">{formatDate(license.created_at)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-
         <section className="table-card reveal">
           <div className="table-head">
             <div>
@@ -745,6 +705,53 @@ export default function ResellerDashboard() {
             </div>
           )}
         </section>
+
+        {personalLicenses.length > 0 && (
+          <section className="table-card reveal" style={{ marginTop: '28px' }}>
+            <div className="table-head">
+              <div>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Key size={20} style={{ color: 'var(--cyan)' }} />
+                  Licenças Pessoais
+                </h2>
+                <p>{personalLicenses.length} licença(s) comprada(s) antes da migração para revendedor</p>
+              </div>
+            </div>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Chave</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Expira</th>
+                    <th scope="col">HWID</th>
+                    <th scope="col">Ações</th>
+                  </tr>
+                </thead>
+                <tbody onClick={handleTableAction}>
+                  {personalLicenses.map((license) => (
+                    <tr key={license.license_key}>
+                      <td data-label="Chave"><span className="license-key">{license.license_key}</span></td>
+                      <td data-label="Status"><span className={`badge ${license.status}`}>{labelStatus(license.status)}</span></td>
+                      <td data-label="Tipo">{license.lifetime ? 'Vitalícia' : license.license_type || 'paid'}</td>
+                      <td data-label="Expira">{formatDate(license.expires_at)}</td>
+                      <td data-label="HWID">{license.device_id ? 'vinculado' : 'livre'}</td>
+                      <td data-label="Ações">
+                        <div className="actions-row">
+                          <Button size="tiny" data-action="copy" data-key={license.license_key}>Copiar</Button>
+                          {license.license_type !== 'trial' || license.lifetime ? (
+                            <Button size="tiny" data-action="reset" data-key={license.license_key}>Liberar PC</Button>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
         <section className="glass-card" style={{ padding: '24px', marginTop: '28px', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
           <div>
