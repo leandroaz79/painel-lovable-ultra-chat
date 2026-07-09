@@ -12,6 +12,10 @@ export function useAuth() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) {
+        // Refresh user metadata from server
+        supabase.auth.getUser().then(({ data: { user: freshUser } }) => {
+          if (freshUser) setUser(freshUser)
+        })
         fetchRole(session.user.id)
       } else {
         setLoading(false)
@@ -21,9 +25,11 @@ export function useAuth() {
     // Listener de mudanças de auth
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
+        const { data: { user: freshUser } } = await supabase.auth.getUser()
+        if (freshUser) setUser(freshUser)
         fetchRole(session.user.id)
       } else {
         setRole(null)
