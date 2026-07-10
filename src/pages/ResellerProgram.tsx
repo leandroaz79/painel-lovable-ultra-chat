@@ -7,7 +7,7 @@ import {
   ChevronDown, ChevronUp, CreditCard, Gift, Package, DollarSign,
   BarChart3, Target, Zap, Wrench, Handshake, ShoppingBag,
   Sun, Calendar, TrendingUp, Crown, CheckCircle2, ArrowRight,
-  Users, Shield, Clock, Star, Sparkles, Calculator
+  Users, Shield, Clock, Star, Sparkles, Calculator, Paintbrush
 } from 'lucide-react'
 
 const PRICING_TIERS = [
@@ -62,6 +62,7 @@ const WHY_ITEMS = [
   { icon: <Wrench size={22} />, label: 'Atualizações constantes', desc: 'Produto sempre atualizado' },
   { icon: <Handshake size={22} />, label: 'Suporte exclusivo', desc: 'Canal dedicado' },
   { icon: <ShoppingBag size={22} />, label: 'Compra sob demanda', desc: 'Sem estoque mínimo' },
+  { icon: <Paintbrush size={22} />, label: 'White-Label', desc: 'Customize cores, logo e marca' },
 ]
 
 const HERO_STATS = [

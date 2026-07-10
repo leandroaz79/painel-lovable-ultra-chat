@@ -437,7 +437,7 @@ export default function UserDashboard() {
                 Painel exclusivo, preços com desconto, sem mensalidade recorrente.
               </p>
               <div className="reseller-cta-benefits">
-                {['Painel exclusivo de revenda', 'Licenças vitalícias com desconto', 'Sem mensalidade recorrente', 'Suporte direto para operação', '1 Licença Vitalícia de brinde'].map((b) => (
+                {['Painel exclusivo de revenda', 'Licenças vitalícias com desconto', 'Sem mensalidade recorrente', 'Suporte direto para operação', 'White-Label: cores, logo e marca', '1 Licença Vitalícia de brinde'].map((b) => (
                   <div key={b} className="reseller-cta-benefit">
                     <span className="reseller-cta-check">✓</span>
                     <span>{b}</span>
