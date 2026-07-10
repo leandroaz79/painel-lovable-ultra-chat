@@ -375,12 +375,12 @@
 .reseller-cta-benefit { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); }
 .reseller-cta-check { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 900; flex-shrink: 0; color: #07110a; background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.9); }
 .reseller-cta-side { display: flex; flex-direction: column; gap: 12px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); padding: 24px; backdrop-filter: blur(8px); }
-@media (min-width: 64rem) { .reseller-cta-side { align-items: flex-end; text-align: right; } }
-.reseller-cta-side-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: var(--muted-2); margin: 0; }
-.reseller-cta-side-price { font-size: clamp(1.75rem, 5vw, 2.75rem); font-weight: 900; letter-spacing: -0.04em; color: var(--text); display: block; }
+@media (min-width: 64rem) { .reseller-cta-side { align-items: flex-start; text-align: left; } }
+.reseller-cta-side-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent); margin: 0; }
+.reseller-cta-side-price { font-size: clamp(1.125rem, 2.5vw, 1.375rem); font-weight: 800; letter-spacing: -0.02em; color: var(--text); display: block; line-height: 1.3; }
+.reseller-cta-side-price strong { color: var(--accent); }
 .reseller-cta-side-desc { font-size: clamp(0.8125rem, 1.8vw, 0.9375rem); line-height: 1.6; color: var(--muted); margin: 0; }
-.reseller-cta-btn { display: inline-flex; width: 100%; min-height: 52px; align-items: center; justify-content: center; border-radius: 999px; padding: 0 24px; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.12em; text-decoration: none; }
-@media (min-width: 64rem) { .reseller-cta-btn { width: auto; } }
+.reseller-cta-btn { display: flex; width: 100%; min-height: 52px; align-items: center; justify-content: center; border-radius: 999px; padding: 0 24px; font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.12em; text-decoration: none; }
 @media (max-width: 767px) { .trial-hero-banner { padding: 20px; flex-direction: column; align-items: stretch; text-align: center; } .trial-hero-content { flex-direction: column; text-align: center; } .trial-hero-btn { width: 100%; } }
 .trial-banner-info { display: flex; align-items: center; gap: 12px; }
 .trial-banner-text strong { font-size: 14px; color: var(--text); }
@@ -424,4 +424,126 @@
   .user-pricing-price { font-size: 28px; }
   .user-hero-stats { gap: 12px; }
   .user-hero-stat strong { font-size: 20px; }
+}
+
+/* ============================================
+   ResellerProgram — Animated Hero
+   ============================================ */
+@keyframes hero-blob-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.12; }
+  33% { transform: translate(40px, -30px) scale(1.1); opacity: 0.18; }
+  66% { transform: translate(-20px, 20px) scale(0.95); opacity: 0.10; }
+}
+@keyframes hero-blob-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.08; }
+  33% { transform: translate(-50px, 40px) scale(1.15); opacity: 0.14; }
+  66% { transform: translate(30px, -20px) scale(0.9); opacity: 0.06; }
+}
+@keyframes hero-blob-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.06; }
+  50% { transform: translate(25px, -35px) scale(1.08); opacity: 0.12; }
+}
+
+@keyframes hero-particle-rise {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-420px) translateX(var(--px, 0px)); opacity: 0; }
+}
+
+@keyframes hero-shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes hero-glow-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.08); }
+}
+
+@keyframes hero-badge-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0); }
+}
+
+.hero-mesh-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.hero-mesh-blob-1 {
+  top: -15%; left: -8%;
+  width: clamp(300px, 40vw, 550px); height: clamp(300px, 40vw, 550px);
+  background: radial-gradient(circle, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15), transparent 70%);
+  animation: hero-blob-1 12s ease-in-out infinite;
+}
+.hero-mesh-blob-2 {
+  bottom: -20%; right: -5%;
+  width: clamp(350px, 45vw, 650px); height: clamp(350px, 45vw, 650px);
+  background: radial-gradient(circle, rgba(109, 232, 255, 0.10), transparent 70%);
+  animation: hero-blob-2 15s ease-in-out infinite;
+}
+.hero-mesh-blob-3 {
+  top: 30%; left: 50%;
+  width: clamp(200px, 25vw, 350px); height: clamp(200px, 25vw, 350px);
+  background: radial-gradient(circle, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08), transparent 70%);
+  animation: hero-blob-3 18s ease-in-out infinite;
+}
+
+.hero-particle {
+  position: absolute;
+  bottom: 0;
+  width: var(--s, 3px);
+  height: var(--s, 3px);
+  border-radius: 50%;
+  background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), var(--o, 0.5));
+  animation: hero-particle-rise var(--d, 8s) linear infinite;
+  animation-delay: var(--del, 0s);
+  --px: 0px;
+  will-change: transform, opacity;
+}
+
+.hero-title-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0%,
+    var(--cyan) 25%,
+    var(--accent) 50%,
+    var(--cyan) 75%,
+    var(--accent) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: hero-shimmer 6s linear infinite;
+}
+
+.hero-cta-glow {
+  position: relative;
+  display: inline-flex;
+}
+.hero-cta-glow::before {
+  content: '';
+  position: absolute;
+  inset: -8px -12px;
+  border-radius: 999px;
+  background: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.25);
+  filter: blur(18px);
+  animation: hero-glow-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.hero-badge-animated {
+  animation: hero-badge-breathe 3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-mesh-blob,
+  .hero-particle { animation: none !important; }
+  .hero-title-shimmer { animation: none !important; }
+  .hero-cta-glow::before { animation: none !important; }
+  .hero-badge-animated { animation: none !important; }
 }

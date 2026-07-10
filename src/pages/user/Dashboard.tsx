@@ -446,16 +446,18 @@ export default function UserDashboard() {
               </div>
             </div>
             <div className="reseller-cta-side">
-              <p className="reseller-cta-side-label">Investimento único</p>
-              <strong className="reseller-cta-side-price">R$ 89,90</strong>
+              <p className="reseller-cta-side-label">Oportunidade de lucro</p>
+              <strong className="reseller-cta-side-price">
+                Compre a partir de <strong style={{ color: 'var(--accent)' }}>R$ 19,90</strong>
+              </strong>
               <p className="reseller-cta-side-desc">
-                Acesse a página completa do programa com tabela de preços, calculadora de lucro e todas as informações.
+                e revenda por R$ 299 — lucro de até 88% por venda.
               </p>
               <button
                 onClick={() => navigate('/reseller-program')}
                 className="primary-action reseller-cta-btn"
               >
-                Saiba mais →
+                Conhecer o programa →
               </button>
             </div>
           </div>
