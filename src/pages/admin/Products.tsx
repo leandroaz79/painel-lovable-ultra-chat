@@ -138,7 +138,7 @@ export default function Products() {
                   pricingTiers.map(tier => {
                     const isEditing = editingId === tier.id
                     const currentPrice = isEditing ? (editValues.unit_price || tier.unit_price) : tier.unit_price
-                    const basePrice = 30.00
+                    const basePrice = 37.90
                     const savings = basePrice - currentPrice
                     const rangeText = tier.max_quantity 
                       ? `${tier.min_quantity} - ${tier.max_quantity}`
@@ -227,7 +227,7 @@ export default function Products() {
               <li>Preços são aplicados automaticamente no modal de compra</li>
               <li>Desconto progressivo incentiva compras maiores</li>
               <li>Alterações são registradas no histórico para auditoria</li>
-              <li>Preço base (R$ 30,00) é usado como referência para calcular economia</li>
+              <li>Preço base (R$ 37,90) é usado como referência para calcular economia</li>
             </ul>
             {pricingTiers.length === 0 && (
               <div className="info-box warning">

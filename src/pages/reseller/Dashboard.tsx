@@ -10,7 +10,7 @@ import { Logo } from '../../components/ui/Logo'
 import ConfirmationDialog from '../../components/ConfirmationDialog'
 import ResellerLayout from '../../components/ResellerLayout'
 import ResellerMobileMenu from '../../components/ResellerMobileMenu'
-import { Key, ShoppingCart, Clock, Package, CreditCard } from 'lucide-react'
+import { Key, ShoppingCart, Clock, Package, CreditCard, Video, X } from 'lucide-react'
 
 interface License {
   license_key: string
@@ -78,6 +78,8 @@ export default function ResellerDashboard() {
     licenseKey: '',
     isLoading: false,
   })
+  const [videoModalOpen, setVideoModalOpen] = useState(false)
+  const [selectedVideo, setSelectedVideo] = useState('')
   
   useEffect(() => {
     loadDashboard()
@@ -127,10 +129,15 @@ export default function ResellerDashboard() {
     } catch (error) {
       console.error('Erro ao carregar preços:', error)
       setPricingTiers([
-        { min_quantity: 1, max_quantity: 9, unit_price: 30.00 },
-        { min_quantity: 10, max_quantity: 19, unit_price: 25.00 },
-        { min_quantity: 20, max_quantity: 29, unit_price: 20.00 },
-        { min_quantity: 30, max_quantity: null, unit_price: 15.00 }
+        { min_quantity: 1, max_quantity: 9, unit_price: 37.90 },
+        { min_quantity: 10, max_quantity: 19, unit_price: 35.90 },
+        { min_quantity: 20, max_quantity: 29, unit_price: 33.90 },
+        { min_quantity: 30, max_quantity: 39, unit_price: 31.90 },
+        { min_quantity: 40, max_quantity: 49, unit_price: 29.90 },
+        { min_quantity: 50, max_quantity: 74, unit_price: 27.90 },
+        { min_quantity: 75, max_quantity: 99, unit_price: 25.90 },
+        { min_quantity: 100, max_quantity: 149, unit_price: 23.90 },
+        { min_quantity: 150, max_quantity: null, unit_price: 19.90 }
       ])
     }
   }
@@ -325,7 +332,7 @@ export default function ResellerDashboard() {
 
   function calculatePrice(qty: number) {
     // Buscar preço baseado na quantidade usando tabela do banco
-    let unitPrice = 30.00 // fallback
+    let unitPrice = 37.90 // fallback (maior preço da tabela)
     
     for (const tier of pricingTiers) {
       if (tier.max_quantity === null) {
@@ -343,7 +350,7 @@ export default function ResellerDashboard() {
       }
     }
     
-    const basePrice = 30.00
+    const basePrice = 37.90
     const discount = unitPrice < basePrice ? Math.round(((basePrice - unitPrice) / basePrice) * 100) : 0
     
     return {
@@ -351,6 +358,56 @@ export default function ResellerDashboard() {
       total: unitPrice * qty,
       discount
     }
+  }
+
+  function getUpsellInfo(qty: number) {
+    const basePrice = 37.90
+    const current = calculatePrice(qty)
+    const savingsVsBase = (basePrice - current.unitPrice) * qty
+
+    // Próxima faixa mais vantajosa
+    let nextTier: { min: number; price: number; savings: number } | null = null
+    for (const tier of pricingTiers) {
+      const tierMax = tier.max_quantity ?? Infinity
+      if (qty < tierMax && qty < tier.min_quantity) {
+        const extraNeeded = tier.min_quantity - qty
+        nextTier = { min: tier.min_quantity, price: tier.unit_price, savings: extraNeeded }
+        break
+      }
+    }
+
+    // Badge dinâmico
+    let badge = ''
+    let badgeColor = ''
+    if (qty >= 150) { badge = 'Escolha dos maiores revendedores'; badgeColor = '#b47aff' }
+    else if (qty >= 100) { badge = 'Melhor margem de lucro'; badgeColor = '#14e6b8' }
+    else if (qty >= 50) { badge = 'Melhor custo-benefício'; badgeColor = '#f5b83d' }
+    else if (qty >= 25) { badge = 'Mais vendido'; badgeColor = '#ff8a98' }
+    else if (qty >= 10) { badge = 'Recomendado'; badgeColor = '#6de8ff' }
+    else if (qty >= 5) { badge = 'Ótima escolha'; badgeColor = '#9dff2f' }
+
+    // Mensagem de incentivo
+    let title = ''
+    let message = ''
+    let emoji = ''
+    if (qty === 1) {
+      emoji = '🚀'; title = 'Você pretende vender o Ultra Chat?'
+      message = 'Com apenas 1 licença você poderá atender somente um cliente. Quanto mais licenças comprar agora, menor será o custo por licença e maior será seu lucro em cada venda.'
+    } else if (qty >= 2 && qty <= 4) {
+      emoji = '💰'; title = 'Economize comprando em maior quantidade.'
+      message = 'Revendedores que compram pacotes maiores conseguem maior margem de lucro e evitam fazer novas compras rapidamente.'
+    } else if (qty >= 5 && qty <= 9) {
+      emoji = '🔥'; title = 'Excelente escolha!'
+      message = 'Você já está reduzindo significativamente seu custo por licença. Considere um pacote maior para aumentar ainda mais sua margem de lucro.'
+    } else if (qty >= 10 && qty <= 24) {
+      emoji = '⭐'; title = 'Você está comprando como um revendedor profissional.'
+      message = 'Pacotes maiores oferecem um custo por licença muito menor e aumentam seu potencial de faturamento.'
+    } else if (qty >= 25) {
+      emoji = '👑'; title = 'Melhor escolha!'
+      message = 'Este pacote oferece um dos melhores custos por licença disponíveis. Ideal para quem deseja escalar as vendas com máxima lucratividade.'
+    }
+
+    return { title, message, emoji, badge, badgeColor, nextTier, savingsVsBase, current }
   }
 
   async function handleBuyCredits(e: FormEvent<HTMLFormElement>) {
@@ -521,7 +578,7 @@ export default function ResellerDashboard() {
         <div
           id="credits"
           className="glass-card reseller-credits-card"
-          style={{ background: 'linear-gradient(135deg, rgba(109,232,255,0.12), rgba(157,255,47,0.08))', padding: '24px', marginBottom: '28px' }}
+          style={{ background: 'linear-gradient(135deg, rgba(109,232,255,0.12), rgba(157,255,47,0.08))', padding: '24px' }}
         >
           <div className="reseller-credits-row">
             <div
@@ -541,6 +598,42 @@ export default function ResellerDashboard() {
             <Button className="reseller-credits-action" onClick={() => setShowBuyModal(true)}><ShoppingCart size={16} /> Comprar chaves</Button>
           </div>
         </div>
+
+        <section className="glass-card" style={{ padding: '24px', marginTop: '0', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <div>
+            <p className="eyebrow" style={{ marginBottom: '4px' }}>Extensão</p>
+            <h2 style={{ fontSize: '18px', margin: '0 0 6px' }}>Download da Extensão</h2>
+            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: 0 }}>
+              Baixe a extensão base para seus clientes que ainda não personalizaram a marca.
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <Button
+              onClick={async () => {
+                try {
+                  const resp = await fetch('/templates/lovable-ultra-chat-full.zip')
+                  if (!resp.ok) throw new Error('Falha ao baixar')
+                  const blob = await resp.blob()
+                  const a = document.createElement('a')
+                  a.href = URL.createObjectURL(blob)
+                  a.download = 'lovable-ultra-chat-full.zip'
+                  document.body.appendChild(a)
+                  a.click()
+                  document.body.removeChild(a)
+                  URL.revokeObjectURL(a.href)
+                  showToast('Download iniciado!', 'success')
+                } catch {
+                  showToast('Erro ao baixar extensão', 'error')
+                }
+              }}
+            >
+              Baixar extensão padrão
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/reseller/branding')}>
+              Personalizar
+            </Button>
+          </div>
+        </section>
 
         <section className="work-grid">
           <article id="create-license" className="glass-card">
@@ -753,46 +846,90 @@ export default function ResellerDashboard() {
           </section>
         )}
 
-        <section className="glass-card" style={{ padding: '24px', marginTop: '28px', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-          <div>
-            <p className="eyebrow" style={{ marginBottom: '4px' }}>Extensão</p>
-            <h2 style={{ fontSize: '18px', margin: '0 0 6px' }}>Download da Extensão</h2>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: 0 }}>
-              Baixe a extensão base para seus clientes que ainda não personalizaram a marca.
-            </p>
+        {/* Tutorial de instalação */}
+        <section className="landing-section" style={{ paddingTop: '0' }}>
+          <div className="section-header">
+            <p className="eyebrow">Recursos</p>
+            <h2>Comece a usar</h2>
           </div>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <Button
-              onClick={async () => {
-                try {
-                  const resp = await fetch('/templates/lovable-ultra-chat-full.zip')
-                  if (!resp.ok) throw new Error('Falha ao baixar')
-                  const blob = await resp.blob()
-                  const a = document.createElement('a')
-                  a.href = URL.createObjectURL(blob)
-                  a.download = 'lovable-ultra-chat-full.zip'
-                  document.body.appendChild(a)
-                  a.click()
-                  document.body.removeChild(a)
-                  URL.revokeObjectURL(a.href)
-                  showToast('Download iniciado!', 'success')
-                } catch {
-                  showToast('Erro ao baixar extensão', 'error')
-                }
-              }}
-            >
-              Baixar extensão padrão
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/reseller/branding')}>
-              Personalizar
-            </Button>
+          <div className="work-grid">
+            <article className="glass-card" style={{ gridColumn: '1 / -1' }}>
+              <div className="card-heading">
+                <span className="icon-pill" aria-hidden="true"><Video size={20} /></span>
+                <h2>Como instalar a extensão</h2>
+              </div>
+              <div className="install-layout">
+                <div className="install-video">
+                  <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '14px' }}>
+                    <iframe
+                      src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                      title="Tutorial Ultra Chat"
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+                <div className="install-text">
+                  <h3>Instalação (Chrome / Edge / Brave / Opera)</h3>
+                  <ol>
+                    <li><strong>Baixe</strong> o arquivo .zip na seção de Download acima.</li>
+                    <li>Clique com o botão direito no .zip e escolha <strong>Extrair tudo</strong> (guarde a pasta em algum lugar fácil, ex: Documentos).</li>
+                    <li>No navegador, abra: <code>chrome://extensions</code></li>
+                    <li>Ative o <strong>Modo do desenvolvedor</strong> (canto superior direito).</li>
+                    <li>Clique em <strong>Carregar sem compactação</strong> e selecione a pasta extraída (a que tem o <code>manifest.json</code>).</li>
+                    <li>A extensão Ultra Chat aparece na lista. <strong>Fixe ela na barra</strong> (ícone de quebra-cabeça → alfinete).</li>
+                    <li>Clique no ícone da extensão, <strong>cole sua key</strong> e clique em <strong>Ativar</strong>.</li>
+                    <li>Pronto! Abra o Lovable e use à vontade.</li>
+                  </ol>
+                  <p className="install-warn">Não apague a pasta extraída — a extensão roda a partir dela.</p>
+                  <h4>Problemas comuns</h4>
+                  <ul className="install-faq">
+                    <li><strong>"Key inválida"</strong> → confira se copiou sem espaços.</li>
+                    <li><strong>"Limite de dispositivos atingido"</strong> → entre em <em>/minha-key</em> no site e libere um dispositivo antigo.</li>
+                    <li><strong>Extensão sumiu</strong> → não apague a pasta extraída. Se apagou, baixe o .zip de novo.</li>
+                    <li>Qualquer dúvida chama no WhatsApp pelo botão flutuante do site.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        {/* Dicas de uso */}
+        <section id="dicas" className="landing-section" style={{ paddingTop: '0' }}>
+          <div className="section-header">
+            <p className="eyebrow">Aprenda mais</p>
+            <h2>Dicas de uso e funcionalidades</h2>
+          </div>
+          <div className="video-grid">
+            {[
+              { id: 'dQw4w9WgXcQ', title: 'Primeiros passos no Ultra Chat', desc: 'Aprenda a instalar e configurar sua extensão.' },
+              { id: 'dQw4w9WgXcQ', title: 'Como otimizar seus prompts', desc: 'Dicas para extrair o melhor resultado da IA.' },
+              { id: 'dQw4w9WgXcQ', title: 'Recursos avançados', desc: 'Funcionalidades que vão turbinar seu design.' },
+              { id: 'dQw4w9WgXcQ', title: 'Integração com outras ferramentas', desc: 'Conecte o Ultra Chat ao seu workflow.' },
+            ].map(v => (
+              <div key={v.id + v.title} className="video-card" onClick={() => { setSelectedVideo(v.id); setVideoModalOpen(true) }}>
+                <div className="video-thumb">
+                  <img src={`https://img.youtube.com/vi/${v.id}/hqdefault.jpg`} alt={v.title} loading="lazy" />
+                  <div className="video-play-icon">▶</div>
+                </div>
+                <div className="video-info">
+                  <strong>{v.title}</strong>
+                  <p>{v.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
       </main>
 
       {/* Modal de Compra */}
-      {showBuyModal && (
+      {showBuyModal && (() => {
+        const upsell = getUpsellInfo(quantity)
+        const price = calculatePrice(quantity)
+        return (
         <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowBuyModal(false) }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowBuyModal(false)}>&times;</button>
@@ -802,45 +939,74 @@ export default function ResellerDashboard() {
             </p>
 
             <form onSubmit={handleBuyCredits} className="stack-form">
-              <div style={{ padding: '20px', background: 'rgba(157,255,47,0.08)', borderRadius: '14px', marginBottom: '20px' }}>
+              {/* Seletor de quantidade */}
+              <div style={{ padding: '20px', background: 'rgba(157,255,47,0.08)', borderRadius: '14px', marginBottom: '16px' }}>
                 <label style={{ marginBottom: '12px' }}>
                   <span>Quantas chaves você quer comprar?</span>
                 </label>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
-                  <Button
-                    variant="outline"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    style={{ minHeight: '40px', width: '40px' }}
-                  >
-                    −
-                  </Button>
-                  <input 
-                    type="number" 
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-                    min="1"
-                    style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => setQuantity(quantity + 1)}
-                    style={{ minHeight: '40px', width: '40px' }}
-                  >
-                    +
-                  </Button>
+                  <Button variant="outline" onClick={() => setQuantity(Math.max(1, quantity - 1))} style={{ minHeight: '40px', width: '40px' }}>−</Button>
+                  <input type="number" value={quantity} onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))} min="1" style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }} />
+                  <Button variant="outline" onClick={() => setQuantity(quantity + 1)} style={{ minHeight: '40px', width: '40px' }}>+</Button>
                 </div>
                 <p style={{ color: 'var(--muted)', fontSize: '12px', margin: 0 }}>
-                  R$ {calculatePrice(quantity).unitPrice.toFixed(2)} cada
-                  {calculatePrice(quantity).discount > 0 && ` (${calculatePrice(quantity).discount}% de desconto)`}
+                  R$ {price.unitPrice.toFixed(2)} cada
+                  {price.discount > 0 && ` (${price.discount}% de desconto)`}
                 </p>
               </div>
 
+              {/* Badge dinâmico */}
+              {upsell.badge && (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '6px 14px', borderRadius: '999px', marginBottom: '16px',
+                  background: `${upsell.badgeColor}15`, border: `1px solid ${upsell.badgeColor}40`,
+                  fontSize: '12px', fontWeight: 700, color: upsell.badgeColor,
+                  animation: 'fadeIn 0.3s ease',
+                }}>
+                  {upsell.badge}
+                </div>
+              )}
+
+              {/* Mensagem de incentivo */}
+              <div key={quantity} style={{
+                padding: '16px', borderRadius: '14px', marginBottom: '16px',
+                background: 'rgba(109,232,255,0.06)', border: '1px solid rgba(109,232,255,0.15)',
+                animation: 'fadeIn 0.3s ease',
+              }}>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>
+                  {upsell.emoji} {upsell.title}
+                </div>
+                <p style={{ fontSize: '13px', color: 'var(--muted)', margin: 0, lineHeight: 1.6 }}>
+                  {upsell.message}
+                </p>
+              </div>
+
+              {/* Dica do próximo pacote */}
+              {upsell.nextTier && (
+                <div style={{
+                  padding: '12px 16px', borderRadius: '12px', marginBottom: '16px',
+                  background: 'rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.06)',
+                  border: '1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.15)',
+                  fontSize: '13px', color: 'var(--accent)', fontWeight: 600,
+                  animation: 'fadeIn 0.3s ease',
+                }}>
+                  ✅ Adicionando apenas mais {upsell.nextTier.savings} licença{upsell.nextTier.savings > 1 ? 's' : ''} você reduz ainda mais o custo por licença para R$ {upsell.nextTier.price.toFixed(2)}.
+                </div>
+              )}
+
+              {/* Resumo */}
               <div style={{ background: 'rgba(109,232,255,0.08)', padding: '16px', borderRadius: '14px', marginBottom: '20px' }}>
                 <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}><Package size={18} /> Resumo</h3>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ color: 'var(--muted)' }}>Chaves ({quantity} × R$ {calculatePrice(quantity).unitPrice.toFixed(2)})</span>
-                  <strong style={{ color: 'var(--cyan)' }}>R$ {calculatePrice(quantity).total.toFixed(2)}</strong>
+                  <span style={{ color: 'var(--muted)' }}>Chaves ({quantity} × R$ {price.unitPrice.toFixed(2)})</span>
+                  <strong style={{ color: 'var(--cyan)' }}>R$ {price.total.toFixed(2)}</strong>
                 </div>
+                {upsell.savingsVsBase > 0 && (
+                  <div style={{ fontSize: '12px', color: '#10b981', fontWeight: 600, marginBottom: '4px' }}>
+                    💸 Você economiza R$ {upsell.savingsVsBase.toFixed(2)} vs. comprar avulso
+                  </div>
+                )}
                 <div style={{ fontSize: '11px', color: 'var(--muted-2)', marginTop: '12px' }}>
                   ✓ Chaves vitalícias<br/>
                   ✓ Você revende pelo preço que quiser<br/>
@@ -851,46 +1017,23 @@ export default function ResellerDashboard() {
 
               <label>
                 <span>Nome completo</span>
-                <input 
-                  type="text" 
-                  value={buyerName}
-                  onChange={(e) => setBuyerName(e.target.value)}
-                  placeholder="João Silva"
-                  required 
-                />
+                <input type="text" value={buyerName} onChange={(e) => setBuyerName(e.target.value)} placeholder="João Silva" required />
               </label>
 
               <div className="split-fields">
                 <label>
                   <span>CPF / CNPJ</span>
-                  <input 
-                    type="text" 
-                    value={buyerCPF}
-                    onChange={(e) => setBuyerCPF(e.target.value)}
-                    placeholder="000.000.000-00"
-                    required 
-                  />
+                  <input type="text" value={buyerCPF} onChange={(e) => setBuyerCPF(e.target.value)} placeholder="000.000.000-00" required />
                 </label>
                 <label>
                   <span>Telefone</span>
-                  <input 
-                    type="tel" 
-                    value={buyerPhone}
-                    onChange={(e) => setBuyerPhone(formatWhatsApp(e.target.value))}
-                    placeholder="(11) 99999-9999"
-                    required 
-                  />
+                  <input type="tel" value={buyerPhone} onChange={(e) => setBuyerPhone(formatWhatsApp(e.target.value))} placeholder="(11) 99999-9999" required />
                 </label>
               </div>
 
               <label>
                 <span>Email (opcional)</span>
-                <input 
-                  type="email" 
-                  value={buyerEmail}
-                  onChange={(e) => setBuyerEmail(e.target.value)}
-                  placeholder={user?.email || 'seu@email.com'}
-                />
+                <input type="email" value={buyerEmail} onChange={(e) => setBuyerEmail(e.target.value)} placeholder={user?.email || 'seu@email.com'} />
               </label>
 
               <p style={{ padding: '12px', background: 'rgba(109,232,255,0.1)', borderRadius: '12px', fontSize: '13px', color: 'var(--muted)', margin: '16px 0' }}>
@@ -898,12 +1041,13 @@ export default function ResellerDashboard() {
               </p>
 
               <Button type="submit" style={{ width: '100%', minHeight: '48px', fontSize: '16px' }}>
-                Pagar R$ {calculatePrice(quantity).total.toFixed(2)}
+                Pagar R$ {price.total.toFixed(2)}
               </Button>
             </form>
           </div>
         </div>
-      )}
+        )
+      })()}
 
       {/* Modal Pix */}
       {showPixModal && (
@@ -997,6 +1141,22 @@ export default function ResellerDashboard() {
         onConfirm={handleConfirmDialog}
         onCancel={handleCloseDialog}
       />
+
+      {/* Modal de vídeo */}
+      {videoModalOpen && (
+        <div className="video-modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setVideoModalOpen(false) }}>
+          <div className="video-modal-dialog">
+            <button className="video-modal-close" onClick={() => setVideoModalOpen(false)}><X size={20} /></button>
+            <iframe
+              className="video-modal-player"
+              src={`https://www.youtube.com/embed/${selectedVideo}?autoplay=1&rel=0`}
+              title="Video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
 
     </ResellerLayout>
   )
