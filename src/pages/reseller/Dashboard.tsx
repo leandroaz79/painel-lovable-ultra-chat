@@ -683,7 +683,7 @@ export default function ResellerDashboard() {
           </article>
         </section>
 
-        <section className="table-card reveal">
+        <section className="table-card reveal" style={{ width: '100%', boxSizing: 'border-box' }}>
           <div className="table-head">
             <div>
               <h2>Minhas Licenças</h2>
@@ -846,84 +846,84 @@ export default function ResellerDashboard() {
           </section>
         )}
 
-        {/* Tutorial de instalação */}
-        <section className="landing-section" style={{ paddingTop: '0' }}>
-          <div className="section-header">
-            <p className="eyebrow">Recursos</p>
-            <h2>Comece a usar</h2>
-          </div>
-          <div className="work-grid">
-            <article className="glass-card" style={{ gridColumn: '1 / -1' }}>
-              <div className="card-heading">
-                <span className="icon-pill" aria-hidden="true"><Video size={20} /></span>
-                <h2>Como instalar a extensão</h2>
-              </div>
-              <div className="install-layout">
-                <div className="install-video">
-                  <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '14px' }}>
-                    <iframe
-                      src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                      title="Tutorial Ultra Chat"
-                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                </div>
-                <div className="install-text">
-                  <h3>Instalação (Chrome / Edge / Brave / Opera)</h3>
-                  <ol>
-                    <li><strong>Baixe</strong> o arquivo .zip na seção de Download acima.</li>
-                    <li>Clique com o botão direito no .zip e escolha <strong>Extrair tudo</strong> (guarde a pasta em algum lugar fácil, ex: Documentos).</li>
-                    <li>No navegador, abra: <code>chrome://extensions</code></li>
-                    <li>Ative o <strong>Modo do desenvolvedor</strong> (canto superior direito).</li>
-                    <li>Clique em <strong>Carregar sem compactação</strong> e selecione a pasta extraída (a que tem o <code>manifest.json</code>).</li>
-                    <li>A extensão Ultra Chat aparece na lista. <strong>Fixe ela na barra</strong> (ícone de quebra-cabeça → alfinete).</li>
-                    <li>Clique no ícone da extensão, <strong>cole sua key</strong> e clique em <strong>Ativar</strong>.</li>
-                    <li>Pronto! Abra o Lovable e use à vontade.</li>
-                  </ol>
-                  <p className="install-warn">Não apague a pasta extraída — a extensão roda a partir dela.</p>
-                  <h4>Problemas comuns</h4>
-                  <ul className="install-faq">
-                    <li><strong>"Key inválida"</strong> → confira se copiou sem espaços.</li>
-                    <li><strong>"Limite de dispositivos atingido"</strong> → entre em <em>/minha-key</em> no site e libere um dispositivo antigo.</li>
-                    <li><strong>Extensão sumiu</strong> → não apague a pasta extraída. Se apagou, baixe o .zip de novo.</li>
-                    <li>Qualquer dúvida chama no WhatsApp pelo botão flutuante do site.</li>
-                  </ul>
-                </div>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        {/* Dicas de uso */}
-        <section id="dicas" className="landing-section" style={{ paddingTop: '0' }}>
-          <div className="section-header">
-            <p className="eyebrow">Aprenda mais</p>
-            <h2>Dicas de uso e funcionalidades</h2>
-          </div>
-          <div className="video-grid">
-            {[
-              { id: 'dQw4w9WgXcQ', title: 'Primeiros passos no Ultra Chat', desc: 'Aprenda a instalar e configurar sua extensão.' },
-              { id: 'dQw4w9WgXcQ', title: 'Como otimizar seus prompts', desc: 'Dicas para extrair o melhor resultado da IA.' },
-              { id: 'dQw4w9WgXcQ', title: 'Recursos avançados', desc: 'Funcionalidades que vão turbinar seu design.' },
-              { id: 'dQw4w9WgXcQ', title: 'Integração com outras ferramentas', desc: 'Conecte o Ultra Chat ao seu workflow.' },
-            ].map(v => (
-              <div key={v.id + v.title} className="video-card" onClick={() => { setSelectedVideo(v.id); setVideoModalOpen(true) }}>
-                <div className="video-thumb">
-                  <img src={`https://img.youtube.com/vi/${v.id}/hqdefault.jpg`} alt={v.title} loading="lazy" />
-                  <div className="video-play-icon">▶</div>
-                </div>
-                <div className="video-info">
-                  <strong>{v.title}</strong>
-                  <p>{v.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
       </main>
+
+      {/* Tutorial de instalação */}
+      <section className="landing-section" style={{ paddingTop: '0' }}>
+        <div className="section-header">
+          <p className="eyebrow">Recursos</p>
+          <h2>Comece a usar</h2>
+        </div>
+        <div className="work-grid">
+          <article className="glass-card" style={{ gridColumn: '1 / -1' }}>
+            <div className="card-heading">
+              <span className="icon-pill" aria-hidden="true"><Video size={20} /></span>
+              <h2>Como instalar a extensão</h2>
+            </div>
+            <div className="install-layout">
+              <div className="install-video">
+                <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', borderRadius: '14px' }}>
+                  <iframe
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                    title="Tutorial Ultra Chat"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+              <div className="install-text">
+                <h3>Instalação (Chrome / Edge / Brave / Opera)</h3>
+                <ol>
+                  <li><strong>Baixe</strong> o arquivo .zip na seção de Download acima.</li>
+                  <li>Clique com o botão direito no .zip e escolha <strong>Extrair tudo</strong> (guarde a pasta em algum lugar fácil, ex: Documentos).</li>
+                  <li>No navegador, abra: <code>chrome://extensions</code></li>
+                  <li>Ative o <strong>Modo do desenvolvedor</strong> (canto superior direito).</li>
+                  <li>Clique em <strong>Carregar sem compactação</strong> e selecione a pasta extraída (a que tem o <code>manifest.json</code>).</li>
+                  <li>A extensão Ultra Chat aparece na lista. <strong>Fixe ela na barra</strong> (ícone de quebra-cabeça → alfinete).</li>
+                  <li>Clique no ícone da extensão, <strong>cole sua key</strong> e clique em <strong>Ativar</strong>.</li>
+                  <li>Pronto! Abra o Lovable e use à vontade.</li>
+                </ol>
+                <p className="install-warn">Não apague a pasta extraída — a extensão roda a partir dela.</p>
+                <h4>Problemas comuns</h4>
+                <ul className="install-faq">
+                  <li><strong>"Key inválida"</strong> → confira se copiou sem espaços.</li>
+                  <li><strong>"Limite de dispositivos atingido"</strong> → entre em <em>/minha-key</em> no site e libere um dispositivo antigo.</li>
+                  <li><strong>Extensão sumiu</strong> → não apague a pasta extraída. Se apagou, baixe o .zip de novo.</li>
+                  <li>Qualquer dúvida chama no WhatsApp pelo botão flutuante do site.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      {/* Dicas de uso */}
+      <section id="dicas" className="landing-section" style={{ paddingTop: '0' }}>
+        <div className="section-header">
+          <p className="eyebrow">Aprenda mais</p>
+          <h2>Dicas de uso e funcionalidades</h2>
+        </div>
+        <div className="video-grid">
+          {[
+            { id: 'dQw4w9WgXcQ', title: 'Primeiros passos no Ultra Chat', desc: 'Aprenda a instalar e configurar sua extensão.' },
+            { id: 'dQw4w9WgXcQ', title: 'Como otimizar seus prompts', desc: 'Dicas para extrair o melhor resultado da IA.' },
+            { id: 'dQw4w9WgXcQ', title: 'Recursos avançados', desc: 'Funcionalidades que vão turbinar seu design.' },
+            { id: 'dQw4w9WgXcQ', title: 'Integração com outras ferramentas', desc: 'Conecte o Ultra Chat ao seu workflow.' },
+          ].map(v => (
+            <div key={v.id + v.title} className="video-card" onClick={() => { setSelectedVideo(v.id); setVideoModalOpen(true) }}>
+              <div className="video-thumb">
+                <img src={`https://img.youtube.com/vi/${v.id}/hqdefault.jpg`} alt={v.title} loading="lazy" />
+                <div className="video-play-icon">▶</div>
+              </div>
+              <div className="video-info">
+                <strong>{v.title}</strong>
+                <p>{v.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Modal de Compra */}
       {showBuyModal && (() => {
