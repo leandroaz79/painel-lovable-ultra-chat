@@ -599,14 +599,17 @@ export default function ResellerDashboard() {
           </div>
         </div>
 
-        <section className="glass-card" style={{ padding: '24px', marginTop: '0', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-          <div>
-            <p className="eyebrow" style={{ marginBottom: '4px' }}>Extensão</p>
-            <h2 style={{ fontSize: '18px', margin: '0 0 6px' }}>Download da Extensão</h2>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', margin: 0 }}>
-              Baixe a extensão base para seus clientes que ainda não personalizaram a marca.
-            </p>
+        <section className="glass-card reveal" style={{ padding: '24px', marginTop: '0' }}>
+          <div className="card-heading">
+            <span className="icon-pill" aria-hidden="true"><Package size={20} /></span>
+            <div>
+              <p className="eyebrow" style={{ marginBottom: '4px' }}>Extensão</p>
+              <h2 style={{ fontSize: '18px', margin: '0' }}>Download da Extensão</h2>
+            </div>
           </div>
+          <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 16px' }}>
+            Baixe a extensão base para seus clientes que ainda não personalizaram a marca.
+          </p>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <Button
               onClick={async () => {
@@ -635,7 +638,7 @@ export default function ResellerDashboard() {
           </div>
         </section>
 
-        <section className="work-grid">
+        <section className="work-grid reveal">
           <article id="create-license" className="glass-card">
             <div className="card-heading"><span className="icon-pill" aria-hidden="true"><Key size={20} /></span><h2>Gerar licença</h2></div>
             <form className="stack-form" onSubmit={handleCreateLicense}>
@@ -683,7 +686,7 @@ export default function ResellerDashboard() {
           </article>
         </section>
 
-        <section className="table-card reveal" style={{ width: '100%', boxSizing: 'border-box' }}>
+        <section className="table-card reveal">
           <div className="table-head">
             <div>
               <h2>Minhas Licenças</h2>
@@ -723,9 +726,25 @@ export default function ResellerDashboard() {
               </thead>
               <tbody onClick={handleTableAction}>
                 {loading ? (
-                  <tr><td colSpan={7}>Carregando...</td></tr>
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <tr key={`skel-${i}`}>
+                      {Array.from({ length: 7 }).map((_, j) => (
+                        <td key={j}><div className="skeleton skeleton-line" style={{ height: '14px', width: j === 0 ? '80%' : j === 1 ? '60%' : '50%' }} /></td>
+                      ))}
+                    </tr>
+                  ))
                 ) : filteredLicenses.length === 0 ? (
-                  <tr><td colSpan={7}>Nenhuma licença encontrada.</td></tr>
+                  <tr><td colSpan={7}>
+                    <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+                      <Key size={32} style={{ color: 'var(--muted-2)', marginBottom: '12px' }} />
+                      <p style={{ color: 'var(--text)', fontWeight: 700, marginBottom: '4px' }}>Nenhuma licença encontrada</p>
+                      <p style={{ color: 'var(--muted-2)', fontSize: '13px' }}>
+                        {searchTerm || statusFilter !== 'all'
+                          ? 'Tente ajustar os filtros de busca.'
+                          : 'Gere sua primeira licença usando o formulário acima.'}
+                      </p>
+                    </div>
+                  </td></tr>
                 ) : (
                   paginatedLicenses.map((license) => (
                     <tr key={license.license_key}>
@@ -739,18 +758,18 @@ export default function ResellerDashboard() {
                       <td data-label="Expira">{formatDate(license.expires_at)}</td>
                       <td data-label="HWID">{license.device_id ? 'vinculado' : 'livre'}</td>
                       <td data-label="Ações">
-                        <div className="actions-row">
-                          <Button size="tiny" data-action="copy" data-key={license.license_key}>Copiar</Button>
+                        <div className="actions-row" role="group" aria-label={`Ações para ${license.user_name || 'licença'}`}>
+                          <Button size="tiny" data-action="copy" data-key={license.license_key} aria-label="Copiar chave">Copiar</Button>
                           {license.license_type !== 'trial' && !license.lifetime && (
-                            <Button size="tiny" data-action="renew" data-key={license.license_key}>Renovar</Button>
+                            <Button size="tiny" data-action="renew" data-key={license.license_key} aria-label="Renovar licença">Renovar</Button>
                           )}
                           {license.license_type !== 'trial' || license.lifetime ? (
-                            <Button size="tiny" data-action="reset" data-key={license.license_key}>Liberar PC</Button>
+                            <Button size="tiny" data-action="reset" data-key={license.license_key} aria-label="Liberar PC">Liberar PC</Button>
                           ) : null}
                           {license.status !== 'suspended' && (
-                            <Button size="tiny" variant="destructive" data-action="revoke" data-key={license.license_key}>Revogar</Button>
+                            <Button size="tiny" variant="destructive" data-action="revoke" data-key={license.license_key} aria-label="Revogar licença">Revogar</Button>
                           )}
-                          <Button size="tiny" variant="destructive" data-action="delete" data-key={license.license_key}>Excluir</Button>
+                          <Button size="tiny" variant="destructive" data-action="delete" data-key={license.license_key} aria-label="Excluir licença">Excluir</Button>
                         </div>
                       </td>
                     </tr>
@@ -759,7 +778,7 @@ export default function ResellerDashboard() {
               </tbody>            </table>
           </div>
           {totalPages > 1 && (
-            <div style={{
+            <nav style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -767,7 +786,7 @@ export default function ResellerDashboard() {
               padding: '16px 0',
               borderTop: '1px solid var(--line)',
               marginTop: '8px'
-            }}>
+            }} aria-label="Paginação de licenças">
               <Button variant="outline" disabled={safePage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
                 ← Anterior
               </Button>
@@ -795,7 +814,7 @@ export default function ResellerDashboard() {
                   <option key={size} value={size}>{size} / pág</option>
                 ))}
               </select>
-            </div>
+            </nav>
           )}
         </section>
 
@@ -846,14 +865,8 @@ export default function ResellerDashboard() {
           </section>
         )}
 
-      </main>
-
-      {/* Tutorial de instalação */}
-      <section className="landing-section" style={{ paddingTop: '0' }}>
-        <div className="section-header">
-          <p className="eyebrow">Recursos</p>
-          <h2>Comece a usar</h2>
-        </div>
+        {/* Tutorial de instalação */}
+        <div>
         <div className="work-grid">
           <article className="glass-card" style={{ gridColumn: '1 / -1' }}>
             <div className="card-heading">
@@ -896,14 +909,10 @@ export default function ResellerDashboard() {
             </div>
           </article>
         </div>
-      </section>
+      </div>
 
       {/* Dicas de uso */}
-      <section id="dicas" className="landing-section" style={{ paddingTop: '0' }}>
-        <div className="section-header">
-          <p className="eyebrow">Aprenda mais</p>
-          <h2>Dicas de uso e funcionalidades</h2>
-        </div>
+      <div id="dicas">
         <div className="video-grid">
           {[
             { id: 'dQw4w9WgXcQ', title: 'Primeiros passos no Ultra Chat', desc: 'Aprenda a instalar e configurar sua extensão.' },
@@ -923,7 +932,9 @@ export default function ResellerDashboard() {
             </div>
           ))}
         </div>
-      </section>
+      </div>
+
+      </main>
 
       {/* Modal de Compra */}
       {showBuyModal && (() => {
@@ -931,7 +942,7 @@ export default function ResellerDashboard() {
         const price = calculatePrice(quantity)
         return (
         <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowBuyModal(false) }}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ borderRadius: '14px' }}>
             <button className="modal-close" onClick={() => setShowBuyModal(false)}>&times;</button>
             <h2><ShoppingCart size={22} /> Loja de Revenda</h2>
             <p style={{ color: 'var(--muted)', marginBottom: '24px' }}>
@@ -1052,7 +1063,7 @@ export default function ResellerDashboard() {
       {/* Modal Pix */}
       {showPixModal && (
         <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowPixModal(false) }}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ borderRadius: '14px' }}>
             <h2>Pagamento Pix</h2>
             <p style={{ color: 'var(--muted)', marginBottom: '24px' }}>
               Escaneie o QR Code ou copie o código
@@ -1099,7 +1110,7 @@ export default function ResellerDashboard() {
       {/* Modal de Confirmação de Compra */}
       {purchaseConfirm.show && (
         <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setPurchaseConfirm(prev => ({ ...prev, show: false })) }}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center' }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', borderRadius: '14px' }}>
             {purchaseConfirm.status === 'approved' ? (
               <>
                 <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
