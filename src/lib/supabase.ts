@@ -1,14 +1,25 @@
 import { createClient } from '@supabase/supabase-js'
 
-if (!import.meta.env.VITE_SUPABASE_URL) {
-  throw new Error('Missing VITE_SUPABASE_URL environment variable')
-}
-if (!import.meta.env.VITE_SUPABASE_ANON_KEY) {
-  throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable')
+declare global {
+  interface Window {
+    __RUNTIME_CONFIG__?: {
+      supabaseUrl?: string
+      supabaseAnonKey?: string
+    }
+  }
 }
 
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+const runtimeConfig = window.__RUNTIME_CONFIG__
+
+if (!runtimeConfig?.supabaseUrl) {
+  throw new Error('Missing runtime Supabase URL')
+}
+if (!runtimeConfig.supabaseAnonKey) {
+  throw new Error('Missing runtime Supabase anon key')
+}
+
+export const SUPABASE_URL = runtimeConfig.supabaseUrl
+export const SUPABASE_ANON_KEY = runtimeConfig.supabaseAnonKey
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
