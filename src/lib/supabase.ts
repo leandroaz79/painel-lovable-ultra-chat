@@ -9,17 +9,23 @@ declare global {
   }
 }
 
-const runtimeConfig = window.__RUNTIME_CONFIG__
+const runtimeConfig = typeof window !== 'undefined' ? window.__RUNTIME_CONFIG__ : undefined
 
-if (!runtimeConfig?.supabaseUrl) {
-  throw new Error('Missing runtime Supabase URL')
+// Runtime config (injected via /env.js in Docker/production) takes precedence.
+// Fallback to build-time Vite env vars so local `npm run dev` works without
+// needing a generated public/env.js.
+const supabaseUrl = runtimeConfig?.supabaseUrl || import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = runtimeConfig?.supabaseAnonKey || import.meta.env.VITE_SUPABASE_ANON_KEY
+
+if (!supabaseUrl) {
+  throw new Error('Missing Supabase URL: set window.__RUNTIME_CONFIG__.supabaseUrl or VITE_SUPABASE_URL')
 }
-if (!runtimeConfig.supabaseAnonKey) {
-  throw new Error('Missing runtime Supabase anon key')
+if (!supabaseAnonKey) {
+  throw new Error('Missing Supabase anon key: set window.__RUNTIME_CONFIG__.supabaseAnonKey or VITE_SUPABASE_ANON_KEY')
 }
 
-export const SUPABASE_URL = runtimeConfig.supabaseUrl
-export const SUPABASE_ANON_KEY = runtimeConfig.supabaseAnonKey
+export const SUPABASE_URL = supabaseUrl
+export const SUPABASE_ANON_KEY = supabaseAnonKey
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 

@@ -1,5 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
-import { useAuth } from '../hooks/useAuth'
+import type { ReactNode } from 'react'
+import { AuthProvider, useAuth } from '../hooks/useAuth'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock data defined with vi.hoisted to avoid hoisting issues
@@ -33,9 +34,8 @@ vi.mock('../lib/supabase', () => ({
     },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({
-        data: { role: 'admin' },
+      eq: vi.fn().mockResolvedValue({
+        data: [{ role: 'admin' }],
         error: null,
       }),
     }),
@@ -44,20 +44,22 @@ vi.mock('../lib/supabase', () => ({
   FUNCTIONS: {},
 }))
 
+const wrapper = ({ children }: { children: ReactNode }) => <AuthProvider>{children}</AuthProvider>
+
 describe('useAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it('should start with loading state', () => {
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper })
     expect(result.current.loading).toBe(true)
     expect(result.current.user).toBeNull()
     expect(result.current.role).toBeNull()
   })
 
   it('should load session and user role on mount', async () => {
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper })
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false)
@@ -72,9 +74,9 @@ describe('useAuth', () => {
     vi.mocked(supabaseModule.supabase.auth.signInWithPassword).mockResolvedValue({
       data: { user: mockSession.user, session: mockSession },
       error: null,
-    })
+    } as never)
 
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper })
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false)
@@ -87,7 +89,7 @@ describe('useAuth', () => {
   })
 
   it('should clear user and role on signOut', async () => {
-    const { result } = renderHook(() => useAuth())
+    const { result } = renderHook(() => useAuth(), { wrapper })
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false)
@@ -103,7 +105,7 @@ describe('useAuth', () => {
 
   it('should subscribe to auth state changes', async () => {
     const supabaseModule = await vi.mocked(import('../lib/supabase'))
-    renderHook(() => useAuth())
+    renderHook(() => useAuth(), { wrapper })
 
     expect(supabaseModule.supabase.auth.onAuthStateChange).toHaveBeenCalledTimes(1)
   })
